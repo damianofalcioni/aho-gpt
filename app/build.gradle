@@ -6,6 +6,7 @@ plugins {
 android {
     // AGP 9 otherwise adds Kotlin's standard library even to Java-only apps.
     enableKotlin = false
+    buildFeatures { buildConfig = true }
     namespace = "dev.lightassistant"
     compileSdk = 37
     defaultConfig {
@@ -14,6 +15,7 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "0.1.0"
+        testInstrumentationRunner = "dev.lightassistant.android.tools.IntentLaunchTests"
     }
     flavorDimensions += "device"
     productFlavors {

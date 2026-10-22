@@ -1,9 +1,7 @@
 package dev.lightassistant.android.ui;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.Typeface;
-import android.graphics.drawable.GradientDrawable;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -23,17 +21,15 @@ public final class VoicePanel extends LinearLayout {
     public VoicePanel(Context context, Runnable onSpeak, Runnable onClose) {
         super(context);
         setOrientation(VERTICAL); setPadding(dp(24), dp(20), dp(24), dp(20));
-        GradientDrawable background = new GradientDrawable();
-        background.setColor(Color.rgb(16, 25, 31)); background.setCornerRadius(dp(24));
-        setBackground(background);
+        setBackgroundResource(R.drawable.bg_panel);
         setElevation(dp(12));
         boolean watch = context.getPackageManager().hasSystemFeature("android.hardware.type.watch");
         LinearLayout body = content(watch);
         status = text(14); status.setText(R.string.ready); body.addView(status);
         answer = text(20); answer.setTypeface(Typeface.DEFAULT, Typeface.NORMAL);
         addAnswer(body, watch);
-        speak = button(context.getString(R.string.speak), onSpeak); body.addView(speak);
-        body.addView(button(context.getString(R.string.close), onClose));
+        speak = button(R.string.speak, onSpeak); body.addView(speak);
+        body.addView(button(R.string.close, onClose));
     }
     private LinearLayout content(boolean watch) {
         if (!watch) { return this; }
@@ -51,12 +47,14 @@ public final class VoicePanel extends LinearLayout {
     public void show(String state, String message) {
         status.setText(state); answer.setText(message); speak.setVisibility(View.VISIBLE);
     }
-    private Button button(String label, Runnable action) {
-        Button button = new Button(getContext()); button.setText(label); button.setMinHeight(dp(48));
+    private Button button(int label, Runnable action) {
+        Button button = new Button(getContext()); button.setText(label);
+        LayoutParams params = new LayoutParams(-1, -2); params.topMargin = dp(8);
+        button.setLayoutParams(params);
         button.setOnClickListener(view -> action.run()); return button;
     }
     private TextView text(int size) {
-        TextView text = new TextView(getContext()); text.setTextColor(Color.WHITE);
+        TextView text = new TextView(getContext());
         text.setTextSize(size); text.setGravity(Gravity.CENTER); return text;
     }
     private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }

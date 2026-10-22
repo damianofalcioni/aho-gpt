@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -30,6 +31,9 @@ public final class IntentCatalog {
             try { for (IntentCapability cap : scanner.scan(info)) { found.put(cap.id, cap); } }
             catch (Exception exception) { unreadable++; }
         }
+        for (IntentCapability cap : new ResolvedActivityScanner(manager, context.getPackageName()).scan()) {
+            found.put(cap.id, cap);
+        }
         capabilities.clear(); capabilities.putAll(found);
     }
 
@@ -50,6 +54,8 @@ public final class IntentCatalog {
             String haystack = cap.label + " " + cap.component + " " + cap.action;
             if (haystack.toLowerCase(Locale.ROOT).contains(needle)) { matches.add(cap); }
         }
+        Collections.sort(matches, (first, second) -> Boolean.compare(
+                first.launcherCategory().isEmpty(), second.launcherCategory().isEmpty()));
         JSONArray page = new JSONArray();
         int start = Math.max(0, offset);
         int end = Math.min(matches.size(), start + 25);

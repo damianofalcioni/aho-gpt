@@ -1,0 +1,32 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:fillViewport="true" android:fitsSystemWindows="true">
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="@dimen/page_padding">
+        <Button android:id="@+id/back" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:text="@string/back" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="20dp" android:text="@string/about_settings" android:textSize="26sp" />
+        <TextView style="@style/SettingsHeading" android:text="@string/account_heading" />
+        <TextView android:id="@+id/connection_status" style="@style/SettingsBody"
+            android:accessibilityLiveRegion="polite" android:text="@string/not_connected" />
+        <Button android:id="@+id/connect" style="@style/SettingsAction" android:text="@string/continue_chatgpt" />
+        <Button android:id="@+id/choose_model" style="@style/SettingsAction" android:text="@string/choose_model" />
+        <Button android:id="@+id/manage_usage" style="@style/SettingsAction" android:text="@string/manage_usage" />
+        <Button android:id="@+id/sign_out" style="@style/SettingsAction" android:text="@string/sign_out" />
+        <TextView style="@style/SettingsHeading" android:text="@string/device_heading" />
+        <Button android:id="@+id/speech_languages" style="@style/SettingsAction" android:text="@string/speech_languages" />
+        <Button android:id="@+id/accessibility" style="@style/SettingsAction" android:text="@string/accessibility_name" />
+        <Button android:id="@+id/overlay" style="@style/SettingsAction" android:text="@string/overlay_settings" />
+        <Button android:id="@+id/default_assistant" style="@style/SettingsAction" android:text="@string/default_assistant" />
+        <Button android:id="@+id/refresh_tools" style="@style/SettingsAction" android:text="@string/refresh_tools" />
+        <TextView style="@style/SettingsHeading" android:text="@string/about_heading" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/app_name" android:textSize="20sp" />
+        <TextView android:id="@+id/app_version" style="@style/SettingsBody" />
+        <TextView style="@style/SettingsBody" android:layout_marginTop="12dp" android:text="@string/about_description" />
+        <TextView style="@style/SettingsHeading" android:text="@string/help_heading" />
+        <TextView style="@style/SettingsBody" android:text="@string/setup_help" />
+    </LinearLayout>
+</ScrollView>

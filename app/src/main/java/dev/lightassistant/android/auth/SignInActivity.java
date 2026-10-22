@@ -27,6 +27,9 @@ public final class SignInActivity extends Activity {
         super.onCreate(state);
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setFitsSystemWindows(true);
+        int padding = getResources().getDimensionPixelSize(R.dimen.page_padding);
+        layout.setPadding(padding, padding, padding, padding);
         status = new TextView(this); status.setText(R.string.signing_in); layout.addView(status);
         Button browser = new Button(this); browser.setText(R.string.open_browser);
         browser.setOnClickListener(view -> openBrowser()); layout.addView(browser);

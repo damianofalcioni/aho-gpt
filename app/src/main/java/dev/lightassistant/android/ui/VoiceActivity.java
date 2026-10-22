@@ -16,6 +16,7 @@ public final class VoiceActivity extends Activity {
         super.onCreate(state);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         FrameLayout root = new FrameLayout(this);
+        root.setFitsSystemWindows(true);
         VoicePanel panel = new VoicePanel(this, this::speak, this::finish);
         boolean watch = getPackageManager().hasSystemFeature(PackageManager.FEATURE_WATCH);
         int height = Math.min(380, getResources().getConfiguration().screenHeightDp - 24);

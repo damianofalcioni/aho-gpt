@@ -1,0 +1,5 @@
+<resources>
+    <style name="SettingsHeading" parent="SettingsHeadingBase">
+        <item name="android:accessibilityHeading">true</item>
+    </style>
+</resources>

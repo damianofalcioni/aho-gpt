@@ -9,6 +9,7 @@ import android.os.Looper;
 import android.provider.Settings;
 import android.view.Gravity;
 import android.view.WindowManager;
+import android.view.ContextThemeWrapper;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -27,25 +28,32 @@ public final class AnswerOverlay {
     public void show(String answer) {
         close();
         AssistantAccessibilityService access = AssistantAccessibilityService.connected();
-        Context context = access == null ? app : access;
         if (access == null && !Settings.canDrawOverlays(app)) { return; }
+        Context context = new ContextThemeWrapper(access == null ? app : access, R.style.AppTheme);
         manager = context.getSystemService(WindowManager.class);
         view = new LinearLayout(context); view.setOrientation(LinearLayout.VERTICAL);
-        view.setPadding(24, 20, 24, 20); view.setBackgroundColor(0xF210191F);
+        int padding = Math.round(20 * context.getResources().getDisplayMetrics().density);
+        view.setPadding(padding, padding, padding, padding); view.setBackgroundResource(R.drawable.bg_panel);
         TextView text = new TextView(context); text.setText(answer); text.setTextColor(0xFFFFFFFF);
         text.setTextSize(18); text.setMaxLines(8); view.addView(text);
         Button speak = new Button(context); speak.setText(R.string.speak);
         speak.setOnClickListener(button -> { close(); app.startActivity(new Intent(app, VoiceActivity.class)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)); });
-        view.addView(speak);
+        addButton(speak);
         Button dismiss = new Button(context); dismiss.setText(R.string.close);
-        dismiss.setOnClickListener(button -> close()); view.addView(dismiss);
+        dismiss.setOnClickListener(button -> close()); addButton(dismiss);
         int type = access != null ? WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY : overlayType();
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(-2, -2, type,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, PixelFormat.TRANSLUCENT);
         params.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
         try { manager.addView(view, params); main.postDelayed(this::close, 12_000); }
         catch (RuntimeException exception) { view = null; }
+    }
+
+    private void addButton(Button button) {
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+        params.topMargin = Math.round(8 * app.getResources().getDisplayMetrics().density);
+        view.addView(button, params);
     }
 
     @android.annotation.SuppressLint("ObsoleteSdkInt") // Shared phone code also supports Android 6–7.

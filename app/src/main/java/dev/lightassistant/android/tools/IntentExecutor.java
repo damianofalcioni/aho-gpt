@@ -26,7 +26,7 @@ public final class IntentExecutor {
     public void revealTargetApp() { context.moveTaskToBack(true); }
 
     private Intent build(IntentCapability cap, JSONObject args) throws Exception {
-        Intent intent = new Intent(cap.action).setComponent(cap.component);
+        Intent intent = baseIntent(cap);
         String data = args.optString("data_uri");
         String mime = args.optString("mime_type");
         Uri uri = data.isEmpty() ? null : Uri.parse(data);
@@ -38,6 +38,15 @@ public final class IntentExecutor {
             throw new IllegalArgumentException("Arguments do not match the discovered intent filter");
         }
         extras(intent, args.optJSONObject("string_extras"));
+        return intent;
+    }
+
+    private Intent baseIntent(IntentCapability cap) {
+        Intent intent = new Intent(cap.action).setComponent(cap.component);
+        String category = cap.launcherCategory();
+        if (!category.isEmpty()) {
+            intent.addCategory(category).addFlags(Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+        }
         return intent;
     }
 

@@ -8,7 +8,7 @@ public final class ToolDefinitions {
 
     public static JSONArray create(boolean accessibility) throws Exception {
         JSONArray functions = new JSONArray()
-                .put(function("find_intents", "Search installed apps' exported intent tools. Empty query lists all; paginate with offset.",
+                .put(function("find_intents", "Search installed apps' exported intent tools. App launchers (opens_app) come first. Empty query lists all; paginate with offset.",
                         "{\"query\":{\"type\":\"string\"},\"offset\":{\"type\":\"integer\",\"minimum\":0}}"))
                 .put(function("invoke_intent", "Invoke an exact discovered capability to carry out the user's request. Do not invent IDs or extras.",
                         "{\"capability_id\":{\"type\":\"string\"},\"data_uri\":{\"type\":\"string\"},"

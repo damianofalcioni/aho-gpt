@@ -1,6 +1,7 @@
 package dev.lightassistant.android.tools;
 
 import android.content.ComponentName;
+import android.content.Intent;
 import android.content.IntentFilter;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,10 +21,17 @@ public final class IntentCapability {
 
     public JSONObject describe() throws JSONException {
         return new JSONObject().put("id", id).put("app", label).put("kind", kind)
+                .put("opens_app", !launcherCategory().isEmpty())
                 .put("component", component.flattenToString()).put("action", action)
                 .put("schemes", strings(filter.schemesIterator())).put("mime_types", strings(filter.typesIterator()))
                 .put("authorities", authorities()).put("paths", paths()).put("categories", strings(filter.categoriesIterator()))
                 .put("note", "Exported intent. Extra parameter semantics are not discoverable; do not invent them.");
+    }
+
+    public String launcherCategory() {
+        if (!"activity".equals(kind) || !Intent.ACTION_MAIN.equals(action)) { return ""; }
+        if (filter.hasCategory(Intent.CATEGORY_LAUNCHER)) { return Intent.CATEGORY_LAUNCHER; }
+        return filter.hasCategory(Intent.CATEGORY_LEANBACK_LAUNCHER) ? Intent.CATEGORY_LEANBACK_LAUNCHER : "";
     }
 
     private org.json.JSONArray authorities() throws JSONException {

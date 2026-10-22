@@ -1,0 +1,9 @@
+<resources>
+    <dimen name="page_padding">20dp</dimen>
+    <dimen name="home_padding">12dp</dimen>
+    <dimen name="home_spacing">8dp</dimen>
+    <dimen name="home_logo_size">48dp</dimen>
+    <dimen name="home_speak_size">104dp</dimen>
+    <dimen name="home_speak_text">18sp</dimen>
+    <dimen name="home_mic_size">32dp</dimen>
+</resources>

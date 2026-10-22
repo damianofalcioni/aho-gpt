@@ -1,0 +1,6 @@
+<resources>
+    <dimen name="page_padding">40dp</dimen>
+    <dimen name="home_padding">40dp</dimen>
+    <dimen name="home_speak_size">280dp</dimen>
+    <dimen name="home_mic_size">72dp</dimen>
+</resources>

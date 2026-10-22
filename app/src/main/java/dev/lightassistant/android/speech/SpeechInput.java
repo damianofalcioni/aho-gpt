@@ -1,12 +1,12 @@
 package dev.lightassistant.android.speech;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
-import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import java.util.ArrayList;
+import java.util.Locale;
+import dev.lightassistant.R;
 
 public final class SpeechInput implements RecognitionListener {
     public interface Listener {
@@ -20,19 +20,20 @@ public final class SpeechInput implements RecognitionListener {
 
     public SpeechInput(Context context, Listener listener) {
         this.listener = listener;
-        if (android.os.Build.VERSION.SDK_INT >= 31 && SpeechRecognizer.isOnDeviceRecognitionAvailable(context)) {
-            recognizer = SpeechRecognizer.createOnDeviceSpeechRecognizer(context);
-        } else { recognizer = SpeechRecognizer.createSpeechRecognizer(context); }
+        recognizer = SpeechRecognizerProvider.create(context);
         recognizer.setRecognitionListener(this);
     }
 
-    public static boolean available(Context context) { return SpeechRecognizer.isRecognitionAvailable(context); }
-    public void start() {
-        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-                .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false)
-                .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
-        active = true; recognizer.startListening(intent);
+    public static boolean available(Context context) { return SpeechRecognizerProvider.available(context); }
+    public void start(Locale locale) {
+        active = true; recognizer.startListening(SpeechRecognizerProvider.request(locale));
+    }
+    public static String errorText(Context context, int error) {
+        if (error == SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED || error == SpeechRecognizer.ERROR_LANGUAGE_UNAVAILABLE) {
+            return context.getString(R.string.stt_language_unavailable,
+                    SpeechPreferences.label(context, SpeechPreferences.locale(context, SpeechPreferences.INPUT)));
+        }
+        return context.getString(R.string.speech_error, error);
     }
     public void cancel() { active = false; recognizer.cancel(); }
     public void close() { cancel(); recognizer.destroy(); }

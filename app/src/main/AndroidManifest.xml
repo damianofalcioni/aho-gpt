@@ -30,6 +30,7 @@
             <intent-filter><action android:name="android.intent.action.ASSIST" /><category android:name="android.intent.category.DEFAULT" /></intent-filter>
             <intent-filter><action android:name="android.intent.action.VOICE_COMMAND" /><category android:name="android.intent.category.DEFAULT" /></intent-filter>
         </activity>
+        <activity android:name=".android.ui.SettingsActivity" android:exported="false" android:taskAffinity="${applicationId}" />
         <activity android:name=".android.auth.SignInActivity" android:exported="false" android:taskAffinity="${applicationId}" />
         <service android:name=".android.access.AssistantAccessibilityService" android:exported="true"
             android:label="@string/accessibility_name" android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
