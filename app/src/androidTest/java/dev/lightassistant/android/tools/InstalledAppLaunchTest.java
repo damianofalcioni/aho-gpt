@@ -35,7 +35,7 @@ final class InstalledAppLaunchTest {
         instrumentation.waitForIdleSync();
         IntentCatalog catalog = new IntentCatalog(instrumentation.getTargetContext());
         catalog.scan();
-        JSONObject search = catalog.search(targetPackage, 0);
+        JSONObject search = catalog.search(new JSONObject().put("package", targetPackage).put("category", "open_app"));
         IntentCapability launcher = launcher(catalog, search.getJSONArray("capabilities"));
         DeviceTools tools = new DeviceTools(catalog, new IntentExecutor(activity));
         String dispatch = tools.execute("invoke_intent", new JSONObject().put("capability_id", launcher.id)
@@ -43,6 +43,8 @@ final class InstalledAppLaunchTest {
         instrumentation.waitForIdleSync();
         result.putInt("catalog_entries", catalog.size());
         result.putInt("matching_entries", search.getInt("total"));
+        result.putInt("https_handlers", catalog.search(new JSONObject().put("package", targetPackage)
+                .put("category", "open_link").put("scheme", "https")).getInt("total"));
         result.putString("launcher_component", launcher.component.flattenToString());
         result.putString("stream", dispatch + "\nCheck the foreground package separately to verify the app opened.\n");
     }

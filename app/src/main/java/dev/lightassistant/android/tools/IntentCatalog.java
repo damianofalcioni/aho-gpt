@@ -3,11 +3,12 @@ package dev.lightassistant.android.tools;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import java.util.ArrayList;
+import dev.lightassistant.core.CapabilityIndex;
+import dev.lightassistant.core.CapabilityMetadata;
+import dev.lightassistant.core.CapabilityQuery;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -15,6 +16,7 @@ import org.json.JSONObject;
 public final class IntentCatalog {
     private final Context context;
     private final Map<String, IntentCapability> capabilities = new LinkedHashMap<>();
+    private CapabilityIndex index = new CapabilityIndex(Collections.emptyMap());
     private int scanned;
     private int unreadable;
 
@@ -35,6 +37,9 @@ public final class IntentCatalog {
             found.put(cap.id, cap);
         }
         capabilities.clear(); capabilities.putAll(found);
+        Map<String, CapabilityMetadata> metadata = new LinkedHashMap<>();
+        for (IntentCapability cap : found.values()) { metadata.put(cap.id, cap.metadata()); }
+        index = new CapabilityIndex(metadata);
     }
 
     private List<PackageInfo> installed(PackageManager manager) {
@@ -48,21 +53,24 @@ public final class IntentCatalog {
     private List<PackageInfo> legacyPackages(PackageManager manager, int flags) { return manager.getInstalledPackages(flags); }
 
     public synchronized JSONObject search(String query, int offset) throws Exception {
-        String needle = query.toLowerCase(Locale.ROOT);
-        List<IntentCapability> matches = new ArrayList<>();
-        for (IntentCapability cap : capabilities.values()) {
-            String haystack = cap.label + " " + cap.component + " " + cap.action;
-            if (haystack.toLowerCase(Locale.ROOT).contains(needle)) { matches.add(cap); }
+        return search(new JSONObject().put("query", query).put("offset", offset));
+    }
+
+    public synchronized JSONObject search(JSONObject arguments) throws Exception {
+        CapabilityQuery query = new CapabilityQuery(arguments);
+        JSONObject result;
+        switch (arguments.optString("mode", "search")) {
+            case "overview": result = index.overview(query); break;
+            case "search": result = page(index.search(query, arguments.optInt("offset"))); break;
+            default: throw new IllegalArgumentException("Discovery mode must be overview or search");
         }
-        Collections.sort(matches, (first, second) -> Boolean.compare(
-                first.launcherCategory().isEmpty(), second.launcherCategory().isEmpty()));
+        return result.put("packages_scanned", scanned).put("unreadable_manifests", unreadable);
+    }
+
+    private JSONObject page(CapabilityIndex.Page matches) throws Exception {
         JSONArray page = new JSONArray();
-        int start = Math.max(0, offset);
-        int end = Math.min(matches.size(), start + 25);
-        for (int i = start; i < end; i++) { page.put(matches.get(i).describe()); }
-        return new JSONObject().put("capabilities", page).put("total", matches.size())
-                .put("next_offset", end < matches.size() ? end : -1)
-                .put("packages_scanned", scanned).put("unreadable_manifests", unreadable);
+        for (String id : matches.ids()) { page.put(capabilities.get(id).describe()); }
+        return new JSONObject().put("capabilities", page).put("total", matches.total()).put("next_offset", matches.nextOffset());
     }
 
     public synchronized IntentCapability get(String id) {

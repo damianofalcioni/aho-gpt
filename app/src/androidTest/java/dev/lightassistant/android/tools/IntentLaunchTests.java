@@ -23,23 +23,25 @@ public final class IntentLaunchTests extends Instrumentation {
     @Override public void onStart() {
         if (!targetPackage.isEmpty()) { new InstalledAppLaunchTest(this, targetPackage).run(); return; }
         Check[] checks = {() -> launcher(Intent.CATEGORY_LAUNCHER), () -> launcher(Intent.CATEGORY_LEANBACK_LAUNCHER),
-                this::nonLauncher, this::deepLink, this::invalidData, this::rejectedLaunch};
-        String[] names = {"phoneLauncher", "tvLauncher", "nonLauncher", "deepLink", "invalidData", "rejectedLaunch"};
+                this::nonLauncher, this::deepLink, this::invalidData, this::rejectedLaunch,
+                this::mimeMetadata, this::discovery};
+        String[] names = {"phoneLauncher", "tvLauncher", "nonLauncher", "deepLink", "invalidData", "rejectedLaunch",
+                "mimeMetadata", "discovery"};
         int failures = 0;
         for (int i = 0; i < checks.length; i++) {
-            if (!check(i, names[i], checks[i])) { failures++; }
+            if (!check(i, names[i], checks[i], checks.length)) { failures++; }
         }
         Bundle results = new Bundle();
         results.putString("stream", "Tests run: " + checks.length + ", Failures: " + failures + "\n");
         finish(Activity.RESULT_OK, results);
     }
 
-    private boolean check(int index, String name, Check action) {
+    private boolean check(int index, String name, Check action, int total) {
         Bundle status = new Bundle();
         status.putString("id", "IntentLaunchTests");
         status.putString("class", getClass().getName());
         status.putString("test", name);
-        status.putInt("numtests", 6);
+        status.putInt("numtests", total);
         status.putInt("current", index + 1);
         sendStatus(1, status);
         try {
@@ -114,6 +116,19 @@ public final class IntentLaunchTests extends Instrumentation {
         } catch (SecurityException expected) {
             require(!activity.hidden, "A rejected launch must not hide the assistant");
         }
+    }
+
+    private void mimeMetadata() throws Exception {
+        IntentFilter filter = new IntentFilter(Intent.ACTION_SEND);
+        filter.addDataType("image/*");
+        JSONObject described = capability(Intent.ACTION_SEND, filter).describe();
+        require("image/*".equals(described.getJSONArray("mime_types").getString(0)), "Normalize Android wildcard MIME storage");
+        require("share_content".equals(described.getString("category")), "Describe the declared share action");
+        require(described.getString("usage").contains("unsupported"), "Do not claim image URI streams can be sent");
+    }
+
+    private void discovery() throws Exception {
+        new CatalogDiscoveryTest(getTargetContext(), activity()).run();
     }
 
     private IntentCapability capability(String action, IntentFilter filter) {

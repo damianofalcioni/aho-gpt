@@ -22,7 +22,7 @@ public final class DeviceTools implements AgentLoop.Tools {
 
     @Override public String execute(String name, JSONObject args) throws Exception {
         switch (name) {
-            case "find_intents": return catalog.search(args.optString("query"), args.optInt("offset")).toString();
+            case "find_intents": return catalog.search(args).toString();
             case "invoke_intent": return invoke(args);
             case "read_screen": return onTarget(() -> service().screen().read(service()).toString());
             case "ui_action":

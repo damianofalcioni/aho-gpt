@@ -61,9 +61,17 @@ On process start and explicit rescan, the app enumerates installed packages and 
 
 Intent and accessibility actions run within the active voice request. Ambiguous actions are clarified through spoken follow-up. Dispatch failures are returned to the model; a dispatched intent is never reported as verified completion. No action runs from a partial or failed model response, and tool rounds are bounded. Close cancels pending inference.
 
-App searches list discovered launcher activities first and mark them with `opens_app`. Opening an app uses its exact exported component, `ACTION_MAIN`, the discovered phone or TV launcher category, and launcher task flags. The model is instructed to invoke that entry directly without minimizing the assistant or reading the screen first. Android still controls whether a launch is allowed; background launches may be restricted.
+App searches list discovered launcher activities first and mark them with `opens_app`. Opening an app by intent uses its exact exported component, `ACTION_MAIN`, the discovered phone or TV launcher category, and launcher task flags. When a suitable launcher is found, the model is instructed to invoke that entry directly without minimizing the assistant or reading the screen first. Android still controls whether a launch is allowed; background launches may be restricted.
+
+If targeted intent searches find no usable capability, or intent dispatch reports a failure, the model is instructed to try the enabled accessibility tools for the same clear spoken request. This fallback can locate and open the requested app through Home, its launcher or Recents, and navigate inside it. The model must read fresh screen state after navigation, use node IDs from the latest read and check the visible target after opening it. Ambiguous targets require a spoken clarification; platform permissions and inaccessible controls remain binding. If accessibility is unavailable or the fallback fails, the model reports the limitation. This is model guidance within the existing eight-round tool limit, not a deterministic fallback controller or a guarantee of successful UI navigation.
 
 The local catalog can contain thousands of capabilities. Responses receives two tool functions, or four with accessibility enabled; catalog searches return at most 25 matching entries per page. The app does not send the whole catalog with each request. Android package-resolver queries supplement manifest parsing for phone/TV launchers and general HTTP/HTTPS handlers, including split APK installations. Other filters in split APK manifests may remain undiscovered.
+
+The model can call `find_intents` with `{"mode":"overview"}` to learn which capability categories are present, with counts of declarations and distinct apps. The overview contains no app identities or capability IDs. Categories describe app launchers, web links, viewing content, sharing, photo/video camera entry points, dialing, message composition, content selection, editing and unknown/custom intents. Counts describe declared handlers, not successful task completion.
+
+For a known goal, it can search directly, for example `{"category":"open_link","app":"Chrome","scheme":"https"}`. Optional filters include app-name/package substring (`app`), exact package (`package`), category, component kind, Android action, URI scheme and MIME type. Filters combine with AND; MIME filtering supports wildcards. Optional keyword searches match all words across app metadata, schemes, MIME types and the standard category description. Exact app matches rank ahead of substring matches, with launcher preference within equally relevant results. The model is instructed to narrow searches, inspect the overview or paginate before concluding a capability is missing. Existing `query`/`offset` searches remain supported.
+
+Every result includes `category`, `description`, `usage` and `semantics_known`. Descriptions come from known Android contracts, not from guesses about app names. Custom actions and non-activity intents retain unknown semantics. Usage notes identify executor limitations: text sharing can use the documented string extra, while image streams, URI grants and returned camera/document results are unsupported. Search descriptions do not expand execution permissions or claim those missing features exist.
 
 Android does not publish a complete semantic schema for app extras, hidden/non-exported capabilities, signature-protected components, dynamic receivers, or every deep-link constraint. Discovery cannot make those callable. The scanner reports unreadable manifests, cannot bypass platform access controls, and does not invent extra semantics. String extras are supported; file grants, arbitrary parcelables, nested intents, and file/content URIs are excluded. Background service restrictions still apply. Rescan after installing or updating apps; stale capability IDs fail closed.
 
@@ -71,7 +79,7 @@ Android does not publish a complete semantic schema for app extras, hidden/non-e
 
 ## Security and architecture
 
-- `core/`: monotonic session policy and memory-only conversation state.
+- `core/`: monotonic session policy, memory-only conversation state, and JVM-testable capability classification, filtering, ranking and overview counts.
 - `openai/`: Responses/SSE parsing, function schemas, bounded tool loop; plain JVM tests.
 - `android/auth/`: OAuth PKCE/state/nonce, signed ID-token verification, serialized refresh and Android Keystore AES-GCM atomic credential storage. App OAuth tokens are excluded from backups and never passed to the WebView.
 - `android/tools/`: manifest inventory, searchable capability catalog and explicit intent dispatch.
@@ -89,13 +97,21 @@ App and screen text are treated as untrusted data in model instructions. Tool ex
 
 PMD inherits the reference project's zero-violation baseline: cognitive complexity below 10, method cyclomatic complexity below 8, class complexity below 40, NPath below 80, method NCSS below 60, and class NCSS below 400. No runtime dependency is added by these checks. CI runs the same validation.
 
-Tests cover follow-up expiry, context reset, tool result replay, tool loop bounds, namespace isolation, truncated SSE, late inference failures, and language catalog normalization and unknown-versus-empty support. Real-device OAuth, speech providers, accessibility interactions, TV mapper behavior, watch layouts and overlays require device testing. No live inference or account access is performed by the build.
+Tests cover follow-up expiry, context reset, tool result replay, tool loop bounds, namespace isolation, truncated SSE, late inference failures, language catalog normalization, capability classification, structured filtering, wildcard MIME types, ranking, bounded pagination and overview privacy. Real-device OAuth, speech providers, accessibility interactions, TV mapper behavior, watch layouts and overlays require device testing. No live inference or account access is performed by the build.
 
-The dependency-free `IntentLaunchTests` instrumentation checks phone and TV launcher categories and task flags, ordinary activities, deep-link preservation, invalid arguments and launch rejection. Build them with `assembleHandheldDebugAndroidTest assembleWearDebugAndroidTest`; run them on a connected device with `connectedHandheldDebugAndroidTest` or `connectedWearDebugAndroidTest`. These use a recording activity to check dispatch construction; they do not prove that Chrome opens on a particular device.
+The dependency-free `IntentLaunchTests` instrumentation checks phone and TV launcher categories and task flags, ordinary activities, deep-link preservation, invalid arguments, launch rejection, Android MIME metadata normalization and real-catalog discovery through `DeviceTools`. Build them with `assembleHandheldDebugAndroidTest assembleWearDebugAndroidTest`. For an existing handheld installation, run the following commands to update the app and test APK in place, then execute the checks directly. The current Gradle connected-test installer refused to replace the existing app during device verification. Dispatch-construction checks use a recording activity; they do not prove that Chrome opens on a particular device.
+
+```powershell
+adb install -r app/build/outputs/apk/handheld/debug/app-handheld-debug.apk
+adb install -r app/build/outputs/apk/androidTest/handheld/debug/app-handheld-debug-androidTest.apk
+adb shell am instrument -w dev.lightassistant.debug.test/dev.lightassistant.android.tools.IntentLaunchTests
+```
+
+For Wear OS, use the corresponding wear APK paths and `dev.lightassistant.wear.debug.test` instrumentation package.
 
 For an explicitly requested real-app launch, install the app and its test APK, then run `adb shell am instrument -w -e launch_package com.android.chrome dev.lightassistant.debug.test/dev.lightassistant.android.tools.IntentLaunchTests`. This opt-in check opens the assistant's home screen, scans the real catalog, selects the requested package's discovered launcher and invokes it through `DeviceTools`. Verify the foreground package separately. It does not use speech or contact OpenAI.
 
-On 22 October 2026, all six construction checks passed on a Huawei PRA-LX1 running Android 8 (API 26). The opt-in Chrome check also dispatched the discovered launcher through `DeviceTools`; Android activity and window state then identified Chrome as the resumed and focused app. This verifies that device's catalog-to-launch path, without claiming an end-to-end spoken-request, model, OAuth, TV or Wear OS test.
+On 22 October 2026, all eight instrumentation checks passed on a Huawei PRA-LX1 running Android 8 (API 26). The catalog contained 2,537 declarations; structured Chrome searches selected one app launcher and found two HTTPS handler entries. The opt-in Chrome check dispatched the selected launcher through `DeviceTools`; Android activity and window state then identified Chrome as the resumed and focused app. This verifies that device's discovery and catalog-to-launch path, without claiming an end-to-end spoken-request, model, OAuth, TV or Wear OS test.
 
 ## Official implementation references
 
@@ -108,3 +124,4 @@ On 22 October 2026, all six construction checks passed on a Huawei PRA-LX1 runni
 - [Android text-to-speech languages](https://developer.android.com/reference/android/speech/tts/TextToSpeech)
 - [Android accessibility services](https://developer.android.com/guide/topics/ui/accessibility/service)
 - [Android package visibility](https://developer.android.com/training/package-visibility)
+- [Android standard intent contracts](https://developer.android.com/guide/components/intents-common)
