@@ -1,0 +1,15 @@
+<resources>
+    <style name="AppTheme" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#78E3C2</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowBackground">#10191F</item>
+        <item name="android:colorEdgeEffect">#78E3C2</item>
+    </style>
+    <style name="VoiceTheme" parent="AppTheme">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.35</item>
+    </style>
+</resources>

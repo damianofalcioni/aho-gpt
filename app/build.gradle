@@ -1,0 +1,61 @@
+plugins {
+    id "com.android.application"
+    id "pmd"
+}
+
+android {
+    // AGP 9 otherwise adds Kotlin's standard library even to Java-only apps.
+    enableKotlin = false
+    namespace = "dev.lightassistant"
+    compileSdk = 37
+    defaultConfig {
+        applicationId = "dev.lightassistant"
+        minSdk = 23
+        targetSdk = 37
+        versionCode = 1
+        versionName = "0.1.0"
+    }
+    flavorDimensions += "device"
+    productFlavors {
+        handheld { dimension = "device" }
+        wear { dimension = "device"; applicationIdSuffix = ".wear"; minSdk = 26 }
+    }
+    buildTypes {
+        debug { applicationIdSuffix = ".debug" }
+        release {
+            minifyEnabled = true
+            shrinkResources = true
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt")
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    dependenciesInfo { includeInApk = false; includeInBundle = false }
+    lint {
+        warningsAsErrors = true
+        abortOnError = true
+        // Deliberately pin the user's reference toolchain; upgrades are a separate change.
+        disable "AndroidGradlePluginVersion"
+    }
+}
+
+// No runtime libraries. Android supplies UI, speech, JSON, TLS and cryptography.
+dependencies { testImplementation "junit:junit:4.13.2"; testImplementation "org.json:json:20260814" }
+
+pmd {
+    toolVersion = "7.27.0"
+    consoleOutput = true
+    ruleSetFiles = files("$rootDir/config/pmd/ai-maintainability-ruleset.xml")
+    ruleSets = []
+}
+tasks.register("complexityCheck", Pmd) {
+    group = "verification"
+    source = fileTree("src") { include "**/*.java" }
+    ruleSetFiles = files("$rootDir/config/pmd/ai-maintainability-ruleset.xml")
+    ruleSets = []
+    ignoreFailures = false
+    reports { xml.required = true; html.required = true }
+}
+tasks.named("check").configure { dependsOn("complexityCheck") }

@@ -1,0 +1,47 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <!-- Core function: build a local catalog of installed applications' exported intents. -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:ignore="QueryAllPackagesPermission" />
+    <uses-feature android:name="android.software.leanback" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <queries>
+        <intent><action android:name="android.speech.RecognitionService" /></intent>
+        <intent><action android:name="android.intent.action.TTS_SERVICE" /></intent>
+    </queries>
+    <application android:name=".android.AssistantApplication" android:label="@string/app_name"
+        android:icon="@drawable/ic_assistant" android:banner="@drawable/tv_banner"
+        android:theme="@style/AppTheme" android:allowBackup="false"
+        android:fullBackupContent="@xml/backup_rules" android:dataExtractionRules="@xml/data_extraction_rules"
+        tools:targetApi="s"
+        android:networkSecurityConfig="@xml/network_security_config" android:supportsRtl="true">
+        <activity android:name=".android.ui.MainActivity" android:exported="true" android:taskAffinity="${applicationId}">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".android.ui.VoiceActivity" android:exported="true"
+            android:theme="@style/VoiceTheme" android:taskAffinity="${applicationId}.voice"
+            android:launchMode="singleTask">
+            <intent-filter><action android:name="android.intent.action.ASSIST" /><category android:name="android.intent.category.DEFAULT" /></intent-filter>
+            <intent-filter><action android:name="android.intent.action.VOICE_COMMAND" /><category android:name="android.intent.category.DEFAULT" /></intent-filter>
+        </activity>
+        <activity android:name=".android.auth.SignInActivity" android:exported="false" android:taskAffinity="${applicationId}" />
+        <service android:name=".android.access.AssistantAccessibilityService" android:exported="true"
+            android:label="@string/accessibility_name" android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter><action android:name="android.accessibilityservice.AccessibilityService" /></intent-filter>
+            <meta-data android:name="android.accessibilityservice" android:resource="@xml/accessibility_service" />
+        </service>
+        <service android:name=".android.assist.AssistantVoiceService" android:exported="true"
+            android:permission="android.permission.BIND_VOICE_INTERACTION">
+            <intent-filter><action android:name="android.service.voice.VoiceInteractionService" /></intent-filter>
+            <meta-data android:name="android.voice_interaction" android:resource="@xml/voice_interaction" />
+        </service>
+        <service android:name=".android.assist.AssistantSessionService" android:exported="true"
+            android:permission="android.permission.BIND_VOICE_INTERACTION" />
+    </application>
+</manifest>

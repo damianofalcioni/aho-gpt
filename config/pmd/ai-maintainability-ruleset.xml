@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="Light Assistant AI maintainability baseline"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.github.io/schema/ruleset_2_0_0.xsd">
+    <description>
+        Enforced PMD baseline for small, explicit, low-branching Java code that is easier for maintainers
+        and AI agents to reason about.
+    </description>
+
+    <rule name="AndroidAdapterImportsStayInAndroidPackage"
+          language="java"
+          message="Adapter-bound Android framework imports belong in dev.lightassistant.android.*."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <description>
+            Keeps Android framework APIs that were moved behind adapters in the android package boundary.
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+//ImportDeclaration[
+    (
+        starts-with(@ImportedName, 'android.location.')
+        or @ImportedName = (
+            'android.Manifest',
+            'android.app.PendingIntent',
+            'android.content.BroadcastReceiver',
+            'android.content.ContentResolver',
+            'android.content.UriPermission',
+            'android.database.Cursor',
+            'android.hardware.Sensor',
+            'android.hardware.SensorEvent',
+            'android.hardware.SensorEventListener',
+            'android.hardware.SensorManager',
+            'android.hardware.display.DisplayManager',
+            'android.os.DeadObjectException',
+            'android.os.Environment',
+            'android.os.PowerManager',
+            'android.os.RemoteException',
+            'android.os.SystemClock',
+            'android.os.storage.StorageManager',
+            'android.os.storage.StorageVolume',
+            'android.provider.OpenableColumns',
+            'android.util.Base64',
+            'android.view.Display'
+        )
+    )
+    and not(
+        ancestor::CompilationUnit[
+            @PackageName = 'dev.lightassistant.android'
+            or starts-with(@PackageName, 'dev.lightassistant.android.')
+        ]
+    )
+]
+                ]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule ref="category/java/design.xml/CognitiveComplexity">
+        <properties>
+            <property name="reportLevel" value="10"/>
+        </properties>
+    </rule>
+
+    <rule ref="category/java/design.xml/CyclomaticComplexity">
+        <properties>
+            <property name="methodReportLevel" value="8"/>
+            <property name="classReportLevel" value="40"/>
+        </properties>
+    </rule>
+
+    <rule ref="category/java/design.xml/NPathComplexity">
+        <properties>
+            <property name="reportLevel" value="80"/>
+        </properties>
+    </rule>
+
+    <rule ref="category/java/design.xml/NcssCount">
+        <properties>
+            <property name="methodReportLevel" value="60"/>
+            <property name="classReportLevel" value="400"/>
+        </properties>
+    </rule>
+
+    <rule ref="category/java/design.xml/TooManyMethods">
+        <properties>
+            <property name="maxmethods" value="25"/>
+        </properties>
+    </rule>
+
+    <rule ref="category/java/design.xml/TooManyFields">
+        <properties>
+            <property name="maxfields" value="20"/>
+        </properties>
+    </rule>
+
+    <rule ref="category/java/design.xml/GodClass"/>
+
+    <rule ref="category/java/design.xml/CouplingBetweenObjects">
+        <properties>
+            <property name="threshold" value="15"/>
+        </properties>
+    </rule>
+
+    <rule ref="category/java/design.xml/AvoidDeeplyNestedIfStmts">
+        <properties>
+            <property name="problemDepth" value="3"/>
+        </properties>
+    </rule>
+
+    <rule ref="category/java/design.xml/AvoidThrowingRawExceptionTypes"/>
+    <rule ref="category/java/design.xml/SimplifyBooleanExpressions"/>
+
+    <rule ref="category/java/design.xml/CollapsibleIfStatements"/>
+    <rule ref="category/java/codestyle.xml/VariableCanBeInlined"/>
+    <rule ref="category/java/codestyle.xml/UnnecessaryFullyQualifiedName"/>
+
+    <rule ref="category/java/bestpractices.xml/UnusedPrivateMethod"/>
+    <rule ref="category/java/bestpractices.xml/UnusedPrivateField"/>
+    <rule ref="category/java/bestpractices.xml/UnusedLocalVariable"/>
+    <rule ref="category/java/bestpractices.xml/UnusedFormalParameter"/>
+    <rule ref="category/java/bestpractices.xml/AvoidReassigningParameters"/>
+    <rule ref="category/java/bestpractices.xml/AvoidReassigningLoopVariables"/>
+    <rule ref="category/java/bestpractices.xml/AvoidReassigningCatchVariables"/>
+    <rule ref="category/java/bestpractices.xml/MissingOverride"/>
+    <rule ref="category/java/bestpractices.xml/PreserveStackTrace"/>
+    <rule ref="category/java/bestpractices.xml/UseTryWithResources"/>
+    <rule ref="category/java/errorprone.xml/BrokenNullCheck"/>
+    <rule ref="category/java/errorprone.xml/CompareObjectsWithEquals"/>
+    <rule ref="category/java/errorprone.xml/ConstructorCallsOverridableMethod"/>
+    <rule ref="category/java/errorprone.xml/EmptyCatchBlock"/>
+    <rule ref="category/java/errorprone.xml/IdempotentOperations"/>
+    <rule ref="category/java/errorprone.xml/ReturnFromFinallyBlock"/>
+    <rule ref="category/java/errorprone.xml/AvoidDuplicateLiterals"/>
+    <rule ref="category/java/multithreading.xml/UnsynchronizedStaticFormatter"/>
+</ruleset>
+
