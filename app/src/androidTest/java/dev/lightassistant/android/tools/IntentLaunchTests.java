@@ -24,9 +24,9 @@ public final class IntentLaunchTests extends Instrumentation {
         if (!targetPackage.isEmpty()) { new InstalledAppLaunchTest(this, targetPackage).run(); return; }
         Check[] checks = {() -> launcher(Intent.CATEGORY_LAUNCHER), () -> launcher(Intent.CATEGORY_LEANBACK_LAUNCHER),
                 this::nonLauncher, this::deepLink, this::invalidData, this::rejectedLaunch,
-                this::mimeMetadata, this::discovery};
+                this::mimeMetadata, this::discovery, () -> new AssistantEntryTest(getTargetContext()).run()};
         String[] names = {"phoneLauncher", "tvLauncher", "nonLauncher", "deepLink", "invalidData", "rejectedLaunch",
-                "mimeMetadata", "discovery"};
+                "mimeMetadata", "discovery", "assistantEntry"};
         int failures = 0;
         for (int i = 0; i < checks.length; i++) {
             if (!check(i, names[i], checks[i], checks.length)) { failures++; }

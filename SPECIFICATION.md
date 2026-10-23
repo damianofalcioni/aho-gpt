@@ -32,7 +32,7 @@ Instruct the model to try enabled accessibility tools when targeted intent searc
 
 ## Form factors
 
-One Android application module with shared sources and `handheld` (phone/TV) and `wear` flavors. Native layouts must work with touch, D-pad and round screens. Expose `dev.lightassistant.android.ui.VoiceActivity` and voice-command intents for a separate TV button mapper. Optional assistant-role integration may be offered. Answer overlays can use an enabled accessibility service or a separately granted overlay permission; voice works without either.
+One Android application module with shared sources and `handheld` (phone/TV) and `wear` flavors. Native layouts must work with touch, D-pad and round screens. Expose `dev.lightassistant.android.ui.VoiceActivity` and voice-command intents for a separate TV button mapper. Support default-assistant selection through the exported `ACTION_ASSIST` activity on devices exposing the system picker. The system assistant shortcut opens the voice panel and starts listening after setup and microphone permission. Use the installed speech provider; do not register a voice interaction or recognition service that replaces it. No wake word, lock-screen assistant integration or built-in global key mapper. Answer overlays can use an enabled accessibility service or a separately granted overlay permission; voice works without either.
 
 ## Validation
 

@@ -47,7 +47,7 @@ It also handles `android.intent.action.VOICE_COMMAND` and `android.intent.action
 adb shell am start -n dev.lightassistant.debug/dev.lightassistant.android.ui.VoiceActivity
 ```
 
-The optional platform assistant service is provided for devices exposing default-assistant settings. TV key routing is handled by your external mapper.
+On phones exposing default-assistant settings, open **About & settings → Default assistant settings** and select **Light Assistant** under **Assist app**. The system assistant shortcut (usually holding Home on Android 8) opens the voice panel and starts listening after account/model setup and microphone permission. If necessary, find the picker under Android **Settings → Apps → Default apps → Assist & voice input**; labels and shortcuts depend on the device. This uses the exported `ACTION_ASSIST` activity and the installed speech provider. The app does not register a voice interaction or recognition service, provide a wake word, or support assistant invocation from the lock screen. Custom global key combinations require an external mapper or a device-provided shortcut. TV key routing is handled by your external mapper.
 
 ## Conversation continuity
 
@@ -85,7 +85,7 @@ Android does not publish a complete semantic schema for app extras, hidden/non-e
 - `android/tools/`: manifest inventory, searchable capability catalog and explicit intent dispatch.
 - `android/access/`: opt-in UI inspection and actions, with password nodes excluded and no passive event retention.
 - `android/speech/`: lifecycle-owned platform STT/TTS.
-- `android/ui/`, `android/assist/`: native buttons, transient answer surfaces, optional assistant service.
+- `android/ui/`: native buttons, transient answer surfaces, exported voice-command and default-assistant activity.
 
 App and screen text are treated as untrusted data in model instructions. Tool execution is tied to the active voice request and Android permission boundaries. Password filtering does not make other screen content non-sensitive: enabling screen tools permits requested visible text to be sent to OpenAI.
 
@@ -99,7 +99,7 @@ PMD inherits the reference project's zero-violation baseline: cognitive complexi
 
 Tests cover follow-up expiry, context reset, tool result replay, tool loop bounds, namespace isolation, truncated SSE, late inference failures, language catalog normalization, capability classification, structured filtering, wildcard MIME types, ranking, bounded pagination and overview privacy. Real-device OAuth, speech providers, accessibility interactions, TV mapper behavior, watch layouts and overlays require device testing. No live inference or account access is performed by the build.
 
-The dependency-free `IntentLaunchTests` instrumentation checks phone and TV launcher categories and task flags, ordinary activities, deep-link preservation, invalid arguments, launch rejection, Android MIME metadata normalization and real-catalog discovery through `DeviceTools`. Build them with `assembleHandheldDebugAndroidTest assembleWearDebugAndroidTest`. For an existing handheld installation, run the following commands to update the app and test APK in place, then execute the checks directly. The current Gradle connected-test installer refused to replace the existing app during device verification. Dispatch-construction checks use a recording activity; they do not prove that Chrome opens on a particular device.
+The dependency-free `IntentLaunchTests` instrumentation checks phone and TV launcher categories and task flags, ordinary activities, deep-link preservation, invalid arguments, launch rejection, Android MIME metadata normalization, real-catalog discovery through `DeviceTools`, and exported assistant/voice-command resolution without a shadowing voice interaction service. Build them with `assembleHandheldDebugAndroidTest assembleWearDebugAndroidTest`. For an existing handheld installation, run the following commands to update the app and test APK in place, then execute the checks directly. The current Gradle connected-test installer refused to replace the existing app during device verification. Dispatch-construction checks use a recording activity; they do not prove that Chrome opens on a particular device.
 
 ```powershell
 adb install -r app/build/outputs/apk/handheld/debug/app-handheld-debug.apk
@@ -112,6 +112,8 @@ For Wear OS, use the corresponding wear APK paths and `dev.lightassistant.wear.d
 For an explicitly requested real-app launch, install the app and its test APK, then run `adb shell am instrument -w -e launch_package com.android.chrome dev.lightassistant.debug.test/dev.lightassistant.android.tools.IntentLaunchTests`. This opt-in check opens the assistant's home screen, scans the real catalog, selects the requested package's discovered launcher and invokes it through `DeviceTools`. Verify the foreground package separately. It does not use speech or contact OpenAI.
 
 On 22 October 2026, all eight instrumentation checks passed on a Huawei PRA-LX1 running Android 8 (API 26). The catalog contained 2,537 declarations; structured Chrome searches selected one app launcher and found two HTTPS handler entries. The opt-in Chrome check dispatched the selected launcher through `DeviceTools`; Android activity and window state then identified Chrome as the resumed and focused app. This verifies that device's discovery and catalog-to-launch path, without claiming an end-to-end spoken-request, model, OAuth, TV or Wear OS test.
+
+On 23 October 2026, the updated debug app and all nine instrumentation checks passed on the same phone. Selecting Light Assistant in the system **Assist app** picker persisted after reopening Settings. Holding Home opened `VoiceActivity`, focused its window, displayed the listening state and bound the installed Google speech recognition service. The microphone test was then closed. This verifies default-assistant selection and microphone startup on that device, without claiming a completed spoken request or new OAuth verification. Both variants also passed unit tests, complexity checks, lint and debug/release builds; inspection of both shrunk release APKs confirmed the voice activity remained present and the obsolete assistant services were absent.
 
 ## Official implementation references
 
