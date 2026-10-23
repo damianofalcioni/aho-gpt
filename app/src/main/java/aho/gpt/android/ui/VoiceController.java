@@ -8,11 +8,7 @@ import aho.gpt.R;
 import aho.gpt.android.AssistantApplication;
 import aho.gpt.android.speech.SpeechInput;
 import aho.gpt.android.speech.SpeechOutput;
-import aho.gpt.android.tools.DeviceTools;
-import aho.gpt.android.tools.IntentExecutor;
 import aho.gpt.core.Conversation;
-import aho.gpt.openai.AgentLoop;
-import java.util.concurrent.Future;
 
 public final class VoiceController implements SpeechInput.Listener {
     private final Activity activity;
@@ -22,7 +18,7 @@ public final class VoiceController implements SpeechInput.Listener {
     private final Handler main = new Handler(Looper.getMainLooper());
     private final SpeechInput input;
     private final SpeechOutput output;
-    private Future<?> work;
+    private final VoiceRequest request;
     private boolean foreground;
     private boolean closed;
     private boolean followUp;
@@ -32,6 +28,7 @@ public final class VoiceController implements SpeechInput.Listener {
     public VoiceController(Activity activity, VoicePanel panel) {
         this.activity = activity; presentation = new VoicePresentation(activity, panel);
         app = (AssistantApplication) activity.getApplication();
+        request = new VoiceRequest(activity, conversation);
         input = SpeechInput.available(activity) ? new SpeechInput(activity, this) : null;
         output = new SpeechOutput(activity);
     }
@@ -66,22 +63,10 @@ public final class VoiceController implements SpeechInput.Listener {
         main.postDelayed(this::expired, 20_000);
     }
     @Override public void result(String text) {
-        if (closed) { return; }
+        if (closed || busy) { return; }
         main.removeCallbacksAndMessages(null); busy = true;
         presentation.thinking(text);
-        work = app.worker().submit(() -> run(text));
-    }
-
-    private void run(String text) {
-        try {
-            conversation.begin(text, speechTime);
-            DeviceTools tools = new DeviceTools(app.catalog(), new IntentExecutor(activity));
-            AgentLoop agent = new AgentLoop(body -> app.http().response(app.auth().accessToken(), body), tools);
-            String answer = agent.run(conversation, app.model());
-            main.post(() -> answered(answer));
-        } catch (Exception exception) {
-            main.post(() -> fail(exception.getMessage()));
-        }
+        request.start(text, speechTime, this::answered, this::fail);
     }
 
     private void answered(String answer) {
@@ -114,13 +99,14 @@ public final class VoiceController implements SpeechInput.Listener {
     private void stopListening() { main.removeCallbacksAndMessages(null); if (input != null) { input.cancel(); } }
     private void fail(String message) {
         if (closed) { return; }
+        request.cancel();
         busy = false; conversation.clear(); stopListening(); output.stop();
         presentation.failed(message);
     }
     public void close() {
+        if (closed) { return; }
         closed = true;
-        if (work != null) { work.cancel(true); }
-        app.http().cancelResponse();
+        request.cancel();
         stopListening(); output.close(); presentation.closeOverlay();
         if (input != null) { input.close(); }
     }

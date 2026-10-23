@@ -3,24 +3,38 @@ package aho.gpt.android.tools;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+import aho.gpt.openai.ToolOutcome;
+import aho.gpt.core.RequestScope;
 import org.json.JSONObject;
 
 public final class IntentExecutor {
     private final Activity context;
     public IntentExecutor(Activity context) { this.context = context; }
 
-    @android.annotation.SuppressLint("WearRecents") // External app tools must launch in the target app's task, separate from the voice overlay.
     public String execute(IntentCapability cap, JSONObject arguments) throws Exception {
-        Intent intent = build(cap, arguments);
+        return execute(cap, arguments, new RequestScope());
+    }
+    public String execute(IntentCapability cap, JSONObject arguments, RequestScope scope) throws Exception {
+        scope.check();
+        Intent intent;
+        try { intent = build(cap, arguments); }
+        catch (IllegalArgumentException | SecurityException exception) { return ToolOutcome.refused("INVALID_INTENT_ARGUMENTS"); }
+        try { return scope.dispatch(() -> dispatch(cap, intent)); }
+        catch (SecurityException | android.content.ActivityNotFoundException exception) {
+            return ToolOutcome.rejected("ANDROID_DISPATCH_REJECTED");
+        } catch (RuntimeException exception) { return ToolOutcome.unknown("INTENT_DISPATCH_UNCONFIRMED"); }
+    }
+    @android.annotation.SuppressLint("WearRecents") // External tools must launch in the target app's task, separate from the voice overlay.
+    private String dispatch(IntentCapability cap, Intent intent) throws Exception {
         switch (cap.kind) {
             case "activity": context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); break;
             case "service":
-                if (context.startService(intent) == null) { return "Service did not start"; }
+                if (context.startService(intent) == null) { return ToolOutcome.rejected("SERVICE_NOT_STARTED"); }
                 break;
-            case "broadcast": context.sendBroadcast(intent); return "Broadcast dispatched; app completion cannot be verified.";
+            case "broadcast": context.sendBroadcast(intent); break;
             default: throw new IllegalArgumentException("Unsupported component type");
         }
-        return "Intent dispatched; this does not verify that the target app completed the task.";
+        return ToolOutcome.accepted("INTENT_DISPATCHED");
     }
 
     public void revealTargetApp() { context.moveTaskToBack(true); }

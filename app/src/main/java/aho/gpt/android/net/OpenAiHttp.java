@@ -1,6 +1,7 @@
 package aho.gpt.android.net;
 
 import aho.gpt.openai.SseResponseReader;
+import aho.gpt.core.RequestScope;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -12,10 +13,25 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public final class OpenAiHttp {
-    private volatile HttpsURLConnection activeResponse;
-    public void cancelResponse() {
-        HttpsURLConnection current = activeResponse;
+    private ResponseLease activeResponse;
+    private static final class ResponseLease {
+        private final HttpsURLConnection connection;
+        private final RequestScope scope;
+        ResponseLease(HttpsURLConnection connection, RequestScope scope) { this.connection = connection; this.scope = scope; }
+    }
+    public void cancelResponse(RequestScope scope) {
+        HttpsURLConnection current = connectionFor(scope);
         if (current != null) { current.disconnect(); }
+    }
+    private synchronized HttpsURLConnection connectionFor(RequestScope scope) {
+        if (activeResponse == null) { return null; }
+        return activeResponse.scope == scope ? activeResponse.connection : null;
+    }
+    private synchronized ResponseLease activate(HttpsURLConnection connection, RequestScope scope) throws InterruptedException {
+        scope.check(); activeResponse = new ResponseLease(connection, scope); return activeResponse;
+    }
+    private synchronized void release(ResponseLease lease) {
+        if (lease != null && lease.equals(activeResponse)) { activeResponse = null; }
     }
     public void emptyPost(String url, String body) throws IOException {
         HttpsURLConnection connection = connect(url, "", body, "application/x-www-form-urlencoded");
@@ -31,14 +47,22 @@ public final class OpenAiHttp {
         } finally { connection.disconnect(); }
     }
 
-    public JSONObject response(String token, JSONObject body) throws IOException, JSONException {
+    public JSONObject response(String token, JSONObject body, RequestScope scope)
+            throws IOException, JSONException, InterruptedException {
+        scope.check();
         HttpsURLConnection connection = connect("https://api.openai.com/v1/responses", token,
                 body.toString(), "application/json");
-        activeResponse = connection;
+        ResponseLease lease = null;
+        try {
+            lease = activate(connection, scope);
+            return stream(connection);
+        } finally { release(lease); connection.disconnect(); }
+    }
+    private JSONObject stream(HttpsURLConnection connection) throws IOException, JSONException {
         try (InputStream input = checkedInput(connection);
                 InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8)) {
             return SseResponseReader.read(reader);
-        } finally { activeResponse = null; connection.disconnect(); }
+        }
     }
 
     private HttpsURLConnection connect(String url, String token, String body, String contentType)

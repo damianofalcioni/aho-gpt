@@ -2,6 +2,7 @@ package aho.gpt;
 
 import aho.gpt.core.Conversation;
 import aho.gpt.openai.AgentLoop;
+import aho.gpt.openai.ToolOutcome;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Test;
@@ -37,7 +38,9 @@ public class AgentLoopTest {
     @Test public void boundsToolLoop() throws Exception {
         Conversation conversation = new Conversation(); conversation.begin("Find", 1);
         CountingTools tools = new CountingTools();
-        AgentLoop loop = new AgentLoop(request -> output(call("find_intents", "device")), tools);
+        int[] requests = {0};
+        AgentLoop loop = new AgentLoop(request -> output(call("find_intents", "device")
+                .put("call_id", "call" + ++requests[0])), tools);
         assertThrows(java.io.IOException.class, () -> loop.run(conversation, MODEL));
         assertEquals(8, tools.calls);
     }
@@ -48,7 +51,7 @@ public class AgentLoopTest {
             if (++requests[0] == 1) { return output(call("invoke_intent", "device")); }
             JSONObject result = request.getJSONArray("input").getJSONObject(2);
             assertEquals("call1", result.getString("call_id"));
-            assertEquals("Launch rejected", new JSONObject(result.getString("output")).getString("error"));
+            assertEquals("rejected", new JSONObject(result.getString("output")).getString("status"));
             return output(new JSONObject().put(TYPE, "message").put("content", new JSONArray()
                     .put(new JSONObject().put(TYPE, "output_text").put("text", "Android blocked the launch."))));
         }, new RejectedTools());
@@ -58,7 +61,7 @@ public class AgentLoopTest {
     private static JSONObject output(JSONObject item) throws Exception { return new JSONObject().put("output", new JSONArray().put(item)); }
     private static JSONObject call(String name, String namespace) throws Exception {
         return new JSONObject().put(TYPE, "function_call").put("call_id", "call1").put("name", name)
-                .put("namespace", namespace).put("arguments", "{}");
+                .put("namespace", namespace).put("arguments", "invoke_intent".equals(name) ? "{\"capability_id\":\"test\"}" : "{}");
     }
     private static final class CountingTools implements AgentLoop.Tools {
         int calls;
@@ -67,6 +70,6 @@ public class AgentLoopTest {
     }
     private static final class RejectedTools implements AgentLoop.Tools {
         @Override public boolean accessibilityAvailable() { return false; }
-        @Override public String execute(String name, JSONObject args) { throw new SecurityException("Launch rejected"); }
+        @Override public String execute(String name, JSONObject args) throws Exception { return ToolOutcome.rejected("ANDROID_DISPATCH_REJECTED"); }
     }
 }

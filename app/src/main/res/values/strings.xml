@@ -63,6 +63,7 @@
     <string name="sign_out">Sign out</string>
     <string name="revoke_failed">Signed out locally. Remote revocation was not confirmed; disconnect this app in ChatGPT settings.</string>
     <string name="setting_unavailable">This device does not provide that settings screen.</string>
+    <string name="request_stopped">The request stopped or expired.</string>
     <string name="not_connected">Not connected</string>
     <string name="connection_status">%1$s\nModel: %2$s\nDiscovered intent tools: %3$d</string>
     <string name="setup_help">Voice only: answers appear in an overlay and use system text-to-speech. After an answer, the microphone listens for an eight-second follow-up while the voice panel is visible. Silence clears the session.\n\nFor TV button mappers, launch the VoiceActivity component or send android.intent.action.VOICE_COMMAND to this app.\n\nChatGPT plan access depends on your account and OpenAI availability. System speech recognition may use the device provider’s network service if on-device recognition is unavailable.</string>

@@ -96,26 +96,21 @@ public final class IntentLaunchTests extends Instrumentation {
         IntentFilter filter = new IntentFilter(Intent.ACTION_MAIN);
         filter.addCategory(Intent.CATEGORY_LAUNCHER);
         RecordingActivity activity = activity();
-        try {
-            new IntentExecutor(activity).execute(capability(Intent.ACTION_MAIN, filter),
-                    new JSONObject().put("data_uri", "https://example.com"));
-            throw new AssertionError("Launcher filter must reject unexpected data");
-        } catch (IllegalArgumentException expected) {
-            require(activity.launched == null, "Invalid arguments must not dispatch");
-            require(!activity.hidden, "Invalid arguments must not hide the assistant");
-        }
+        JSONObject result = new JSONObject(new IntentExecutor(activity).execute(capability(Intent.ACTION_MAIN, filter),
+                new JSONObject().put("data_uri", "https://example.com")));
+        require("refused".equals(result.getString("status")), "Launcher filter must refuse unexpected data");
+        require(activity.launched == null, "Invalid arguments must not dispatch");
+        require(!activity.hidden, "Invalid arguments must not hide the assistant");
     }
 
     private void rejectedLaunch() throws Exception {
         RecordingActivity activity = activity();
         activity.reject = true;
-        try {
-            new IntentExecutor(activity).execute(capability(Intent.ACTION_MAIN, new IntentFilter(Intent.ACTION_MAIN)),
-                    new JSONObject());
-            throw new AssertionError("Android launch rejection must propagate to the tool loop");
-        } catch (SecurityException expected) {
-            require(!activity.hidden, "A rejected launch must not hide the assistant");
-        }
+        JSONObject result = new JSONObject(new IntentExecutor(activity).execute(
+                capability(Intent.ACTION_MAIN, new IntentFilter(Intent.ACTION_MAIN)), new JSONObject()));
+        require("rejected".equals(result.getString("status")), "Android launch rejection must reach the tool loop");
+        require(!result.getBoolean("completion_verified"), "A rejection cannot verify task completion");
+        require(!activity.hidden, "A rejected launch must not hide the assistant");
     }
 
     private void mimeMetadata() throws Exception {
