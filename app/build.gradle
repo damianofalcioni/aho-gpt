@@ -7,15 +7,15 @@ android {
     // AGP 9 otherwise adds Kotlin's standard library even to Java-only apps.
     enableKotlin = false
     buildFeatures { buildConfig = true }
-    namespace = "dev.lightassistant"
+    namespace = "aho.gpt"
     compileSdk = 37
     defaultConfig {
-        applicationId = "dev.lightassistant"
+        applicationId = "aho.gpt"
         minSdk = 23
         targetSdk = 37
         versionCode = 1
         versionName = "0.1.0"
-        testInstrumentationRunner = "dev.lightassistant.android.tools.IntentLaunchTests"
+        testInstrumentationRunner = "aho.gpt.android.tools.IntentLaunchTests"
     }
     flavorDimensions += "device"
     productFlavors {

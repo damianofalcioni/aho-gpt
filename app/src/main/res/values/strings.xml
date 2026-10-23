@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Light Assistant</string>
+    <string name="app_name">aho-gpt</string>
     <string name="about_settings">About &amp; settings</string>
     <string name="back">Back</string>
     <string name="account_heading">Account &amp; model</string>
@@ -25,7 +25,7 @@
     <string name="tts_language_unavailable">The text-to-speech engine does not support %1$s. Choose another TTS language in About &amp; settings. The answer remains visible.</string>
     <string name="tts_playback_failed">Voice playback failed for %1$s. Check the device’s text-to-speech settings. The answer remains visible.</string>
     <string name="about_heading">About</string>
-    <string name="help_heading">Using Light Assistant</string>
+    <string name="help_heading">Using aho-gpt</string>
     <string name="app_version">Version %1$s</string>
     <string name="about_description">A lightweight voice assistant for Android, Android TV and Wear OS. Speak a request, hear an answer, and continue with a brief spoken follow-up. No chat screen or saved conversation history.</string>
     <string name="speak">Speak</string>
@@ -40,10 +40,12 @@
     <string name="no_answer">The request completed without a spoken answer.</string>
     <string name="speech_unavailable">Install or enable a system speech recognition service on this device.</string>
     <string name="speech_error">System speech recognition error %1$d. Tap Speak to retry.</string>
-    <string name="setup_required">Open Light Assistant, tap the app logo for About &amp; settings, continue with ChatGPT, then choose a model.</string>
+    <string name="setup_required">Open aho-gpt, tap the app logo for About &amp; settings, continue with ChatGPT, then choose a model.</string>
     <string name="continue_chatgpt">Continue with ChatGPT</string>
     <string name="signing_in">Connect your ChatGPT plan. If the embedded page refuses sign-in, use Open in browser.</string>
     <string name="sign_in_cancelled">Sign-in cancelled.</string>
+    <string name="sign_in_received">Sign-in received. Return to aho-gpt.</string>
+    <string name="sign_in_invalid_callback">Invalid callback.</string>
     <string name="open_browser">Open in browser</string>
     <string name="browser_required">A browser on this device is required for sign-in. Wear OS does not support WebView. Install a compatible watch browser, then try again.</string>
     <string name="choose_model">Choose OpenAI model</string>

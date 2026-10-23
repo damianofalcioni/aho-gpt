@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ruleset name="Light Assistant AI maintainability baseline"
+<ruleset name="aho-gpt AI maintainability baseline"
          xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.github.io/schema/ruleset_2_0_0.xsd">
@@ -10,7 +10,7 @@
 
     <rule name="AndroidAdapterImportsStayInAndroidPackage"
           language="java"
-          message="Adapter-bound Android framework imports belong in dev.lightassistant.android.*."
+          message="Adapter-bound Android framework imports belong in aho.gpt.android.*."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
         <description>
             Keeps Android framework APIs that were moved behind adapters in the android package boundary.
@@ -48,8 +48,8 @@
     )
     and not(
         ancestor::CompilationUnit[
-            @PackageName = 'dev.lightassistant.android'
-            or starts-with(@PackageName, 'dev.lightassistant.android.')
+            @PackageName = 'aho.gpt.android'
+            or starts-with(@PackageName, 'aho.gpt.android.')
         ]
     )
 ]

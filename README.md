@@ -1,10 +1,12 @@
-# Light Assistant
+# aho-gpt
 
 A small, voice-first Android AI harness in pure Java. One Speak button starts a request; answers appear in a transient panel and use Android text-to-speech. There is no chat screen, transcript database, bundled speech model, or runtime library dependency.
 
 The home screen shows only the app logo and a large microphone/Speak button. Tap the logo to open **About & settings**, where account connection, model selection, usage, device permissions, assistant settings, tool rescan and sign-out live. The page also includes app version information and help. The native theme follows vibe-navigator's black background, white icons, rounded dark controls and outlined surfaces, with visible D-pad focus and phone, TV and watch sizing.
 
 ## Devices and installation
+
+The app is named **aho-gpt** (from the Italian exclamation “Aho!”). Its base application ID and Java namespace are `aho.gpt`; debug builds add `.debug`, and Wear OS builds add `.wear` before that debug suffix. Android treats this ID as a separate installation from the previous app: sign in again, grant permissions, and reselect the default assistant/accessibility service as needed. Update external TV button mappers to the component below.
 
 - **Android phones/tablets and Android TV:** `handheld` APK, Android 6 or newer. TV works with a D-pad and your separate button mapper.
 - **Wear OS:** `wear` APK, API 26 or newer, with a watch manifest and the same implementation. Speech recognition and sign-in require providers available on the watch itself. Wear OS does not supply WebView; a compatible browser installed on the watch is required by the current OAuth fallback. Phone-mediated sign-in is not implemented.
@@ -20,7 +22,7 @@ Set your Android SDK path in an untracked `local.properties`, or `ANDROID_HOME`.
 
 ## Setup
 
-1. Open Light Assistant, tap the app logo for **About & settings**, and choose **Continue with ChatGPT**. Approve ChatGPT plan usage, then choose an account-specific OpenAI model. Return to the main screen and choose **Speak**. No API key, client secret, private ChatGPT endpoint, or alternative model provider is used.
+1. Open aho-gpt, tap the app logo for **About & settings**, and choose **Continue with ChatGPT**. Approve ChatGPT plan usage, then choose an account-specific OpenAI model. Return to the main screen and choose **Speak**. No API key, client secret, private ChatGPT endpoint, or alternative model provider is used.
 2. Grant the microphone permission when first speaking. Android's installed `SpeechRecognizer` and `TextToSpeech` handle speech; on-device recognition is preferred when available. Otherwise the system recognizer may use its provider's network service.
 3. Optionally enable the app's accessibility service after reviewing the disclosure. It adds visible-screen reading, click, text, scroll, back, home, and recents tools. It never intercepts keys or records screen events in the background.
 4. Optionally grant **Allow answers over other apps**. The enabled accessibility service can also display an answer overlay. Without either permission, answers remain in the voice activity and are still spoken.
@@ -36,18 +38,18 @@ The initial implementation keeps one account registration per installation. Sign
 Configure your mapper to launch:
 
 ```text
-Debug package: dev.lightassistant.debug
-Release package: dev.lightassistant
-Activity: dev.lightassistant.android.ui.VoiceActivity
+Debug package: aho.gpt.debug
+Release package: aho.gpt
+Activity: aho.gpt.android.ui.VoiceActivity
 ```
 
 It also handles `android.intent.action.VOICE_COMMAND` and `android.intent.action.ASSIST`. Example:
 
 ```shell
-adb shell am start -n dev.lightassistant.debug/dev.lightassistant.android.ui.VoiceActivity
+adb shell am start -n aho.gpt.debug/aho.gpt.android.ui.VoiceActivity
 ```
 
-On phones exposing default-assistant settings, open **About & settings → Default assistant settings** and select **Light Assistant** under **Assist app**. The system assistant shortcut (usually holding Home on Android 8) opens the voice panel and starts listening after account/model setup and microphone permission. If necessary, find the picker under Android **Settings → Apps → Default apps → Assist & voice input**; labels and shortcuts depend on the device. This uses the exported `ACTION_ASSIST` activity and the installed speech provider. The app does not register a voice interaction or recognition service, provide a wake word, or support assistant invocation from the lock screen. Custom global key combinations require an external mapper or a device-provided shortcut. TV key routing is handled by your external mapper.
+On phones exposing default-assistant settings, open **About & settings → Default assistant settings** and select **aho-gpt** under **Assist app**. The system assistant shortcut (usually holding Home on Android 8) opens the voice panel and starts listening after account/model setup and microphone permission. If necessary, find the picker under Android **Settings → Apps → Default apps → Assist & voice input**; labels and shortcuts depend on the device. This uses the exported `ACTION_ASSIST` activity and the installed speech provider. The app does not register a voice interaction or recognition service, provide a wake word, or support assistant invocation from the lock screen. Custom global key combinations require an external mapper or a device-provided shortcut. TV key routing is handled by your external mapper.
 
 ## Conversation continuity
 
@@ -104,16 +106,18 @@ The dependency-free `IntentLaunchTests` instrumentation checks phone and TV laun
 ```powershell
 adb install -r app/build/outputs/apk/handheld/debug/app-handheld-debug.apk
 adb install -r app/build/outputs/apk/androidTest/handheld/debug/app-handheld-debug-androidTest.apk
-adb shell am instrument -w dev.lightassistant.debug.test/dev.lightassistant.android.tools.IntentLaunchTests
+adb shell am instrument -w aho.gpt.debug.test/aho.gpt.android.tools.IntentLaunchTests
 ```
 
-For Wear OS, use the corresponding wear APK paths and `dev.lightassistant.wear.debug.test` instrumentation package.
+For Wear OS, use the corresponding wear APK paths and `aho.gpt.wear.debug.test` instrumentation package.
 
-For an explicitly requested real-app launch, install the app and its test APK, then run `adb shell am instrument -w -e launch_package com.android.chrome dev.lightassistant.debug.test/dev.lightassistant.android.tools.IntentLaunchTests`. This opt-in check opens the assistant's home screen, scans the real catalog, selects the requested package's discovered launcher and invokes it through `DeviceTools`. Verify the foreground package separately. It does not use speech or contact OpenAI.
+For an explicitly requested real-app launch, install the app and its test APK, then run `adb shell am instrument -w -e launch_package com.android.chrome aho.gpt.debug.test/aho.gpt.android.tools.IntentLaunchTests`. This opt-in check opens the assistant's home screen, scans the real catalog, selects the requested package's discovered launcher and invokes it through `DeviceTools`. Verify the foreground package separately. It does not use speech or contact OpenAI.
 
-On 22 October 2026, all eight instrumentation checks passed on a Huawei PRA-LX1 running Android 8 (API 26). The catalog contained 2,537 declarations; structured Chrome searches selected one app launcher and found two HTTPS handler entries. The opt-in Chrome check dispatched the selected launcher through `DeviceTools`; Android activity and window state then identified Chrome as the resumed and focused app. This verifies that device's discovery and catalog-to-launch path, without claiming an end-to-end spoken-request, model, OAuth, TV or Wear OS test.
+Before the rename, on 22 October 2026, all eight instrumentation checks passed on a Huawei PRA-LX1 running Android 8 (API 26). The catalog contained 2,537 declarations; structured Chrome searches selected one app launcher and found two HTTPS handler entries. The opt-in Chrome check dispatched the selected launcher through `DeviceTools`; Android activity and window state then identified Chrome as the resumed and focused app. This verifies that device's discovery and catalog-to-launch path, without claiming an end-to-end spoken-request, model, OAuth, TV or Wear OS test.
 
-On 23 October 2026, the updated debug app and all nine instrumentation checks passed on the same phone. Selecting Light Assistant in the system **Assist app** picker persisted after reopening Settings. Holding Home opened `VoiceActivity`, focused its window, displayed the listening state and bound the installed Google speech recognition service. The microphone test was then closed. This verifies default-assistant selection and microphone startup on that device, without claiming a completed spoken request or new OAuth verification. Both variants also passed unit tests, complexity checks, lint and debug/release builds; inspection of both shrunk release APKs confirmed the voice activity remained present and the obsolete assistant services were absent.
+Before the rename, on 23 October 2026, the updated debug app and all nine instrumentation checks passed on the same phone. Selecting the previous app name in the system **Assist app** picker persisted after reopening Settings. Holding Home opened `VoiceActivity`, focused its window, displayed the listening state and bound the installed Google speech recognition service. The microphone test was then closed. This verifies default-assistant selection and microphone startup on that device, without claiming a completed spoken request or new OAuth verification. Both variants also passed unit tests, complexity checks, lint and debug/release builds; inspection of both shrunk release APKs confirmed the voice activity remained present and the obsolete assistant services were absent.
+
+After the rename on 23 October 2026, both variants passed all 34 JVM tests each, `complexityCheck`, debug lint, debug/release builds and instrumentation APK builds. Inspection of both shrunk release APKs confirmed the `aho-gpt` label, `aho.gpt` / `aho.gpt.wear` IDs, all six manifest entry point classes in DEX, and the exported voice activity with `ASSIST` and `VOICE_COMMAND` intent filters. The renamed app has not been device-tested or OAuth-tested.
 
 ## Official implementation references
 

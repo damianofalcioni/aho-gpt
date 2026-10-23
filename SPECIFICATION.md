@@ -1,6 +1,8 @@
-# Light Assistant specification
+# aho-gpt specification
 
 ## Product
+
+The app name is `aho-gpt`, inspired by the Italian “Aho!” exclamation. The base application ID and Java namespace are `aho.gpt`; retain the `.wear` flavor and `.debug` build suffixes. Keep Android adapters under `aho.gpt.android` and protocol/session code independently JVM-testable.
 
 Provide a lightweight Android, Android TV and Wear OS AI harness. Use Java, native Android APIs, no runtime dependencies, and the reference project's focused architecture and zero-violation complexity checks. Use vibe-navigator's black background, white iconography, rounded dark surfaces and outlined controls throughout the native UI. The main screen contains only a tappable app logo, which opens About & settings, and a large microphone/Speak button. Keep account, model, usage, permission, assistant, tool-rescan and sign-out controls on the separate About & settings page, alongside app information and help. Answers use a transient voice panel and overlay; no chat screen. Provide visible D-pad focus and layouts sized for phone, TV and watch screens.
 
@@ -32,7 +34,7 @@ Instruct the model to try enabled accessibility tools when targeted intent searc
 
 ## Form factors
 
-One Android application module with shared sources and `handheld` (phone/TV) and `wear` flavors. Native layouts must work with touch, D-pad and round screens. Expose `dev.lightassistant.android.ui.VoiceActivity` and voice-command intents for a separate TV button mapper. Support default-assistant selection through the exported `ACTION_ASSIST` activity on devices exposing the system picker. The system assistant shortcut opens the voice panel and starts listening after setup and microphone permission. Use the installed speech provider; do not register a voice interaction or recognition service that replaces it. No wake word, lock-screen assistant integration or built-in global key mapper. Answer overlays can use an enabled accessibility service or a separately granted overlay permission; voice works without either.
+One Android application module with shared sources and `handheld` (phone/TV) and `wear` flavors. Native layouts must work with touch, D-pad and round screens. Expose `aho.gpt.android.ui.VoiceActivity` and voice-command intents for a separate TV button mapper. Support default-assistant selection through the exported `ACTION_ASSIST` activity on devices exposing the system picker. The system assistant shortcut opens the voice panel and starts listening after setup and microphone permission. Use the installed speech provider; do not register a voice interaction or recognition service that replaces it. No wake word, lock-screen assistant integration or built-in global key mapper. Answer overlays can use an enabled accessibility service or a separately granted overlay permission; voice works without either.
 
 ## Validation
 
