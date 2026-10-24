@@ -1,32 +1,88 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:fillViewport="true" android:fitsSystemWindows="true">
-    <LinearLayout
-        android:layout_width="match_parent" android:layout_height="wrap_content"
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="vertical" android:padding="@dimen/page_padding">
-        <Button android:id="@+id/back" android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:text="@string/back" />
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="20dp" android:text="@string/about_settings" android:textSize="26sp" />
-        <TextView style="@style/SettingsHeading" android:text="@string/account_heading" />
+            android:text="@string/app_name" android:textSize="22sp" />
+        <TextView android:id="@+id/app_version" style="@style/SettingsBody" android:layout_marginTop="8dp" />
+        <TextView style="@style/SettingsBody" android:layout_marginTop="16dp"
+            android:textColor="@color/app_text" android:textSize="16sp" android:text="@string/about_description" />
+        <TextView android:id="@+id/about_homepage" style="@style/AboutLink"
+            android:drawableStart="@drawable/ic_home" android:text="@string/about_homepage" />
+        <TextView android:id="@+id/about_source" style="@style/AboutLink"
+            android:drawableStart="@drawable/ic_star" android:text="@string/about_source" />
+        <TextView android:id="@+id/about_issues" style="@style/AboutLink"
+            android:drawableStart="@drawable/ic_bug" android:text="@string/about_issues" />
+        <TextView android:id="@+id/about_changelog" style="@style/AboutLink"
+            android:drawableStart="@drawable/ic_list" android:text="@string/about_changelog" />
+        <TextView android:id="@+id/about_privacy" style="@style/AboutLink"
+            android:drawableStart="@drawable/ic_info" android:text="@string/about_privacy" />
+        <TextView android:id="@+id/about_terms" style="@style/AboutLink"
+            android:drawableStart="@drawable/ic_list" android:text="@string/about_terms" />
+        <TextView style="@style/SettingsBody" android:layout_marginTop="16dp" android:text="@string/about_legal" />
+        <TextView style="@style/SettingsBody" android:layout_marginTop="12dp" android:text="@string/about_credits" />
+        <View style="@style/SettingsDivider" />
+        <TextView style="@style/SettingsTitle" android:text="@string/settings_heading" />
+        <TextView style="@style/SettingsHeading" android:text="@string/languages_heading" />
+        <LinearLayout style="@style/SettingsRow">
+            <TextView style="@style/SettingsLabel" android:text="@string/tts_short" />
+            <ImageButton android:id="@+id/tts_settings" style="@style/SettingsIcon"
+                android:src="@drawable/ic_settings" android:contentDescription="@string/configure_tts" />
+            <Switch android:id="@+id/tts_enabled" style="@style/SettingsSwitch" android:contentDescription="@string/enable_tts" />
+            <ImageButton android:id="@+id/tts_info" style="@style/SettingsInfo" android:contentDescription="@string/tts_information" />
+        </LinearLayout>
+        <TextView android:id="@+id/tts_provider_status" style="@style/SettingsBody" android:textSize="13sp"
+            android:accessibilityLiveRegion="polite" android:text="@string/language_support_loading" />
+        <LinearLayout style="@style/SettingsRow">
+            <TextView style="@style/SettingsLabel" android:text="@string/stt_short" />
+            <ImageButton android:id="@+id/stt_settings" style="@style/SettingsIcon"
+                android:src="@drawable/ic_settings" android:contentDescription="@string/configure_stt" />
+            <Switch android:id="@+id/stt_enabled" style="@style/SettingsSwitch" android:contentDescription="@string/enable_stt" />
+            <ImageButton android:id="@+id/stt_info" style="@style/SettingsInfo" android:contentDescription="@string/stt_information" />
+        </LinearLayout>
+        <TextView android:id="@+id/stt_provider_status" style="@style/SettingsBody" android:textSize="13sp"
+            android:accessibilityLiveRegion="polite" android:text="@string/language_support_loading" />
+        <View style="@style/SettingsSectionDivider" />
+        <TextView style="@style/SettingsSectionHeading" android:text="@string/account_heading" />
         <TextView android:id="@+id/connection_status" style="@style/SettingsBody"
             android:accessibilityLiveRegion="polite" android:text="@string/not_connected" />
-        <Button android:id="@+id/connect" style="@style/SettingsAction" android:text="@string/continue_chatgpt" />
-        <Button android:id="@+id/choose_model" style="@style/SettingsAction" android:text="@string/choose_model" />
-        <Button android:id="@+id/manage_usage" style="@style/SettingsAction" android:text="@string/manage_usage" />
-        <Button android:id="@+id/sign_out" style="@style/SettingsAction" android:text="@string/sign_out" />
-        <TextView style="@style/SettingsHeading" android:text="@string/device_heading" />
-        <Button android:id="@+id/speech_languages" style="@style/SettingsAction" android:text="@string/speech_languages" />
-        <Button android:id="@+id/accessibility" style="@style/SettingsAction" android:text="@string/accessibility_name" />
-        <Button android:id="@+id/overlay" style="@style/SettingsAction" android:text="@string/overlay_settings" />
-        <Button android:id="@+id/default_assistant" style="@style/SettingsAction" android:text="@string/default_assistant" />
-        <Button android:id="@+id/refresh_tools" style="@style/SettingsAction" android:text="@string/refresh_tools" />
-        <TextView style="@style/SettingsHeading" android:text="@string/about_heading" />
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:text="@string/app_name" android:textSize="20sp" />
-        <TextView android:id="@+id/app_version" style="@style/SettingsBody" />
-        <TextView style="@style/SettingsBody" android:layout_marginTop="12dp" android:text="@string/about_description" />
-        <TextView style="@style/SettingsHeading" android:text="@string/help_heading" />
+        <LinearLayout style="@style/SettingsActionRow">
+            <Button android:id="@+id/connect" style="@style/SettingsRowAction" android:text="@string/continue_chatgpt" />
+            <ImageButton android:id="@+id/account_info" style="@style/SettingsActionInfo" android:contentDescription="@string/setting_information" />
+        </LinearLayout>
+        <LinearLayout style="@style/SettingsActionRow">
+            <Button android:id="@+id/choose_model" style="@style/SettingsRowAction" android:text="@string/choose_model" />
+            <ImageButton android:id="@+id/model_info" style="@style/SettingsActionInfo" android:contentDescription="@string/setting_information" />
+        </LinearLayout>
+        <LinearLayout style="@style/SettingsActionRow">
+            <Button android:id="@+id/manage_usage" style="@style/SettingsRowAction" android:text="@string/manage_usage" />
+            <ImageButton android:id="@+id/usage_info" style="@style/SettingsActionInfo" android:contentDescription="@string/setting_information" />
+        </LinearLayout>
+        <LinearLayout style="@style/SettingsActionRow">
+            <Button android:id="@+id/sign_out" style="@style/SettingsRowAction" android:text="@string/sign_out" />
+            <ImageButton android:id="@+id/sign_out_info" style="@style/SettingsActionInfo" android:contentDescription="@string/setting_information" />
+        </LinearLayout>
+        <View style="@style/SettingsSectionDivider" />
+        <TextView style="@style/SettingsSectionHeading" android:text="@string/device_heading" />
+        <LinearLayout style="@style/SettingsActionRow">
+            <Button android:id="@+id/accessibility" style="@style/SettingsRowAction" android:text="@string/accessibility_name" />
+            <ImageButton android:id="@+id/accessibility_info" style="@style/SettingsActionInfo" android:contentDescription="@string/setting_information" />
+        </LinearLayout>
+        <LinearLayout style="@style/SettingsActionRow">
+            <Button android:id="@+id/overlay" style="@style/SettingsRowAction" android:text="@string/overlay_settings" />
+            <ImageButton android:id="@+id/overlay_info" style="@style/SettingsActionInfo" android:contentDescription="@string/setting_information" />
+        </LinearLayout>
+        <LinearLayout style="@style/SettingsActionRow">
+            <Button android:id="@+id/default_assistant" style="@style/SettingsRowAction" android:text="@string/default_assistant" />
+            <ImageButton android:id="@+id/assistant_info" style="@style/SettingsActionInfo" android:contentDescription="@string/setting_information" />
+        </LinearLayout>
+        <LinearLayout style="@style/SettingsActionRow">
+            <Button android:id="@+id/refresh_tools" style="@style/SettingsRowAction" android:text="@string/refresh_tools" />
+            <ImageButton android:id="@+id/tools_info" style="@style/SettingsActionInfo" android:contentDescription="@string/setting_information" />
+        </LinearLayout>
+        <View style="@style/SettingsSectionDivider" />
+        <TextView style="@style/SettingsSectionHeading" android:text="@string/help_heading" />
         <TextView style="@style/SettingsBody" android:text="@string/setup_help" />
     </LinearLayout>
 </ScrollView>

@@ -45,14 +45,21 @@ public final class SpeechOutput {
         if (ready || failed) { deliver(); }
     }
     private void deliver() {
-        if (failed) { fail(R.string.tts_unavailable); return; }
         try {
-            int support = engine.setLanguage(SpeechPreferences.locale(context, SpeechPreferences.OUTPUT));
-            if (support == TextToSpeech.LANG_MISSING_DATA) { fail(R.string.tts_language_missing); return; }
-            if (support < TextToSpeech.LANG_AVAILABLE) { fail(R.string.tts_language_unavailable); return; }
+            int issue = configurationIssue();
+            if (issue != 0) { fail(issue); return; }
             String text = pending; pending = null;
             if (engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, currentId) == TextToSpeech.ERROR) { fail(R.string.tts_playback_failed); }
         } catch (RuntimeException exception) { fail(R.string.tts_playback_failed); }
+    }
+    private int configurationIssue() {
+        if (failed) { return R.string.tts_unavailable; }
+        if (!SpeechPreferences.enabled(context, SpeechPreferences.OUTPUT)) { return R.string.tts_disabled; }
+        if (!SpeechAvailability.googleAppEnabled(context)) { return R.string.speech_provider_disabled; }
+        int support = engine.setLanguage(SpeechPreferences.locale(context, SpeechPreferences.OUTPUT));
+        if (support == TextToSpeech.LANG_MISSING_DATA) { return R.string.tts_language_missing; }
+        if (support < TextToSpeech.LANG_AVAILABLE) { return R.string.tts_language_unavailable; }
+        return PlaybackVoices.apply(context, engine) ? 0 : R.string.tts_voice_unavailable;
     }
     private void finish(String id) { if (id.equals(currentId)) { finish(); } }
     private void finish() {

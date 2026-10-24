@@ -1,0 +1,11 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true" android:drawable="@drawable/bg_button" />
+    <item>
+        <ripple android:color="@color/app_ripple">
+            <item android:id="@android:id/mask">
+                <shape><corners android:radius="18dp" /><solid android:color="@color/app_text" /></shape>
+            </item>
+            <item><shape><solid android:color="@android:color/transparent" /></shape></item>
+        </ripple>
+    </item>
+</selector>

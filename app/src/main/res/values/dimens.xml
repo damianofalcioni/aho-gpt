@@ -1,9 +1,11 @@
 <resources>
-    <dimen name="page_padding">24dp</dimen>
-    <dimen name="home_padding">24dp</dimen>
-    <dimen name="home_spacing">24dp</dimen>
-    <dimen name="home_logo_size">72dp</dimen>
-    <dimen name="home_speak_size">216dp</dimen>
-    <dimen name="home_speak_text">24sp</dimen>
-    <dimen name="home_mic_size">56dp</dimen>
+    <dimen name="page_padding">16dp</dimen>
+    <dimen name="settings_icon_size">44dp</dimen>
+    <dimen name="settings_switch_spacing">8dp</dimen>
+    <dimen name="home_padding">16dp</dimen>
+    <dimen name="home_spacing">16dp</dimen>
+    <dimen name="home_logo_size">112dp</dimen>
+    <dimen name="home_speak_size">160dp</dimen>
+    <dimen name="home_mic_padding">32dp</dimen>
+    <dimen name="home_mic_size">120dp</dimen>
 </resources>

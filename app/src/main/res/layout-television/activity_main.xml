@@ -1,0 +1,31 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:fillViewport="true" android:fitsSystemWindows="true">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="@dimen/home_padding">
+        <ImageButton android:id="@+id/about_settings"
+            android:layout_width="@dimen/home_logo_size" android:layout_height="@dimen/home_logo_size"
+            android:background="@drawable/bg_button" android:padding="8dp"
+            android:src="@drawable/ic_assistant_home" android:scaleType="fitCenter"
+            android:contentDescription="@string/about_settings" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:minHeight="@dimen/home_speak_size" android:layout_marginTop="16dp"
+            android:orientation="horizontal" android:gravity="center_vertical">
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                android:orientation="vertical" android:layout_marginEnd="40dp"
+                android:background="@drawable/bg_panel" android:padding="16dp">
+                <TextView android:id="@+id/home_account" style="@style/HomeStatus" android:text="@string/account_heading" />
+                <TextView android:id="@+id/home_model" style="@style/HomeStatus" android:text="@string/no_model" />
+                <TextView android:id="@+id/home_tools" style="@style/HomeStatus" android:text="@string/tools_heading" />
+                <TextView android:id="@+id/setup_hint" style="@style/SettingsBody"
+                    android:textColor="@color/app_text_secondary"
+                    android:gravity="center" android:paddingTop="8dp" android:text="@string/home_setup_hint" />
+            </LinearLayout>
+            <ImageButton android:id="@+id/speak"
+                android:layout_width="@dimen/home_speak_size" android:layout_height="@dimen/home_speak_size"
+                android:background="@drawable/bg_speak" android:padding="@dimen/home_mic_padding"
+                android:src="@drawable/ic_mic" android:scaleType="fitCenter"
+                android:contentDescription="@string/speak" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

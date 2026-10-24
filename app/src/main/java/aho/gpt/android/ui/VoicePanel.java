@@ -5,6 +5,8 @@ import android.graphics.Typeface;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -14,7 +16,7 @@ import aho.gpt.R;
 public final class VoicePanel extends LinearLayout {
     private final TextView status;
     private final TextView answer;
-    private final Button speak;
+    private final ImageButton speak;
 
     public VoicePanel(Context context) { this(context, () -> { }, () -> { }); }
 
@@ -28,7 +30,7 @@ public final class VoicePanel extends LinearLayout {
         status = text(14); status.setText(R.string.ready); body.addView(status);
         answer = text(20); answer.setTypeface(Typeface.DEFAULT, Typeface.NORMAL);
         addAnswer(body, watch);
-        speak = button(R.string.speak, onSpeak); body.addView(speak);
+        speak = microphone(onSpeak); body.addView(speak);
         body.addView(button(R.string.close, onClose));
     }
     private LinearLayout content(boolean watch) {
@@ -52,6 +54,14 @@ public final class VoicePanel extends LinearLayout {
         LayoutParams params = new LayoutParams(-1, -2); params.topMargin = dp(8);
         button.setLayoutParams(params);
         button.setOnClickListener(view -> action.run()); return button;
+    }
+    private ImageButton microphone(Runnable action) {
+        ImageButton button = new ImageButton(getContext());
+        button.setImageResource(R.drawable.ic_mic); button.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        button.setContentDescription(getContext().getString(R.string.speak));
+        button.setBackgroundResource(R.drawable.bg_button); button.setPadding(dp(12), dp(12), dp(12), dp(12));
+        LayoutParams params = new LayoutParams(-1, dp(64)); params.topMargin = dp(8);
+        button.setLayoutParams(params); button.setOnClickListener(view -> action.run()); return button;
     }
     private TextView text(int size) {
         TextView text = new TextView(getContext());

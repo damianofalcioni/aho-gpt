@@ -3,6 +3,7 @@ package aho.gpt.android.ui;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -15,19 +16,20 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public final class SettingsActivity extends Activity {
+    static final String TARGET = "aho.gpt.settings_target";
     private AssistantApplication app;
     private TextView status;
-    private SpeechLanguageSettings speechLanguages;
+    private SpeechSettingsRows speech;
+    private AboutInformation about;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state); app = (AssistantApplication) getApplication();
         setContentView(R.layout.activity_settings);
         status = findViewById(R.id.connection_status);
-        speechLanguages = new SpeechLanguageSettings(this);
-        action(R.id.speech_languages, speechLanguages::show);
+        speech = new SpeechSettingsRows(this);
+        about = new AboutInformation(this);
         TextView version = findViewById(R.id.app_version);
         version.setText(getString(R.string.app_version, aho.gpt.BuildConfig.VERSION_NAME));
-        action(R.id.back, this::finish);
         action(R.id.connect, () -> startActivity(new Intent(this, SignInActivity.class)));
         action(R.id.choose_model, this::models);
         action(R.id.manage_usage, () -> open(new Intent(Intent.ACTION_VIEW, Uri.parse("https://chatgpt.com/settings/usage"))));
@@ -37,22 +39,25 @@ public final class SettingsActivity extends Activity {
         action(R.id.default_assistant, () -> open(new Intent(Settings.ACTION_VOICE_INPUT_SETTINGS)));
         action(R.id.refresh_tools, () -> app.worker().execute(() -> { app.catalog().scan(); refresh(); }));
         action(R.id.sign_out, this::signOut);
+        int target = getIntent().getIntExtra(TARGET, 0);
+        if (target != 0) { findViewById(target).post(() -> findViewById(target).requestFocusFromTouch()); }
     }
 
     private void action(int id, Runnable action) {
         findViewById(id).setOnClickListener(view -> action.run());
     }
-    @Override protected void onResume() { super.onResume(); app.worker().execute(this::refresh); }
-    @Override protected void onDestroy() { speechLanguages.close(); super.onDestroy(); }
+    @Override protected void onResume() { super.onResume(); refresh(); speech.refresh(); }
+    @Override protected void onPause() { speech.stopTests(); super.onPause(); }
+    @Override protected void onDestroy() { speech.close(); about.close(); super.onDestroy(); }
+    @Override public void onRequestPermissionsResult(int request, String[] permissions, int[] grants) {
+        super.onRequestPermissionsResult(request, permissions, grants);
+        if (request == RecognitionSettingsDialog.PERMISSION_REQUEST) {
+            speech.permissionResult(grants.length > 0 && grants[0] == PackageManager.PERMISSION_GRANTED);
+        }
+    }
     private void refresh() {
-        try {
-            JSONObject account = app.auth().account();
-            String email = account.optString("email", getString(R.string.not_connected));
-            boolean connected = !account.optString("access_token").isEmpty();
-            String text = getString(R.string.connection_status, connected ? email : getString(R.string.not_connected),
-                    app.model().isEmpty() ? getString(R.string.no_model) : app.model(), app.catalog().size());
-            runOnUiThread(() -> { if (!isFinishing()) { status.setText(text); } });
-        } catch (Exception exception) { showError(exception); }
+        AccountSummary.load(this, summary -> status.setText(getString(R.string.connection_status,
+                summary.account(), summary.model(), summary.tools())));
     }
 
     private void models() {

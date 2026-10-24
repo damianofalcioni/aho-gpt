@@ -1,7 +1,6 @@
 <resources>
     <style name="AppTheme" parent="android:style/Theme.Material.NoActionBar">
         <item name="android:fontFamily">sans-serif</item>
-        <item name="android:colorAccent">@color/app_text</item>
         <item name="android:textColor">@color/app_text</item>
         <item name="android:textColorPrimary">@color/app_text</item>
         <item name="android:textColorSecondary">@color/app_text_secondary</item>
@@ -12,6 +11,14 @@
         <item name="android:windowBackground">@color/app_background</item>
         <item name="android:colorEdgeEffect">@color/app_ripple</item>
         <item name="android:buttonStyle">@style/AssistantButton</item>
+        <item name="android:alertDialogTheme">@style/AssistantDialog</item>
+    </style>
+    <style name="AssistantDialog" parent="android:style/Theme.Material.Dialog.Alert">
+        <item name="android:textColorPrimary">@color/app_text</item>
+        <item name="android:textColorSecondary">@color/app_text_secondary</item>
+        <item name="android:colorBackground">@color/app_surface</item>
+        <item name="android:colorBackgroundFloating">@color/app_surface</item>
+        <item name="android:windowBackground">@drawable/bg_panel</item>
     </style>
     <style name="VoiceTheme" parent="AppTheme">
         <item name="android:windowIsTranslucent">true</item>
@@ -41,20 +48,104 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_marginTop">8dp</item>
     </style>
+    <style name="SettingsActionRow" parent="SettingsRow">
+        <item name="android:layout_marginTop">8dp</item>
+    </style>
+    <style name="SettingsRowAction" parent="AssistantButton">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:paddingTop">0dp</item>
+        <item name="android:paddingBottom">0dp</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+    <style name="SettingsTitle" parent="SettingsHeadingBase">
+        <item name="android:layout_marginTop">20dp</item>
+        <item name="android:textSize">22sp</item>
+    </style>
+    <style name="SettingsDivider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:layout_marginTop">24dp</item>
+        <item name="android:background">@color/app_outline</item>
+    </style>
+    <style name="SettingsSectionDivider" parent="SettingsDivider">
+        <item name="android:layout_marginTop">16dp</item>
+    </style>
+    <style name="SettingsSectionHeading" parent="SettingsHeading">
+        <item name="android:layout_marginTop">10dp</item>
+    </style>
+    <style name="SettingsRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:orientation">horizontal</item>
+    </style>
+    <style name="SettingsLabel" parent="@android:style/Widget.TextView">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+    <style name="SettingsIcon" parent="@android:style/Widget.ImageButton">
+        <item name="android:layout_width">@dimen/settings_icon_size</item>
+        <item name="android:layout_height">@dimen/settings_icon_size</item>
+        <item name="android:background">@drawable/bg_settings_icon</item>
+        <item name="android:backgroundTint">@null</item>
+        <item name="android:padding">10dp</item>
+        <item name="android:scaleType">centerInside</item>
+    </style>
+    <style name="SettingsInfo" parent="SettingsIcon">
+        <item name="android:layout_width">40dp</item>
+        <item name="android:layout_height">40dp</item>
+        <item name="android:layout_marginStart">4dp</item>
+        <item name="android:background">@drawable/bg_info</item>
+        <item name="android:src">@drawable/ic_info</item>
+        <item name="android:padding">8dp</item>
+    </style>
+    <style name="SettingsActionInfo" parent="SettingsInfo">
+        <item name="android:layout_marginStart">8dp</item>
+        <item name="android:contentDescription">@string/setting_information</item>
+    </style>
+    <style name="SettingsSwitch">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:layout_marginStart">@dimen/settings_switch_spacing</item>
+        <item name="android:showText">false</item>
+    </style>
+    <style name="AboutLink" parent="@android:style/Widget.TextView">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:background">@drawable/bg_info</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:drawablePadding">8dp</item>
+        <item name="android:textColor">?android:attr/textColorLink</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+    <style name="HomeStatus" parent="AboutLink">
+        <item name="android:minHeight">48dp</item>
+        <item name="android:textColor">@color/app_text</item>
+        <item name="android:gravity">center</item>
+        <item name="android:padding">8dp</item>
+    </style>
     <style name="SettingsHeadingBase" parent="@android:style/Widget.TextView">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_marginTop">28dp</item>
-        <item name="android:layout_marginBottom">8dp</item>
+        <item name="android:layout_marginTop">14dp</item>
+        <item name="android:layout_marginBottom">0dp</item>
         <item name="android:textSize">18sp</item>
-        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:fontFamily">sans-serif</item>
     </style>
     <style name="SettingsHeading" parent="SettingsHeadingBase" />
     <style name="SettingsBody" parent="@android:style/Widget.TextView">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:textSize">15sp</item>
-        <item name="android:textColor">@color/app_text_secondary</item>
-        <item name="android:lineSpacingExtra">4dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/settings_text_secondary</item>
     </style>
 </resources>

@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.view.Gravity;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import aho.gpt.android.speech.SpeechPreferences;
 
 /** Explicit component for TV button mappers: android.ui.VoiceActivity. */
 public final class VoiceActivity extends Activity {
@@ -27,6 +28,7 @@ public final class VoiceActivity extends Activity {
         speak();
     }
     private void speak() {
+        if (!SpeechPreferences.enabled(this, SpeechPreferences.INPUT)) { controller.listen(); return; }
         if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 1);
         } else { controller.listen(); }

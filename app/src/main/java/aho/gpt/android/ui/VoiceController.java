@@ -8,6 +8,8 @@ import aho.gpt.R;
 import aho.gpt.android.AssistantApplication;
 import aho.gpt.android.speech.SpeechInput;
 import aho.gpt.android.speech.SpeechOutput;
+import aho.gpt.android.speech.SpeechAvailability;
+import aho.gpt.android.speech.SpeechPreferences;
 import aho.gpt.core.Conversation;
 
 public final class VoiceController implements SpeechInput.Listener {
@@ -52,6 +54,12 @@ public final class VoiceController implements SpeechInput.Listener {
     }
 
     private boolean canListen() {
+        if (!SpeechPreferences.enabled(activity, SpeechPreferences.INPUT)) {
+            fail(activity.getString(R.string.stt_disabled)); return false;
+        }
+        if (!SpeechAvailability.googleAppEnabled(activity)) {
+            fail(activity.getString(R.string.speech_provider_disabled)); return false;
+        }
         if (input == null) { fail(activity.getString(R.string.speech_unavailable)); return false; }
         if (app.model().isEmpty()) { fail(activity.getString(R.string.setup_required)); return false; }
         return true;
@@ -73,6 +81,7 @@ public final class VoiceController implements SpeechInput.Listener {
         if (closed) { return; }
         busy = false;
         String message = presentation.answered(answer, foreground);
+        if (!SpeechPreferences.enabled(activity, SpeechPreferences.OUTPUT)) { conversation.clear(); return; }
         output.speak(message, this::playbackCompleted, this::playbackFailed);
     }
 
