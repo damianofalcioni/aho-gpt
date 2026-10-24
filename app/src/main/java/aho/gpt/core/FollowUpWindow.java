@@ -1,6 +1,6 @@
 package aho.gpt.core;
 
-/** Monotonic-time session policy. Only successful answer playback opens the window. */
+/** Monotonic-time continuity after successful playback or a displayed answer with playback disabled. */
 public final class FollowUpWindow {
     public static final long TIMEOUT_MS = 8_000;
     private long expiresAt;

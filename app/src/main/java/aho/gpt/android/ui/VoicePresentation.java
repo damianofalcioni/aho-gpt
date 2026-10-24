@@ -38,8 +38,8 @@ final class VoicePresentation {
         panel.show(context.getString(R.string.unavailable), message);
         if (!foreground) { overlay.show(message); }
     }
-    void expired() {
-        panel.show(context.getString(R.string.ready), lastAnswer);
+    void finished() {
+        panel.show(context.getString(R.string.voice_finished), lastAnswer);
     }
     void failed(String message) {
         panel.show(context.getString(R.string.unavailable), message == null ? context.getString(R.string.try_again) : message);

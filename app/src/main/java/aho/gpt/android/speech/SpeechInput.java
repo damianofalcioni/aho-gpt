@@ -29,6 +29,9 @@ public final class SpeechInput implements RecognitionListener {
         active = true; recognizer.startListening(SpeechRecognizerProvider.request(locale));
     }
     public static String errorText(Context context, int error) {
+        if (error == SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS) {
+            return context.getString(R.string.microphone_permission_required);
+        }
         if (error == SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED || error == SpeechRecognizer.ERROR_LANGUAGE_UNAVAILABLE) {
             return context.getString(R.string.stt_language_unavailable,
                     SpeechPreferences.label(context, SpeechPreferences.locale(context, SpeechPreferences.INPUT)));
@@ -42,7 +45,9 @@ public final class SpeechInput implements RecognitionListener {
         if (!active) { return; }
         active = false;
         ArrayList<String> texts = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-        if (texts == null || texts.isEmpty()) { listener.error(SpeechRecognizer.ERROR_NO_MATCH); }
+        if (texts == null || texts.isEmpty() || texts.get(0) == null || texts.get(0).trim().isEmpty()) {
+            listener.error(SpeechRecognizer.ERROR_NO_MATCH);
+        }
         else { listener.result(texts.get(0)); }
     }
     @Override public void onError(int error) { if (active) { active = false; listener.error(error); } }

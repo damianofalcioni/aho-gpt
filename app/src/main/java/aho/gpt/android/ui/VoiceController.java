@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.speech.SpeechRecognizer;
 import aho.gpt.R;
 import aho.gpt.android.AssistantApplication;
 import aho.gpt.android.speech.SpeechInput;
@@ -11,24 +12,25 @@ import aho.gpt.android.speech.SpeechOutput;
 import aho.gpt.android.speech.SpeechAvailability;
 import aho.gpt.android.speech.SpeechPreferences;
 import aho.gpt.core.Conversation;
+import aho.gpt.core.VoiceLifecycle;
 
 public final class VoiceController implements SpeechInput.Listener {
     private final Activity activity;
     private final AssistantApplication app;
     private final VoicePresentation presentation;
     private final Conversation conversation = new Conversation();
+    private final VoiceLifecycle lifecycle = new VoiceLifecycle();
     private final Handler main = new Handler(Looper.getMainLooper());
     private final SpeechInput input;
     private final SpeechOutput output;
     private final VoiceRequest request;
-    private boolean foreground;
-    private boolean closed;
+    private final VoiceDismissal dismissal;
     private boolean followUp;
-    private boolean busy;
     private long speechTime;
 
-    public VoiceController(Activity activity, VoicePanel panel) {
+    VoiceController(Activity activity, VoicePanel panel, VoiceDismissal dismissal) {
         this.activity = activity; presentation = new VoicePresentation(activity, panel);
+        this.dismissal = dismissal;
         app = (AssistantApplication) activity.getApplication();
         request = new VoiceRequest(activity, conversation);
         input = SpeechInput.available(activity) ? new SpeechInput(activity, this) : null;
@@ -36,12 +38,13 @@ public final class VoiceController implements SpeechInput.Listener {
     }
 
     public void foreground(boolean visible) {
-        foreground = visible;
-        if (!visible && !busy) { stopListening(); }
+        if (lifecycle.foreground(visible)) { stopListening(); dismissal.schedule(); }
+        if (lifecycle.listening()) { listen(); }
     }
 
     public void listen() {
-        if (closed || busy) { return; }
+        if (!lifecycle.requestListening()) { return; }
+        dismissal.cancel();
         output.stop(); presentation.closeOverlay(); main.removeCallbacksAndMessages(null);
         if (!canListen()) { return; }
         followUp = conversation.continues(SystemClock.elapsedRealtime());
@@ -54,72 +57,71 @@ public final class VoiceController implements SpeechInput.Listener {
     }
 
     private boolean canListen() {
-        if (!SpeechPreferences.enabled(activity, SpeechPreferences.INPUT)) {
-            fail(activity.getString(R.string.stt_disabled)); return false;
-        }
-        if (!SpeechAvailability.googleAppEnabled(activity)) {
-            fail(activity.getString(R.string.speech_provider_disabled)); return false;
-        }
-        if (input == null) { fail(activity.getString(R.string.speech_unavailable)); return false; }
+        int issue = SpeechAvailability.inputIssue(activity, input != null);
+        if (issue != 0) { fail(activity.getString(issue)); return false; }
         if (app.model().isEmpty()) { fail(activity.getString(R.string.setup_required)); return false; }
         return true;
     }
 
     @Override public void began() {
+        if (!lifecycle.listening()) { return; }
         speechTime = SystemClock.elapsedRealtime();
         main.removeCallbacksAndMessages(null);
         main.postDelayed(this::expired, 20_000);
     }
     @Override public void result(String text) {
-        if (closed || busy) { return; }
-        main.removeCallbacksAndMessages(null); busy = true;
+        if (!lifecycle.recognized()) { return; }
+        main.removeCallbacksAndMessages(null);
         presentation.thinking(text);
         request.start(text, speechTime, this::answered, this::fail);
     }
 
     private void answered(String answer) {
-        if (closed) { return; }
-        busy = false;
-        String message = presentation.answered(answer, foreground);
-        if (!SpeechPreferences.enabled(activity, SpeechPreferences.OUTPUT)) { conversation.clear(); return; }
+        if (!lifecycle.answered()) { return; }
+        String message = presentation.answered(answer, lifecycle.visible());
+        if (!SpeechPreferences.enabled(activity, SpeechPreferences.OUTPUT)) { playbackCompleted(); return; }
         output.speak(message, presentation::playbackStarted, this::playbackCompleted, this::playbackFailed);
     }
 
     private void playbackCompleted() {
-        if (closed) { return; }
+        if (!lifecycle.playbackCompleted()) { return; }
         presentation.playbackStopped();
         conversation.answered(SystemClock.elapsedRealtime());
-        if (foreground) { listen(); }
-        else { main.postDelayed(conversation::clear, 8000); }
+        if (lifecycle.listening()) { listen(); }
+        else { dismissal.schedule(); }
     }
     private void playbackFailed(String reason) {
-        conversation.clear();
-        presentation.playbackFailed(reason, foreground);
+        lifecycle.finished(); conversation.clear();
+        presentation.playbackFailed(reason, lifecycle.visible());
+        dismissal.schedule();
     }
 
     @Override public void error(int error) {
         main.removeCallbacksAndMessages(null);
-        if (followUp && (error == 6 || error == 7)) { expired(); return; }
+        if (error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT || error == SpeechRecognizer.ERROR_NO_MATCH) { expired(); return; }
         fail(SpeechInput.errorText(activity, error));
     }
     private void expired() {
-        stopListening(); conversation.clear();
-        presentation.expired();
+        lifecycle.finished(); stopListening(); conversation.clear();
+        presentation.finished();
+        dismissal.schedule();
     }
     private void stopListening() {
         presentation.listeningStopped();
         main.removeCallbacksAndMessages(null); if (input != null) { input.cancel(); }
     }
     private void fail(String message) {
-        if (closed) { return; }
+        if (lifecycle.closed()) { return; }
+        lifecycle.finished();
         request.cancel();
-        busy = false; conversation.clear(); stopListening(); output.stop();
+        conversation.clear(); stopListening(); output.stop();
         presentation.failed(message);
+        dismissal.schedule();
     }
     public void close() {
-        if (closed) { return; }
-        closed = true;
+        if (!lifecycle.close()) { return; }
         request.cancel();
+        conversation.clear(); dismissal.cancel();
         stopListening(); output.close(); presentation.closeOverlay();
         if (input != null) { input.close(); }
     }

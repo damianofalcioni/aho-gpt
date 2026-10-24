@@ -15,16 +15,19 @@ public final class IntentLaunchTests extends Instrumentation {
     private String targetPackage;
     private String shortcutLabel;
     private String screenMarker;
+    private boolean voiceTasks;
 
     @Override public void onCreate(Bundle arguments) {
         super.onCreate(arguments);
         targetPackage = arguments == null ? "" : arguments.getString("launch_package", "");
         shortcutLabel = arguments == null ? "" : arguments.getString("home_shortcut", "");
         screenMarker = arguments == null ? "" : arguments.getString("screen_marker", "");
+        voiceTasks = arguments != null && "true".equals(arguments.getString("voice_tasks"));
         start();
     }
 
     @Override public void onStart() {
+        if (voiceTasks) { new VoiceTaskTest(this).run(); return; }
         if (!targetPackage.isEmpty()) { new InstalledAppLaunchTest(this, targetPackage).run(); return; }
         if (!shortcutLabel.isEmpty()) { new HomeShortcutLaunchTest(this, shortcutLabel, screenMarker).run(); return; }
         Check[] checks = {() -> launcher(Intent.CATEGORY_LAUNCHER), () -> launcher(Intent.CATEGORY_LEANBACK_LAUNCHER),

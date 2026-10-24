@@ -15,13 +15,13 @@ The home screen shows your account and model names. Tap either to change its set
 
 ## Speaking and listening
 
-After a spoken answer, you have eight seconds to follow up while the voice panel is open. After silence, your next request starts fresh. Answers stay visible until you close the panel.
+After each answer, listening starts automatically for up to eight seconds while the voice panel is foreground. Just speak to reply; you do not need to press the microphone again. This also works with voice playback turned off. After silence, the panel shows **Finished** and closes after three seconds. Errors also close after three seconds. Tap the microphone before it closes if you want to start again.
 
 Tap **×** or use Android Back to close and cancel pending work. Actions already sent to another app cannot be undone by closing the panel. There is no wake word or background listening.
 
 In **About & settings → Languages**, use each gear to choose a language and test it:
 
-- **TTS** reads answers aloud. You can also choose an installed voice. Turning it off stops automatic follow-up listening.
+- **TTS** reads answers aloud. You can also choose an installed voice. Turning it off displays answers as text; you can still reply by voice.
 - **STT** recognizes your speech. Turning it off stops microphone use.
 
 If speech is unavailable, use the gear to check Android speech settings or install language data. Choosing a playback language does not translate answers.

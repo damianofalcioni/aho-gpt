@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.speech.SpeechRecognizer;
 import android.view.Gravity;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
@@ -14,6 +15,7 @@ import aho.gpt.android.speech.SpeechPreferences;
 /** Explicit component for TV button mappers: android.ui.VoiceActivity. */
 public final class VoiceActivity extends Activity {
     private VoiceController controller;
+    private final VoiceDismissal dismissal = new VoiceDismissal(this::finish);
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -29,10 +31,11 @@ public final class VoiceActivity extends Activity {
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(width, height, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
         params.setMargins(margin, margin, margin, margin);
         root.addView(panel, params); setContentView(root);
-        controller = new VoiceController(this, panel);
+        controller = new VoiceController(this, panel, dismissal);
         speak();
     }
     private void speak() {
+        dismissal.cancel();
         if (!SpeechPreferences.enabled(this, SpeechPreferences.INPUT)) { controller.listen(); return; }
         if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 1);
@@ -40,7 +43,9 @@ public final class VoiceActivity extends Activity {
     }
     @Override public void onRequestPermissionsResult(int request, String[] permissions, int[] grants) {
         super.onRequestPermissionsResult(request, permissions, grants);
-        if (request == 1 && grants.length > 0 && grants[0] == PackageManager.PERMISSION_GRANTED) { controller.listen(); }
+        if (request != 1) { return; }
+        if (grants.length > 0 && grants[0] == PackageManager.PERMISSION_GRANTED) { controller.listen(); }
+        else { controller.error(SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS); }
     }
     @Override protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);

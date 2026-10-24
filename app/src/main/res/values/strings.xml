@@ -24,7 +24,7 @@
     <string name="enable_stt">Enable speech recognition</string>
     <string name="tts_information">Text-to-speech information</string>
     <string name="stt_information">Speech recognition information</string>
-    <string name="tts_info">Read answers aloud. Use the gear to choose and test a language or voice. Turning this off also stops automatic follow-up listening. Speech may use your provider’s online service.</string>
+    <string name="tts_info">Read answers aloud. Use the gear to choose and test a language or voice. When off, answers appear as text and you can still reply by voice. Speech may use your provider’s online service.</string>
     <string name="stt_info">Recognize spoken requests. Use the gear to choose and test a language. Tests do not send requests to OpenAI. Speech may use your provider’s online service.</string>
     <string name="tts_ready">Text-to-speech provider available</string>
     <string name="stt_ready">Speech recognition provider available</string>
@@ -83,13 +83,14 @@
     <string name="about_description">A voice assistant for Android, TV and Wear OS. Speak a request and hear an answer.</string>
     <string name="speak">Speak</string>
     <string name="close">Close</string>
-    <string name="ready">Ready</string>
+    <string name="voice_finished">Finished</string>
     <string name="thinking">Working…</string>
     <string name="answer">Answer</string>
     <string name="unavailable">Unable to continue</string>
     <string name="try_again">Please try again.</string>
     <string name="no_answer">No answer received.</string>
     <string name="speech_unavailable">Install or enable speech recognition in Android settings.</string>
+    <string name="microphone_permission_required">Microphone permission is required to speak.</string>
     <string name="speech_error">Could not hear you (error %1$d). Tap the microphone to retry.</string>
     <string name="setup_required">Tap the app logo, sign in with ChatGPT, then choose a model.</string>
     <string name="continue_chatgpt">Continue with ChatGPT</string>
@@ -117,5 +118,5 @@
     <string name="request_stopped">The request stopped or expired.</string>
     <string name="not_connected">Not connected</string>
     <string name="connection_status">%1$s\n%2$s\nApp actions: %3$d</string>
-    <string name="setup_help">Tap the microphone and speak. After a spoken answer, you have eight seconds to follow up. Tap × to close and cancel pending work. Tap the app logo for settings.</string>
+    <string name="setup_help">Tap the microphone and speak. After each answer, listening starts automatically for up to eight seconds so you can reply without pressing a button. After silence or an error, the panel closes in three seconds. Tap × to close and cancel pending work. Tap the app logo for settings.</string>
 </resources>
