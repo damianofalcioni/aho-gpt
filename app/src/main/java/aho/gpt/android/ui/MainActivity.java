@@ -16,7 +16,6 @@ public final class MainActivity extends Activity {
         findViewById(R.id.about_settings).setOnClickListener(view -> settings());
         findViewById(R.id.home_account).setOnClickListener(view -> settings(R.id.connect));
         findViewById(R.id.home_model).setOnClickListener(view -> settings(R.id.choose_model));
-        findViewById(R.id.home_tools).setOnClickListener(view -> settings(R.id.refresh_tools));
         findViewById(R.id.speak).setOnClickListener(view -> {
             if (ready) { startActivity(new Intent(this, VoiceActivity.class)); }
             else { settings(setupTarget); }
@@ -27,10 +26,8 @@ public final class MainActivity extends Activity {
     private void summary(AccountSummary.Snapshot snapshot) {
         ready = snapshot.ready();
         setupTarget = snapshot.connected() ? R.id.choose_model : R.id.connect;
-        ((TextView) findViewById(R.id.home_account)).setText(getString(R.string.home_account, snapshot.account()));
-        ((TextView) findViewById(R.id.home_model)).setText(getString(R.string.home_model, snapshot.model()));
-        ((TextView) findViewById(R.id.home_tools)).setText(getString(R.string.home_tools, snapshot.tools()));
-        ((TextView) findViewById(R.id.setup_hint)).setText(ready ? R.string.home_ready : R.string.home_setup_hint);
+        ((TextView) findViewById(R.id.home_account)).setText(snapshot.account());
+        ((TextView) findViewById(R.id.home_model)).setText(snapshot.model());
     }
     private void settings() { startActivity(new Intent(this, SettingsActivity.class)); }
     private void settings(int target) {
