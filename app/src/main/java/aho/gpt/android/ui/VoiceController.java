@@ -82,11 +82,12 @@ public final class VoiceController implements SpeechInput.Listener {
         busy = false;
         String message = presentation.answered(answer, foreground);
         if (!SpeechPreferences.enabled(activity, SpeechPreferences.OUTPUT)) { conversation.clear(); return; }
-        output.speak(message, this::playbackCompleted, this::playbackFailed);
+        output.speak(message, presentation::playbackStarted, this::playbackCompleted, this::playbackFailed);
     }
 
     private void playbackCompleted() {
         if (closed) { return; }
+        presentation.playbackStopped();
         conversation.answered(SystemClock.elapsedRealtime());
         if (foreground) { listen(); }
         else { main.postDelayed(conversation::clear, 8000); }
@@ -105,7 +106,10 @@ public final class VoiceController implements SpeechInput.Listener {
         stopListening(); conversation.clear();
         presentation.expired();
     }
-    private void stopListening() { main.removeCallbacksAndMessages(null); if (input != null) { input.cancel(); } }
+    private void stopListening() {
+        presentation.listeningStopped();
+        main.removeCallbacksAndMessages(null); if (input != null) { input.cancel(); }
+    }
     private void fail(String message) {
         if (closed) { return; }
         request.cancel();

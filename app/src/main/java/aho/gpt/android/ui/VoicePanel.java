@@ -1,7 +1,6 @@
 package aho.gpt.android.ui;
 
 import android.content.Context;
-import android.graphics.Typeface;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -12,60 +11,79 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import aho.gpt.R;
 
-/** One transient answer surface; never a transcript or chat composer. */
+/** One compact transient answer surface; never a transcript or chat composer. */
 public final class VoicePanel extends LinearLayout {
     private final TextView status;
     private final TextView answer;
-    private final ImageButton speak;
+    private final VoicePanelBackground surface;
 
     public VoicePanel(Context context) { this(context, () -> { }, () -> { }); }
 
     public VoicePanel(Context context, Runnable onSpeak, Runnable onClose) {
         super(context);
-        setOrientation(VERTICAL); setPadding(dp(24), dp(20), dp(24), dp(20));
-        setBackgroundResource(R.drawable.bg_panel);
+        setOrientation(HORIZONTAL); setGravity(Gravity.CENTER_VERTICAL);
+        int padding = getResources().getDimensionPixelSize(R.dimen.voice_panel_padding);
+        setPadding(padding, padding, padding, padding);
+        surface = new VoicePanelBackground(this);
         setElevation(dp(12));
-        boolean watch = context.getPackageManager().hasSystemFeature("android.hardware.type.watch");
-        LinearLayout body = content(watch);
-        status = text(14); status.setText(R.string.ready); body.addView(status);
-        answer = text(20); answer.setTypeface(Typeface.DEFAULT, Typeface.NORMAL);
-        addAnswer(body, watch);
-        speak = microphone(onSpeak); body.addView(speak);
-        body.addView(button(R.string.close, onClose));
+        LinearLayout text = new LinearLayout(context); text.setOrientation(VERTICAL);
+        status = text(12); status.setText(R.string.ready);
+        status.setTextColor(context.getColor(R.color.app_text_secondary)); text.addView(status);
+        answer = text(18); text.addView(answer);
+        addText(text);
+        addView(controls(onSpeak, onClose));
     }
-    private LinearLayout content(boolean watch) {
-        if (!watch) { return this; }
-        setPadding(dp(30), dp(30), dp(30), dp(30));
-        ScrollView scroll = new ScrollView(getContext());
-        LinearLayout body = new LinearLayout(getContext()); body.setOrientation(VERTICAL);
-        scroll.addView(body); addView(scroll, new LayoutParams(-1, -1));
-        return body;
+    private void addText(LinearLayout text) {
+        ScrollView scroll = new ScrollView(getContext()); scroll.setFillViewport(true);
+        scroll.setVerticalScrollBarEnabled(false);
+        scroll.setVerticalFadingEdgeEnabled(true); scroll.setFadingEdgeLength(dp(16));
+        scroll.addView(text, new ScrollView.LayoutParams(-1, -2));
+        LayoutParams params = new LayoutParams(0, -1, 1); params.setMarginEnd(dp(12));
+        addView(scroll, params);
     }
-    private void addAnswer(LinearLayout body, boolean watch) {
-        if (watch) { body.addView(answer); return; }
-        ScrollView scroll = new ScrollView(getContext()); scroll.addView(answer);
-        body.addView(scroll, new LayoutParams(-1, 0, 1));
+    private LinearLayout controls(Runnable onSpeak, Runnable onClose) {
+        LinearLayout controls = new LinearLayout(getContext()); controls.setOrientation(VERTICAL);
+        controls.addView(microphone(onSpeak), new LayoutParams(dp(48), dp(48)));
+        Button close = new Button(getContext()); close.setText(R.string.close_symbol);
+        close.setTextSize(26); close.setIncludeFontPadding(false);
+        close.setContentDescription(getContext().getString(R.string.close));
+        close.setBackgroundResource(R.drawable.bg_speak); close.setBackgroundTintList(null);
+        close.setPadding(0, 0, 0, 0); close.setMinHeight(0); close.setMinimumHeight(0);
+        close.setOnClickListener(view -> onClose.run());
+        LayoutParams params = new LayoutParams(dp(48), dp(48)); params.topMargin = dp(4);
+        controls.addView(close, params); return controls;
     }
     public void show(String state, String message) {
-        status.setText(state); answer.setText(message); speak.setVisibility(View.VISIBLE);
+        status.setText(state); answer.setText(message);
+        surface.listening(false); surface.speaking(false);
     }
-    private Button button(int label, Runnable action) {
-        Button button = new Button(getContext()); button.setText(label);
-        LayoutParams params = new LayoutParams(-1, -2); params.topMargin = dp(8);
-        button.setLayoutParams(params);
-        button.setOnClickListener(view -> action.run()); return button;
+    public void listening(boolean active) { surface.listening(active); }
+    public void speaking(boolean active) { surface.speaking(active); }
+    @Override protected void onAttachedToWindow() {
+        super.onAttachedToWindow(); updateVisibility();
+    }
+    @Override protected void onWindowVisibilityChanged(int visibility) {
+        super.onWindowVisibilityChanged(visibility); updateVisibility();
+    }
+    @Override protected void onVisibilityChanged(View changed, int visibility) {
+        super.onVisibilityChanged(changed, visibility); updateVisibility();
+    }
+    private void updateVisibility() {
+        if (surface != null) { surface.visible(isShown() && getWindowVisibility() == View.VISIBLE && isAttachedToWindow()); }
+    }
+    @Override protected void onDetachedFromWindow() {
+        surface.visible(false); super.onDetachedFromWindow();
     }
     private ImageButton microphone(Runnable action) {
         ImageButton button = new ImageButton(getContext());
         button.setImageResource(R.drawable.ic_mic); button.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         button.setContentDescription(getContext().getString(R.string.speak));
-        button.setBackgroundResource(R.drawable.bg_button); button.setPadding(dp(12), dp(12), dp(12), dp(12));
-        LayoutParams params = new LayoutParams(-1, dp(64)); params.topMargin = dp(8);
-        button.setLayoutParams(params); button.setOnClickListener(view -> action.run()); return button;
+        button.setBackgroundResource(R.drawable.bg_speak); button.setPadding(dp(12), dp(12), dp(12), dp(12));
+        button.setOnClickListener(view -> action.run()); return button;
     }
     private TextView text(int size) {
         TextView text = new TextView(getContext());
-        text.setTextSize(size); text.setGravity(Gravity.CENTER); return text;
+        text.setTextSize(size); text.setGravity(Gravity.START); return text;
     }
     private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }
 }

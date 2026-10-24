@@ -15,6 +15,7 @@ public final class SpeechOutput {
     private boolean ready;
     private boolean failed;
     private boolean closed;
+    private Runnable started;
     private Runnable completed;
     private ErrorListener errorHandler;
     private String pending;
@@ -25,7 +26,7 @@ public final class SpeechOutput {
         this.context = context;
         engine = new TextToSpeech(context, status -> main.post(() -> initialized(status)));
         engine.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-            @Override public void onStart(String id) { }
+            @Override public void onStart(String id) { main.post(() -> began(id)); }
             @Override public void onDone(String id) { main.post(() -> finish(id)); }
             @SuppressWarnings("deprecation") // Framework requires this abstract compatibility callback.
             @Override public void onError(String id) { main.post(() -> playbackError(id)); }
@@ -39,9 +40,10 @@ public final class SpeechOutput {
         failed = !ready;
         if (pending != null) { deliver(); }
     }
-    public void speak(String text, Runnable done, ErrorListener onError) {
+    public void speak(String text, Runnable onStart, Runnable done, ErrorListener onError) {
         if (closed) { return; }
-        stop(); pending = text; completed = done; errorHandler = onError; currentId = Long.toString(++sequence);
+        stop(); pending = text; started = onStart; completed = done;
+        errorHandler = onError; currentId = Long.toString(++sequence);
         if (ready || failed) { deliver(); }
     }
     private void deliver() {
@@ -61,6 +63,7 @@ public final class SpeechOutput {
         if (support < TextToSpeech.LANG_AVAILABLE) { return R.string.tts_language_unavailable; }
         return PlaybackVoices.apply(context, engine) ? 0 : R.string.tts_voice_unavailable;
     }
+    private void began(String id) { if (id.equals(currentId) && started != null) { started.run(); } }
     private void finish(String id) { if (id.equals(currentId)) { finish(); } }
     private void finish() {
         Runnable callback = completed;
@@ -76,7 +79,7 @@ public final class SpeechOutput {
                     SpeechPreferences.locale(context, SpeechPreferences.OUTPUT))));
         }
     }
-    private void clear() { completed = null; errorHandler = null; pending = null; currentId = ""; }
+    private void clear() { started = null; completed = null; errorHandler = null; pending = null; currentId = ""; }
     public void stop() { clear(); engine.stop(); }
     public void close() { closed = true; stop(); engine.shutdown(); main.removeCallbacksAndMessages(null); }
 }

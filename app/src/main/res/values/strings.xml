@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Aho! GPT</string>
+    <string name="close_symbol">×</string>
     <string name="about_settings">About &amp; settings</string>
     <string name="settings_heading">Settings</string>
     <string name="setting_information">Setting information</string>
@@ -93,8 +94,6 @@
     <string name="answer">Answer</string>
     <string name="unavailable">Unable to continue</string>
     <string name="try_again">Please try again.</string>
-    <string name="follow_up">Speak again within eight seconds to continue.</string>
-    <string name="session_ended">Session ended. Tap the microphone for a new request.</string>
     <string name="no_answer">The request completed without a spoken answer.</string>
     <string name="speech_unavailable">Install or enable a system speech recognition service on this device.</string>
     <string name="speech_error">System speech recognition error %1$d. Tap the microphone to retry.</string>

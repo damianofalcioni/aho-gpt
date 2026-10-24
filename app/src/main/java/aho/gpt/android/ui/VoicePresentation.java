@@ -19,9 +19,13 @@ final class VoicePresentation {
     Locale listening(boolean followUp) {
         Locale language = SpeechPreferences.locale(context, SpeechPreferences.INPUT);
         panel.show(context.getString(R.string.listening_language, SpeechPreferences.label(context, language)),
-                followUp ? lastAnswer + SECTION_BREAK + context.getString(R.string.follow_up) : "");
+                followUp ? lastAnswer : "");
+        panel.listening(true);
         return language;
     }
+    void listeningStopped() { panel.listening(false); }
+    void playbackStarted() { panel.speaking(true); }
+    void playbackStopped() { panel.speaking(false); }
     void thinking(String text) { panel.show(context.getString(R.string.thinking), text); }
     String answered(String answer, boolean foreground) {
         lastAnswer = answer.isEmpty() ? context.getString(R.string.no_answer) : answer;
@@ -35,7 +39,7 @@ final class VoicePresentation {
         if (!foreground) { overlay.show(message); }
     }
     void expired() {
-        panel.show(context.getString(R.string.ready), lastAnswer + SECTION_BREAK + context.getString(R.string.session_ended));
+        panel.show(context.getString(R.string.ready), lastAnswer);
     }
     void failed(String message) {
         panel.show(context.getString(R.string.unavailable), message == null ? context.getString(R.string.try_again) : message);

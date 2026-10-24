@@ -8,4 +8,7 @@
     <dimen name="home_speak_size">88dp</dimen>
     <dimen name="home_mic_padding">20dp</dimen>
     <dimen name="home_mic_size">56dp</dimen>
+    <dimen name="voice_panel_height">192dp</dimen>
+    <dimen name="voice_panel_margin">0dp</dimen>
+    <dimen name="voice_panel_padding">28dp</dimen>
 </resources>

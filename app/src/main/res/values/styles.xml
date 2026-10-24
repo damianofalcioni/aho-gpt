@@ -24,7 +24,7 @@
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:backgroundDimEnabled">true</item>
-        <item name="android:backgroundDimAmount">0.35</item>
+        <item name="android:backgroundDimAmount">0.12</item>
     </style>
     <style name="AssistantButton" parent="@android:style/Widget.Material.Button">
         <item name="android:background">@drawable/bg_button</item>
