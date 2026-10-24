@@ -3,6 +3,7 @@ package aho.gpt.android.tools;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.service.voice.VoiceInteractionService;
@@ -30,6 +31,11 @@ final class AssistantEntryTest {
         require(new ComponentName(context, VoiceActivity.class).equals(actual), "Must resolve to the voice activity");
         require(resolved.activityInfo.exported && resolved.activityInfo.enabled,
                 "System assistant and external mappers must be able to open the voice activity");
+        require((resolved.activityInfo.flags & ActivityInfo.FLAG_AUTO_REMOVE_FROM_RECENTS) != 0,
+                "Finished voice tasks must be removed from Recents for every entry point");
+        require(resolved.activityInfo.launchMode == ActivityInfo.LAUNCH_SINGLE_TASK
+                        && (context.getPackageName() + ".voice").equals(resolved.activityInfo.taskAffinity),
+                "Voice must use its own task without removing the launcher or caller task");
     }
 
     private void require(boolean condition, String message) {

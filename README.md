@@ -61,6 +61,8 @@ On phones exposing default-assistant settings, open **About & settings → Defau
 
 ## Conversation continuity
 
+Closing the voice panel with **Close** or Android Back removes its separate task from Recents. This applies to the microphone button, system assistant shortcut and external TV mappers. The normal app and caller tasks remain available. When the follow-up window expires, the answer stays visible until you dismiss the panel.
+
 The microphone opens only after user invocation, or briefly after a spoken answer while the voice panel remains visible. After TTS finishes, an **eight-second follow-up window** retains the context. Starting speech inside that window continues the exchange; silence, Close, an error, app process death, or activity recreation clears it. Initial recognition has a fifteen-second timeout; speech in progress has a twenty-second maximum. There is no always-listening wake word or background microphone service.
 
 History is held only in memory and replayed to Responses with `store:false` and `stream:true`. It is not stored as a ChatGPT conversation. The next new request clears expired history. Complete tool exchanges remain together; a size bound starts a fresh session on the next user turn. Ordinary OpenAI service data policies still apply to transmitted requests.

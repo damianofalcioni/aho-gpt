@@ -10,6 +10,8 @@ Provide a lightweight Android, Android TV and Wear OS AI harness. Use Java, nati
 
 ## Voice and continuity
 
+The transient voice panel uses a separate task. Finishing it with Close or Android Back removes that task from Recents, whether opened by the microphone button, the system assistant shortcut or an external TV mapper. Preserve the normal app and caller tasks. Session expiry leaves the answer visible until the panel is dismissed.
+
 Use platform STT and TTS. Prefer on-device STT if available; clearly report missing providers. User invocation starts a microphone session. After answer playback, listen for up to eight seconds while the voice panel is foreground. A follow-up beginning in that interval retains context; otherwise start a fresh conversation. Keep history in memory, bound its size, and clear it after expiry, failure or lifecycle destruction. No wake-word or persistent background listener.
 
 Provide a Languages section with separate TTS and STT rows, each containing a label, gear, enable switch and info button in one line. Save the enable preferences independently; disable the switches when their provider is unavailable or an installed Google app is disabled. An absent Google app does not prevent other installed speech providers. Keep gears usable for provider setup. STT off prevents microphone acquisition; TTS off keeps answers visible and prevents automatic follow-up listening. Preserve saved enable choices when a provider temporarily disappears.

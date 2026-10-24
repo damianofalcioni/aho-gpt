@@ -45,7 +45,8 @@ public final class VoiceActivity extends Activity {
     @Override protected void onPause() { controller.foreground(false); super.onPause(); }
     @Override public void finish() {
         if (controller != null) { controller.close(); }
-        super.finish();
+        if (isTaskRoot()) { super.finishAndRemoveTask(); }
+        else { super.finish(); }
     }
     @Override protected void onDestroy() { controller.close(); super.onDestroy(); }
 }
