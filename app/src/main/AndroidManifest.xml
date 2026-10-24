@@ -12,7 +12,7 @@
         <intent><action android:name="android.intent.action.TTS_SERVICE" /></intent>
     </queries>
     <application android:name=".android.AssistantApplication" android:label="@string/app_name"
-        android:icon="@drawable/ic_assistant" android:banner="@drawable/tv_banner"
+        android:icon="@mipmap/ic_launcher" android:banner="@drawable/tv_banner"
         android:theme="@style/AppTheme" android:allowBackup="false"
         android:fullBackupContent="@xml/backup_rules" android:dataExtractionRules="@xml/data_extraction_rules"
         tools:targetApi="s"

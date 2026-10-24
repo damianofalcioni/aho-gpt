@@ -13,15 +13,20 @@ import org.json.JSONObject;
 public final class IntentLaunchTests extends Instrumentation {
     private static final ComponentName TARGET = new ComponentName("example.browser", "example.browser.Main");
     private String targetPackage;
+    private String shortcutLabel;
+    private String screenMarker;
 
     @Override public void onCreate(Bundle arguments) {
         super.onCreate(arguments);
         targetPackage = arguments == null ? "" : arguments.getString("launch_package", "");
+        shortcutLabel = arguments == null ? "" : arguments.getString("home_shortcut", "");
+        screenMarker = arguments == null ? "" : arguments.getString("screen_marker", "");
         start();
     }
 
     @Override public void onStart() {
         if (!targetPackage.isEmpty()) { new InstalledAppLaunchTest(this, targetPackage).run(); return; }
+        if (!shortcutLabel.isEmpty()) { new HomeShortcutLaunchTest(this, shortcutLabel, screenMarker).run(); return; }
         Check[] checks = {() -> launcher(Intent.CATEGORY_LAUNCHER), () -> launcher(Intent.CATEGORY_LEANBACK_LAUNCHER),
                 this::nonLauncher, this::deepLink, this::invalidData, this::rejectedLaunch,
                 this::mimeMetadata, this::discovery, () -> new AssistantEntryTest(getTargetContext()).run()};

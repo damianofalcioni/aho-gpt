@@ -1,6 +1,7 @@
 <resources>
     <!-- Shared neutral palette from vibe-navigator. -->
     <color name="app_background">#000000</color>
+    <color name="icon_background">#FFFFFF</color>
     <color name="app_surface">#151B22</color>
     <color name="app_outline">#2C3744</color>
     <color name="app_text">#FFFFFF</color>

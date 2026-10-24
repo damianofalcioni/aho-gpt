@@ -1,0 +1,9 @@
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/icon_background" />
+    <foreground>
+        <!-- Scale with the layer bounds; keep the lettering inside the circular safe zone. -->
+        <inset android:insetLeft="23%" android:insetTop="23%"
+            android:insetRight="23%" android:insetBottom="23%"
+            android:drawable="@drawable/ic_assistant" />
+    </foreground>
+</adaptive-icon>
