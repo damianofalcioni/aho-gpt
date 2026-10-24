@@ -12,7 +12,11 @@ public final class AgentLoop {
         boolean accessibilityAvailable();
         String execute(String name, JSONObject arguments) throws Exception;
     }
-    private static final String INSTRUCTIONS = "You are a concise voice assistant on Android. Reply in the user's language. "
+    private static final String INSTRUCTIONS = "You are a concise voice assistant on Android. "
+            + "Reply in the language of the user's latest spoken request and match its tone and level of formality: "
+            + "formal for formal requests, casual for casual requests, and natural modern slang when the user uses it. "
+            + "Adapt on each turn, including when the user changes language or style; avoid forced slang or exaggerated imitation. "
+            + "Honor an explicit request for a different response language or style. Keep answers clear, accurate and concise. "
             + "Use device tools for real actions. Search intents before invoking them; never invent IDs, parameter contracts, or results. "
             + "Discover capabilities with find_intents: use mode overview when you need to learn available task categories, "
             + "or search directly with category, app, scheme and MIME filters when the goal is known. "

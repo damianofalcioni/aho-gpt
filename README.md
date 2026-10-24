@@ -15,6 +15,8 @@ The home screen shows your account and model names. Tap either to change its set
 
 ## Speaking and listening
 
+Aho! GPT is guided to reply in the language and style of your latest request: formal, casual or using natural slang to match you. You can also ask for a different language or tone.
+
 After each answer, listening starts automatically for up to eight seconds while the voice panel is foreground. Just speak to reply; you do not need to press the microphone again. This also works with voice playback turned off. After silence, the panel shows **Finished** and closes after three seconds. Errors also close after three seconds. Tap the microphone before it closes if you want to start again.
 
 Tap **×** or use Android Back to close and cancel pending work. Actions already sent to another app cannot be undone by closing the panel. There is no wake word or background listening.
