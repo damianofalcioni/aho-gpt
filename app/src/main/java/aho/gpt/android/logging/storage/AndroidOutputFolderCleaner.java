@@ -16,7 +16,7 @@ public final class AndroidOutputFolderCleaner {
     private AndroidOutputFolderCleaner() {
     }
 
-    public static void clear(Context context, String selected) throws IOException {
+    public static void clear(Context context, AndroidOutputDestination selected) throws IOException {
         AndroidOutputStorageCleaner.clear(context, selected);
     }
 

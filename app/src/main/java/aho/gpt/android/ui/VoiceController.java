@@ -18,6 +18,8 @@ import aho.gpt.core.VoiceLifecycle;
 public final class VoiceController implements SpeechInput.Listener {
     private static final String TAG = "Voice";
     private static final String SPEECH_TAG = "Speech";
+    private static final long INITIAL_LISTENING_MS = 15_000;
+    private static final long SPEECH_TIMEOUT_MS = 20_000;
     private final Activity activity;
     private final AssistantApplication app;
     private final VoicePresentation presentation;
@@ -28,11 +30,11 @@ public final class VoiceController implements SpeechInput.Listener {
     private final SpeechOutput output;
     private final VoiceRequest request;
     private final VoiceDismissal dismissal;
-    private boolean followUp;
     private long speechTime;
 
     VoiceController(Activity activity, VoicePanel panel, VoiceDismissal dismissal) {
-        this.activity = activity; presentation = new VoicePresentation(activity, panel);
+        this.activity = activity;
+        presentation = new VoicePresentation(activity, panel);
         this.dismissal = dismissal;
         app = (AssistantApplication) activity.getApplication();
         request = new VoiceRequest(activity, conversation);
@@ -43,7 +45,10 @@ public final class VoiceController implements SpeechInput.Listener {
     public void foreground(boolean visible) {
         if (lifecycle.closed()) { return; }
         AppLogger.d(TAG, "Foreground=" + visible + " state=" + lifecycle.state());
-        if (lifecycle.foreground(visible)) { stopListening(); dismissal.schedule(); }
+        if (lifecycle.foreground(visible)) {
+            stopListening();
+            dismissal.schedule();
+        }
         presentation.foreground(visible);
         if (lifecycle.listening()) { listen(); }
     }
@@ -51,14 +56,14 @@ public final class VoiceController implements SpeechInput.Listener {
     public void listen() {
         if (!lifecycle.requestListening()) { return; }
         AppLogger.i(SPEECH_TAG, "Listening started");
-        dismissal.cancel();
-        output.stop(); presentation.closeOverlay(); main.removeCallbacksAndMessages(null);
+        prepareListening();
         if (!canListen()) { return; }
-        followUp = conversation.continues(SystemClock.elapsedRealtime());
+        boolean followUp = conversation.continues(SystemClock.elapsedRealtime());
         speechTime = SystemClock.elapsedRealtime();
         try {
-            input.cancel(); input.start(presentation.listening(followUp));
-            long timeout = followUp ? conversation.remaining(speechTime) : 15_000;
+            input.cancel();
+            input.start(presentation.listening(followUp));
+            long timeout = followUp ? conversation.remaining(speechTime) : INITIAL_LISTENING_MS;
             main.postDelayed(this::expired, timeout);
         } catch (RuntimeException exception) {
             AppLogger.w(SPEECH_TAG, "Listening could not start", exception);
@@ -66,15 +71,24 @@ public final class VoiceController implements SpeechInput.Listener {
         }
     }
 
+    private void prepareListening() {
+        dismissal.cancel();
+        output.stop();
+        presentation.closeOverlay();
+        main.removeCallbacksAndMessages(null);
+    }
+
     private boolean canListen() {
         int issue = SpeechAvailability.inputIssue(activity, input != null);
         if (issue != 0) {
             AppLogger.w(SPEECH_TAG, "Listening unavailable reason=" + activity.getResources().getResourceEntryName(issue));
-            fail(activity.getString(issue)); return false;
+            fail(activity.getString(issue));
+            return false;
         }
         if (app.model().isEmpty()) {
             AppLogger.w(TAG, "Model setup required");
-            fail(activity.getString(R.string.setup_required)); return false;
+            fail(activity.getString(R.string.setup_required));
+            return false;
         }
         return true;
     }
@@ -83,7 +97,7 @@ public final class VoiceController implements SpeechInput.Listener {
         if (!lifecycle.listening()) { return; }
         speechTime = SystemClock.elapsedRealtime();
         main.removeCallbacksAndMessages(null);
-        main.postDelayed(this::expired, 20_000);
+        main.postDelayed(this::expired, SPEECH_TIMEOUT_MS);
     }
     @Override public void result(String text) {
         if (!lifecycle.recognized()) { return; }
@@ -103,7 +117,9 @@ public final class VoiceController implements SpeechInput.Listener {
         if (!lifecycle.answered()) { return; }
         String message = presentation.answered(answer);
         if (!SpeechPreferences.enabled(activity, SpeechPreferences.OUTPUT)) {
-            AppLogger.d(SPEECH_TAG, "Playback disabled"); playbackCompleted(); return;
+            AppLogger.d(SPEECH_TAG, "Playback disabled");
+            playbackCompleted();
+            return;
         }
         output.speak(message, presentation::playbackStarted, this::playbackCompleted, this::playbackFailed);
     }
@@ -117,7 +133,8 @@ public final class VoiceController implements SpeechInput.Listener {
     }
     private void playbackFailed(String reason) {
         AppLogger.w(SPEECH_TAG, "Playback failed");
-        lifecycle.finished(); conversation.clear();
+        lifecycle.finished();
+        conversation.clear();
         presentation.playbackFailed(reason);
         dismissal.schedule();
     }
@@ -125,25 +142,33 @@ public final class VoiceController implements SpeechInput.Listener {
     @Override public void error(int error) {
         AppLogger.w(SPEECH_TAG, "Recognition error=" + error);
         main.removeCallbacksAndMessages(null);
-        if (error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT || error == SpeechRecognizer.ERROR_NO_MATCH) { expired(); return; }
+        if (error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT || error == SpeechRecognizer.ERROR_NO_MATCH) {
+            expired();
+            return;
+        }
         fail(SpeechInput.errorText(activity, error));
     }
     private void expired() {
         AppLogger.i(TAG, "Listening finished");
-        lifecycle.finished(); stopListening(); conversation.clear();
+        lifecycle.finished();
+        stopListening();
+        conversation.clear();
         presentation.finished();
         dismissal.schedule();
     }
     private void stopListening() {
         presentation.listeningStopped();
-        main.removeCallbacksAndMessages(null); if (input != null) { input.cancel(); }
+        main.removeCallbacksAndMessages(null);
+        if (input != null) { input.cancel(); }
     }
     private void fail(String message) {
         if (lifecycle.closed()) { return; }
         AppLogger.w(TAG, "Session failed state=" + lifecycle.state());
         lifecycle.finished();
         request.cancel();
-        conversation.clear(); stopListening(); output.stop();
+        conversation.clear();
+        stopListening();
+        output.stop();
         presentation.failed(message);
         dismissal.schedule();
     }
@@ -151,8 +176,11 @@ public final class VoiceController implements SpeechInput.Listener {
         if (!lifecycle.close()) { return; }
         AppLogger.i(TAG, "Session closed");
         request.cancel();
-        conversation.clear(); dismissal.cancel();
-        stopListening(); output.close(); presentation.closeOverlay();
+        conversation.clear();
+        dismissal.cancel();
+        stopListening();
+        output.close();
+        presentation.closeOverlay();
         if (input != null) { input.close(); }
     }
 }

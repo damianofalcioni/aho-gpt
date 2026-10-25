@@ -10,8 +10,8 @@ import org.json.JSONObject;
 public final class ToolCalls {
     private final AgentLoop.Tools tools;
     private final RequestScope scope;
-    private final Map<String, String> signatures = new HashMap<>();
-    private final Map<String, String> receipts = new HashMap<>();
+    private record CachedCall(String signature, String receipt) { }
+    private final Map<String, CachedCall> calls = new HashMap<>();
 
     public ToolCalls(AgentLoop.Tools tools, RequestScope scope) { this.tools = tools; this.scope = scope; }
 
@@ -20,14 +20,16 @@ public final class ToolCalls {
         String id = item.getString("call_id");
         if (item.getString("arguments").length() > 80_000) { return receipt(item, ToolOutcome.refused("INVALID_ARGUMENTS"), false); }
         String signature = signature(item);
-        if (signatures.containsKey(id)) {
-            if (!signature.equals(signatures.get(id))) { return receipt(item, ToolOutcome.refused("CALL_ID_REUSED"), false); }
-            return receipt(item, receipts.get(id), true);
+        CachedCall cached = calls.get(id);
+        if (cached != null) {
+            if (!signature.equals(cached.signature())) { return receipt(item, ToolOutcome.refused("CALL_ID_REUSED"), false); }
+            return receipt(item, cached.receipt(), true);
         }
         if (id.isEmpty() || id.length() > 512) { return receipt(item, ToolOutcome.refused("INVALID_CALL_ID"), false); }
-        signatures.put(id, signature);
+        // Reserve the ID before dispatch, including when cancellation interrupts the call.
+        calls.put(id, new CachedCall(signature, null));
         String result = call(item);
-        receipts.put(id, result);
+        calls.put(id, new CachedCall(signature, result));
         return receipt(item, result, false);
     }
     private String receipt(JSONObject item, String result, boolean replayed) {

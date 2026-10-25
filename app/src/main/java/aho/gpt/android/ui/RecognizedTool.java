@@ -20,7 +20,7 @@ record RecognizedTool(String key, String name, String summary, JSONObject detail
     }
     static List<RecognizedTool> load(Context context, IntentCatalog catalog) throws Exception {
         List<RecognizedTool> result = new ArrayList<>();
-        JSONArray functions = ToolDefinitions.create(true).getJSONObject(0).getJSONArray("tools");
+        JSONArray functions = ToolDefinitions.functions(true);
         for (int i = 0; i < functions.length(); i++) { result.add(function(context, functions.getJSONObject(i))); }
         List<IntentCapability> entries = catalog.entries();
         Collections.sort(entries, RecognizedTool::compare);

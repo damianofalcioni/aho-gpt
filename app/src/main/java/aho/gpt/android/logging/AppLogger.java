@@ -7,7 +7,7 @@ import aho.gpt.logging.LogRecord;
 
 import aho.gpt.android.logging.storage.AndroidOutputFolderCleaner;
 import aho.gpt.android.logging.storage.AndroidOutputStorage;
-import aho.gpt.android.logging.storage.AppOutputFolderSettings.Kind;
+import aho.gpt.android.logging.storage.AndroidOutputDestination;
 
 public final class AppLogger {
 
@@ -35,7 +35,7 @@ public final class AppLogger {
                 return destination.path();
             }
         }
-        return AndroidOutputStorage.current(context, Kind.LOGS).label;
+        return AndroidOutputStorage.current(context).label;
     }
 
     public static boolean isLoggingEnabled() {
@@ -136,7 +136,7 @@ public final class AppLogger {
         }
     }
 
-    public static void clearOutputFolder(Context context, String selected) throws IOException {
+    public static void clearOutputFolder(Context context, AndroidOutputDestination selected) throws IOException {
         synchronized (LOCK) {
             AppLogDestination.close(destination);
             destination = null;

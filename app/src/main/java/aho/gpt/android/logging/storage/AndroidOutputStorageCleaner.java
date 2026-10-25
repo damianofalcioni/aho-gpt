@@ -14,8 +14,7 @@ import aho.gpt.logging.LogRecord;
 final class AndroidOutputStorageCleaner {
     private AndroidOutputStorageCleaner() { }
 
-    static void clear(Context context, String token) throws IOException {
-        AndroidOutputDestination destination = AndroidOutputDestination.fromToken(token);
+    static void clear(Context context, AndroidOutputDestination destination) throws IOException {
         if (destination.tree != null) {
             AndroidOutputFolderCleaner.clearDocuments(context, destination.ensureTree(context));
         } else if (destination.directory != null) {

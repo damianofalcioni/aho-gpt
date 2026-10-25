@@ -13,7 +13,6 @@ import aho.gpt.android.logging.AppLogger;
 import aho.gpt.android.logging.storage.AndroidOutputDestination;
 import aho.gpt.android.logging.storage.AndroidOutputStorage;
 import aho.gpt.android.logging.storage.AndroidOutputStorageBrowser;
-import aho.gpt.android.logging.storage.AppOutputFolderSettings.Kind;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 
@@ -28,7 +27,7 @@ final class LogFolderDialog {
         this.activity = activity; this.worker = worker; this.changed = changed;
     }
     void show() {
-        AndroidOutputDestination destination = AndroidOutputStorage.current(activity, Kind.LOGS);
+        AndroidOutputDestination destination = AndroidOutputStorage.current(activity);
         folder = new AlertDialog.Builder(activity).setTitle(R.string.logs).setMessage(destination.label)
                 .setNeutralButton(R.string.log_open, null).setNegativeButton(R.string.log_delete, null)
                 .setPositiveButton(android.R.string.ok, null).show();
@@ -42,13 +41,13 @@ final class LogFolderDialog {
                 .setMessage(activity.getString(R.string.log_delete_confirm, destination.label))
                 .setNegativeButton(android.R.string.cancel, null)
                 .setPositiveButton(R.string.log_delete, (dialog, which) -> {
-                    folder.dismiss(); worker.execute(() -> delete(destination.token()));
+                    folder.dismiss(); worker.execute(() -> delete(destination));
                 }).show();
         confirmation.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(activity.getColor(R.color.log_danger));
     }
-    private void delete(String token) {
+    private void delete(AndroidOutputDestination destination) {
         int result;
-        try { AppLogger.clearOutputFolder(activity, token); result = R.string.log_deleted; }
+        try { AppLogger.clearOutputFolder(activity, destination); result = R.string.log_deleted; }
         catch (IOException | RuntimeException exception) { result = R.string.log_storage_failed; }
         int message = result;
         activity.runOnUiThread(() -> {

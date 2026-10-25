@@ -47,6 +47,16 @@ public class ToolCallsTest {
         assertEquals(receipt, calls.execute(call(CALL_ID, VALID)));
         assertEquals(1, tools.dispatches);
     }
+    @Test public void reusedIdCannotChangeFunctionOrNamespace() throws Exception {
+        RecordingTools tools = new RecordingTools();
+        ToolCalls calls = new ToolCalls(tools, new RequestScope());
+        calls.execute(call(CALL_ID, VALID));
+        JSONObject renamed = call(CALL_ID, VALID).put("name", "find_intents");
+        assertEquals("CALL_ID_REUSED", new JSONObject(calls.execute(renamed)).getString("code"));
+        JSONObject moved = call(CALL_ID, VALID).put("namespace", "other");
+        assertEquals("CALL_ID_REUSED", new JSONObject(calls.execute(moved)).getString("code"));
+        assertEquals(1, tools.dispatches);
+    }
     @Test public void rejectsMalformedJsonAndAmbiguousDuplicateKeysBeforeDispatch() throws Exception {
         RecordingTools tools = new RecordingTools();
         ToolCalls calls = new ToolCalls(tools, new RequestScope());

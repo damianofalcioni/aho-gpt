@@ -7,19 +7,18 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.util.concurrent.Executor;
 import aho.gpt.R;
-import aho.gpt.android.logging.storage.AppOutputFolderSettings.Kind;
 
 /** Requests access to the selected storage before enabling logging. */
 public final class AndroidOutputPermissionRequest {
     public interface Result {
-        void complete(Kind kind, boolean allowed);
+        void complete(boolean allowed);
     }
 
     private static final String STATE = "output_permission_request";
     private final Activity activity;
     private final Result result;
     private final Executor worker;
-    private Kind pending;
+    private boolean pending;
     private boolean waiting;
     private int generation;
 
@@ -29,24 +28,23 @@ public final class AndroidOutputPermissionRequest {
         this.worker = worker;
     }
 
-    public void request(Kind kind) {
-        if (pending != null) {
+    public void request() {
+        if (pending) {
             return;
         }
-        pending = kind;
+        pending = true;
         inspect(true, null);
     }
 
-    public void cancel(Kind kind) {
-        if (pending == kind) {
-            pending = null;
+    public void cancel() {
+        if (pending) {
+            pending = false;
             generation++;
         }
     }
-    public boolean pending() { return pending != null; }
+    public boolean pending() { return pending; }
 
     private void inspect(boolean mayPrompt, Intent grant) {
-        Kind kind = pending;
         int token = generation;
         waiting = false;
         worker.execute(() -> {
@@ -55,22 +53,22 @@ public final class AndroidOutputPermissionRequest {
                 if (grant != null) {
                     AndroidOutputStorageAccess.accept(activity, grant);
                 }
-                AndroidOutputStorage.verify(activity, AndroidOutputStorage.requested(activity, kind));
+                AndroidOutputStorage.verify(activity, AndroidOutputStorage.requested(activity));
                 allowed = true;
             } catch (IOException | RuntimeException e) {
                 allowed = false;
             }
             boolean ready = allowed;
-            activity.runOnUiThread(() -> deliver(kind, token, ready, mayPrompt));
+            activity.runOnUiThread(() -> deliver(token, ready, mayPrompt));
         });
     }
 
-    private void deliver(Kind kind, int token, boolean ready, boolean mayPrompt) {
-        if (token != generation || pending != kind || isClosed()) {
+    private void deliver(int token, boolean ready, boolean mayPrompt) {
+        if (token != generation || !pending || isClosed()) {
             return;
         }
-        if (!ready && mayPrompt && !AndroidOutputStorage.hasAccess(activity, kind)) {
-            prompt(kind);
+        if (!ready && mayPrompt && !AndroidOutputStorage.hasAccess(activity)) {
+            prompt();
         } else {
             finish(ready);
         }
@@ -80,30 +78,28 @@ public final class AndroidOutputPermissionRequest {
         return activity.isDestroyed() || activity.isFinishing();
     }
 
-    private void prompt(Kind kind) {
+    private void prompt() {
         int token = generation;
-        waiting = AndroidOutputPermissionPrompt.show(activity, kind,
-                () -> deliver(kind, token, false, false), () -> waiting = true,
-                () -> pending == kind && token == generation && !isClosed());
+        waiting = AndroidOutputPermissionPrompt.show(activity,
+                () -> deliver(token, false, false), () -> waiting = true,
+                () -> pending && token == generation && !isClosed());
     }
 
     public boolean handlePermissionResult(int requestCode) {
-        Kind kind = AndroidOutputPermissionPrompt.kindFor(requestCode, AndroidOutputPermissionPrompt.PHONE_REQUEST);
-        if (kind == null) {
+        if (requestCode != AndroidOutputPermissionPrompt.PHONE_REQUEST) {
             return false;
         }
-        if (pending == kind) {
+        if (pending) {
             inspect(false, null);
         }
         return true;
     }
 
     public boolean handleActivityResult(int requestCode, int resultCode, Intent data) {
-        Kind kind = AndroidOutputPermissionPrompt.kindFor(requestCode, AndroidOutputPermissionPrompt.CARD_REQUEST);
-        if (kind == null) {
+        if (requestCode != AndroidOutputPermissionPrompt.CARD_REQUEST) {
             return false;
         }
-        if (pending != kind) {
+        if (!pending) {
             return true;
         }
         if (resultCode == Activity.RESULT_OK && data != null) {
@@ -115,28 +111,28 @@ public final class AndroidOutputPermissionRequest {
     }
 
     private void finish(boolean allowed) {
-        Kind kind = pending;
-        if (kind == null || isClosed()) {
+        if (!pending || isClosed()) {
             return;
         }
-        pending = null;
+        pending = false;
         waiting = false;
         generation++;
         if (!allowed) {
             Toast.makeText(activity, R.string.log_storage_failed, Toast.LENGTH_LONG).show();
         }
-        result.complete(kind, allowed);
+        result.complete(allowed);
     }
 
     public void saveState(Bundle state) {
-        state.putString(STATE, pending == null ? null : pending.name());
+        // Keep the existing saved-state format across activity recreation.
+        state.putString(STATE, pending ? "LOGS" : null);
         state.putBoolean(STATE + "_waiting", waiting);
     }
 
     public void restoreState(Bundle state) {
         String saved = state == null ? null : state.getString(STATE);
-        if (saved != null) {
-            pending = Kind.valueOf(saved);
+        if ("LOGS".equals(saved)) {
+            pending = true;
             waiting = state.getBoolean(STATE + "_waiting");
             if (!waiting) {
                 inspect(true, null);

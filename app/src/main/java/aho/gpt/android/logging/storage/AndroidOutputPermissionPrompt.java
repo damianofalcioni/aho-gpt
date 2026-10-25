@@ -5,8 +5,6 @@ import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import aho.gpt.R;
-import aho.gpt.android.logging.storage.AppOutputFolderSettings.Kind;
-import aho.gpt.android.logging.storage.AppOutputStorageSettings;
 
 /** Android permission UI and request codes for the selected output folder. */
 final class AndroidOutputPermissionPrompt {
@@ -18,9 +16,9 @@ final class AndroidOutputPermissionPrompt {
 
     private AndroidOutputPermissionPrompt() { }
 
-    static boolean show(Activity activity, Kind kind, Runnable denied, Runnable launching, Active active) {
+    static boolean show(Activity activity, Runnable denied, Runnable launching, Active active) {
         if (!AppOutputStorageSettings.useSdCard(activity)) {
-            AndroidLegacyExternalStorageAccess.requestOutputPermission(activity, PHONE_REQUEST + kind.ordinal());
+            AndroidLegacyExternalStorageAccess.requestOutputPermission(activity, PHONE_REQUEST);
             return true;
         }
         AndroidOutputStorageVolumes.Card card = AndroidOutputStorageVolumes.find(activity,
@@ -35,23 +33,19 @@ final class AndroidOutputPermissionPrompt {
                 .setOnCancelListener(dialog -> denied.run())
                 .setPositiveButton(android.R.string.ok, (dialog, which) -> {
                     if (active.isActive()) {
-                        launch(activity, kind, card.id, denied, launching);
+                        launch(activity, card.id, denied, launching);
                     }
                 }).show();
         return false;
     }
 
-    private static void launch(Activity activity, Kind kind, String id, Runnable denied, Runnable launching) {
+    private static void launch(Activity activity, String id, Runnable denied, Runnable launching) {
         try {
             launching.run();
-            activity.startActivityForResult(AndroidOutputStorageAccess.picker(id), CARD_REQUEST + kind.ordinal());
+            activity.startActivityForResult(AndroidOutputStorageAccess.picker(id), CARD_REQUEST);
         } catch (ActivityNotFoundException | SecurityException e) {
             denied.run();
         }
     }
 
-    static Kind kindFor(int code, int base) {
-        int index = code - base;
-        return index >= 0 && index < Kind.values().length ? Kind.values()[index] : null;
-    }
 }

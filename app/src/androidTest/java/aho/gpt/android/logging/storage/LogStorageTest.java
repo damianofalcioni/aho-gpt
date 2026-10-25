@@ -14,6 +14,7 @@ import java.util.List;
 /** Opt-in storage checks; clean up only their own generated files and restore logger preferences. */
 public final class LogStorageTest {
     private static final String TAG = "Test";
+    private static final String MISSING_CARD = "missing-test-card";
     private final Context original;
     private final Context context;
     private final List<String> paths = new ArrayList<>();
@@ -47,8 +48,8 @@ public final class LogStorageTest {
         }
     }
     private void session() throws Exception {
-        AndroidOutputFile probe = AndroidOutputFile.create(context, AndroidOutputStorage.requested(context,
-                AppOutputFolderSettings.Kind.LOGS), "text/plain", "aho-gpt-log-20000101000002.txt");
+        AndroidOutputFile probe = AndroidOutputFile.create(context, AndroidOutputStorage.requested(context),
+                "text/plain", "aho-gpt-log-20000101000002.txt");
         remember(probe.path());
         try (var output = probe.open()) { output.write(0); }
         probe.publish();
@@ -91,11 +92,11 @@ public final class LogStorageTest {
         } finally { writer.close(); }
     }
     private void unavailable() {
-        AppOutputStorageSettings.select(context, "missing-test-card", null);
+        AppOutputStorageSettings.select(context, MISSING_CARD);
         require(!AppLogger.setLoggingEnabled(context, true), "Unavailable storage must refuse logging");
         require(!AppLogger.isLoggingEnabled(), "Failure must keep logging off");
         AppLogger.anomaly(context, TAG, "Unavailable anomaly", null);
-        require(AppLogger.getLogFilePath(context).contains("missing-test-card"), "Failure must retain selected storage");
+        require(AppLogger.getLogFilePath(context).contains(MISSING_CARD), "Failure must retain selected storage");
         require(AppOutputStorageSettings.useSdCard(context), "Failure must not select fallback storage");
     }
     private void scopedDeletion() throws Exception {
@@ -104,12 +105,15 @@ public final class LogStorageTest {
         File generated = new File(folder, "aho-gpt-log-20000101000000.txt");
         File unrelated = new File(folder, "notes.txt");
         File directory = new File(folder, "aho-gpt-log-20000101000001.txt");
+        AndroidOutputDestination selected = AndroidOutputDestination.file(folder);
         try {
             require(generated.createNewFile() && unrelated.createNewFile() && directory.mkdir(), "Fixtures must exist");
-            AndroidOutputFolderCleaner.clear(context, AndroidOutputDestination.file(folder).token());
+            AppOutputStorageSettings.select(context, MISSING_CARD);
+            AndroidOutputFolderCleaner.clear(context, selected);
             require(!generated.exists(), "Generated log must be deleted");
             require(unrelated.exists() && directory.isDirectory() && folder.isDirectory(), "Other contents must survive");
         } finally {
+            AppOutputStorageSettings.disable(context);
             remove(generated); remove(unrelated); remove(directory); remove(folder);
         }
     }

@@ -11,7 +11,6 @@ import java.nio.charset.StandardCharsets;
 
 import aho.gpt.android.logging.storage.AndroidOutputStorage;
 import aho.gpt.android.logging.storage.AndroidOutputFile;
-import aho.gpt.android.logging.storage.AppOutputFolderSettings.Kind;
 
 /** A single selected Downloads destination; no fallback or app-local mirror is created. */
 public final class AndroidLogFolderWriter {
@@ -33,7 +32,7 @@ public final class AndroidLogFolderWriter {
     public static AndroidLogFolderWriter open(Context context, String name) {
         AndroidOutputFile file = null;
         try {
-            file = AndroidOutputStorage.create(context, Kind.LOGS, "text/plain", name);
+            file = AndroidOutputStorage.create(context, "text/plain", name);
             return new AndroidLogFolderWriter(context.getApplicationContext(), file, file.open());
         } catch (IOException | RuntimeException e) {
             if (file != null) {
@@ -45,7 +44,7 @@ public final class AndroidLogFolderWriter {
 
     public boolean append(CharSequence block) {
         try {
-            if (!file.destination.token().equals(AndroidOutputStorage.requested(context, Kind.LOGS).token())) {
+            if (!file.destination.sameLocation(AndroidOutputStorage.requested(context))) {
                 close();
                 return false;
             }

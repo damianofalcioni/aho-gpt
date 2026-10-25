@@ -9,7 +9,6 @@ import android.widget.Toast;
 import aho.gpt.R;
 import aho.gpt.android.logging.AppLogger;
 import aho.gpt.android.logging.storage.AndroidOutputPermissionRequest;
-import aho.gpt.android.logging.storage.AppOutputFolderSettings.Kind;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -31,7 +30,7 @@ final class LoggingSettingsRows {
         enabled = activity.findViewById(R.id.log_enabled);
         storage = new LogStorageSettings(activity, worker, this::refresh);
         folder = new LogFolderDialog(activity, worker, this::refresh);
-        permissions = new AndroidOutputPermissionRequest(activity, (kind, allowed) -> apply(allowed), worker);
+        permissions = new AndroidOutputPermissionRequest(activity, this::apply, worker);
         preferences.registerOnSharedPreferenceChangeListener(listener);
         activity.findViewById(R.id.log_settings).setOnClickListener(view -> folder.show());
         activity.findViewById(R.id.log_info).setOnClickListener(view -> new AlertDialog.Builder(activity)
@@ -48,8 +47,8 @@ final class LoggingSettingsRows {
         storage.refresh();
     }
     private void change(boolean value) {
-        if (value) { permissions.request(Kind.LOGS); refresh(); }
-        else { permissions.cancel(Kind.LOGS); apply(false); }
+        if (value) { permissions.request(); refresh(); }
+        else { permissions.cancel(); apply(false); }
     }
     private void apply(boolean value) {
         checking = true; refresh();
@@ -71,7 +70,7 @@ final class LoggingSettingsRows {
         if (!permissions.handleActivityResult(request, result, data)) { storage.result(request, result, data); }
     }
     void close() {
-        permissions.cancel(Kind.LOGS);
+        permissions.cancel();
         preferences.unregisterOnSharedPreferenceChangeListener(listener); folder.close(); worker.shutdown();
     }
 }

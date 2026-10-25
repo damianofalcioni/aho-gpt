@@ -7,7 +7,7 @@ import org.json.JSONObject;
 public final class ToolArguments {
     private ToolArguments() { }
     public static JSONObject validate(String name, JSONObject arguments, boolean accessibility) throws Exception {
-        JSONArray tools = ToolDefinitions.create(accessibility).getJSONObject(0).getJSONArray("tools");
+        JSONArray tools = ToolDefinitions.functions(accessibility);
         for (int i = 0; i < tools.length(); i++) {
             JSONObject tool = tools.getJSONObject(i);
             if (name.equals(tool.getString("name"))) {

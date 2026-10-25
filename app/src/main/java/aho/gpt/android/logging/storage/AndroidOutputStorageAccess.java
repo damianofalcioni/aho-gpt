@@ -9,9 +9,6 @@ import android.provider.DocumentsContract;
 
 import java.io.IOException;
 
-import aho.gpt.android.logging.storage.AppOutputFolderSettings.Kind;
-import aho.gpt.android.logging.storage.AppOutputStorageSettings;
-
 /** SD grants authorize the fixed Download/AhoGPT layout, never an arbitrary output folder. */
 public final class AndroidOutputStorageAccess {
     private static final int FLAGS = Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
@@ -75,9 +72,7 @@ public final class AndroidOutputStorageAccess {
     }
 
     public static void enable(Context context, AndroidOutputStorageVolumes.Card card, String grant) throws IOException {
-        for (Kind kind : Kind.values()) {
-            AndroidOutputStorage.verify(context, AndroidOutputStorage.card(context, card, kind, grant));
-        }
-        AppOutputStorageSettings.select(context, card.id, grant);
+        AndroidOutputStorage.verify(context, AndroidOutputStorage.card(context, card, grant));
+        AppOutputStorageSettings.select(context, card.id);
     }
 }

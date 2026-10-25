@@ -2,7 +2,7 @@ package aho.gpt.android.logging.storage;
 
 import android.content.Context;
 
-/** Installation-local SD selection and grant; never restored as portable app settings. */
+/** Installation-local SD selection; folder grants remain with Android. */
 public final class AppOutputStorageSettings {
     private static final String PREFS = "output_folders";
 
@@ -16,13 +16,9 @@ public final class AppOutputStorageSettings {
         return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString("sd_card_id", "");
     }
 
-    public static String tree(Context context) {
-        return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString("sd_download_tree", null);
-    }
-
-    public static void select(Context context, String id, String tree) {
+    public static void select(Context context, String id) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-                .putString("sd_card_id", id).putString("sd_download_tree", tree)
+                .putString("sd_card_id", id)
                 .putBoolean("use_sd_card", true).apply();
     }
 
