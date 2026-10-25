@@ -4,10 +4,10 @@ import aho.gpt.core.Conversation;
 import aho.gpt.core.RequestScope;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import java.io.IOException;
 
 public final class AgentLoop {
     public interface Transport { JSONObject respond(JSONObject request) throws Exception; }
+    public interface Progress { void update(boolean executingTool); }
     public interface Tools {
         boolean accessibilityAvailable();
         default boolean enabled(String name) { return true; }
@@ -16,8 +16,12 @@ public final class AgentLoop {
     }
     private final Transport transport;
     private final Tools tools;
+    private final Progress progress;
 
-    public AgentLoop(Transport transport, Tools tools) { this.transport = transport; this.tools = tools; }
+    public AgentLoop(Transport transport, Tools tools) { this(transport, tools, executing -> { }); }
+    public AgentLoop(Transport transport, Tools tools, Progress progress) {
+        this.transport = transport; this.tools = tools; this.progress = progress;
+    }
 
     public String run(Conversation conversation, String model) throws Exception {
         return run(conversation, model, new RequestScope());
@@ -26,8 +30,9 @@ public final class AgentLoop {
         long configuration = tools.configurationVersion();
         conversation.configureTools(configuration);
         ToolCalls calls = new ToolCalls(tools, scope);
-        for (int round = 0; round < 8; round++) {
+        while (true) {
             scope.check();
+            progress.update(false);
             JSONArray definitions = ToolDefinitions.create(tools.accessibilityAvailable(), tools::enabled);
             JSONObject request = new JSONObject().put("model", model).put("instructions", AgentInstructions.create(definitions))
                     .put("store", false).put("stream", true).put("input", conversation.input())
@@ -41,7 +46,6 @@ public final class AgentLoop {
             conversation.append(output);
             if (!executeCalls(conversation, output, calls)) { return ResponseText.extract(output); }
         }
-        throw new IOException("Stopped after eight tool rounds. Please try a smaller request.");
     }
 
     private void checkConfiguration(long version, RequestScope scope) throws InterruptedException {
@@ -53,6 +57,7 @@ public final class AgentLoop {
         for (int i = 0; i < output.length(); i++) {
             JSONObject item = output.getJSONObject(i);
             if ("function_call".equals(item.optString("type"))) {
+                progress.update(true);
                 conversation.toolResult(item.getString("call_id"), calls.execute(item));
                 called = true;
             }

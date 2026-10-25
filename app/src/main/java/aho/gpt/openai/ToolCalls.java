@@ -6,7 +6,7 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-/** One run's bounded receipt cache. A repeated call ID cannot dispatch twice. */
+/** One run's receipt cache. A repeated call ID cannot dispatch twice. */
 public final class ToolCalls {
     private final AgentLoop.Tools tools;
     private final RequestScope scope;
@@ -24,7 +24,7 @@ public final class ToolCalls {
             if (!signature.equals(signatures.get(id))) { return ToolOutcome.refused("CALL_ID_REUSED"); }
             return receipts.get(id);
         }
-        if (id.isEmpty() || id.length() > 512 || signatures.size() >= 64) { return ToolOutcome.refused("CALL_LIMIT"); }
+        if (id.isEmpty() || id.length() > 512) { return ToolOutcome.refused("INVALID_CALL_ID"); }
         signatures.put(id, signature);
         String result = call(item);
         receipts.put(id, result);

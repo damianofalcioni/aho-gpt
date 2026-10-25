@@ -2,7 +2,7 @@ package aho.gpt.core;
 
 /** Foreground-only voice turns. Answer completion returns directly to listening. */
 public final class VoiceLifecycle {
-    private enum State { INACTIVE, LISTENING, WORKING, PLAYING, FINISHED, CLOSED }
+    public enum State { INACTIVE, LISTENING, THINKING, EXECUTING_TOOL, PLAYING, FINISHED, CLOSED }
     private State state = State.INACTIVE;
     private boolean foreground;
 
@@ -13,21 +13,28 @@ public final class VoiceLifecycle {
         return wasListening && !visible;
     }
     public boolean visible() { return foreground; }
+    public State state() { return state; }
     public boolean closed() { return state == State.CLOSED; }
     public boolean listening() { return foreground && state == State.LISTENING; }
 
     public boolean requestListening() {
-        if (state == State.CLOSED || state == State.WORKING) { return false; }
+        if (closed() || working()) { return false; }
         state = State.LISTENING;
         return listening();
     }
     public boolean recognized() {
         if (!listening()) { return false; }
-        state = State.WORKING;
+        state = State.THINKING;
+        return true;
+    }
+    public boolean working() { return state == State.THINKING || state == State.EXECUTING_TOOL; }
+    public boolean progress(boolean executingTool) {
+        if (!working()) { return false; }
+        state = executingTool ? State.EXECUTING_TOOL : State.THINKING;
         return true;
     }
     public boolean answered() {
-        if (state != State.WORKING) { return false; }
+        if (state != State.THINKING) { return false; }
         state = State.PLAYING;
         return true;
     }

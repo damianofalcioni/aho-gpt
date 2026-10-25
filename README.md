@@ -36,7 +36,7 @@ Use **Refresh app actions** after installing or updating apps. Home-screen websi
 
 In **Device & permissions → Tools**, use the gear to search recognized device tools and app actions. Each entry has an enable switch and a **⋮** button showing its description, intent declarations or parameters, and limitations. The main **Tools** switch turns all tools off while keeping your individual choices. Disabled items are hidden from model tools and discovery results and cannot be dispatched by the assistant. Changing choices discards pending model responses and starts the next request with fresh context. These choices do not revoke Android permissions or undo actions already sent.
 
-Enable **Allow answers over other apps** to show answers outside the voice panel. Screen access can also provide this overlay.
+Enable **Allow voice panel over other apps** to keep the panel and close button visible while tools run in other apps. Screen access also provides this overlay. Without either permission, Android hides the panel when another app opens. Tool results return to the model before it continues. There is no app-imposed tool-round, call-count or turn-duration limit; account limits and Android restrictions still apply.
 
 Where supported, **Default assistant settings** lets you select Aho! GPT for your device’s assistant shortcut. For a TV remote, configure a separate button mapper with:
 

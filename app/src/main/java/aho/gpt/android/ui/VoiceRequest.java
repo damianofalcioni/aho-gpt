@@ -26,17 +26,18 @@ final class VoiceRequest {
         this.activity = activity; this.conversation = conversation;
         app = (AssistantApplication) activity.getApplication();
     }
-    void start(String text, long speechTime, Callback answer, Callback failure) {
+    void start(String text, long speechTime, AgentLoop.Progress progress, Callback answer, Callback failure) {
         cancel();
         RequestScope scope = new RequestScope();
         active = scope;
-        work = app.worker().submit(() -> run(scope, text, speechTime, answer, failure));
+        work = app.worker().submit(() -> run(scope, text, speechTime, progress, answer, failure));
     }
-    private void run(RequestScope scope, String text, long speechTime, Callback answer, Callback failure) {
+    private void run(RequestScope scope, String text, long speechTime, AgentLoop.Progress progress, Callback answer, Callback failure) {
         try {
             scope.check(); conversation.begin(text, speechTime);
             DeviceTools tools = new DeviceTools(app.catalog(), new IntentExecutor(activity), scope);
-            AgentLoop agent = new AgentLoop(body -> app.http().response(app.auth().accessToken(), body, scope), tools);
+            AgentLoop agent = new AgentLoop(body -> app.http().response(app.auth().accessToken(), body, scope), tools,
+                    executing -> main.post(() -> { if (active == scope) { progress.update(executing); } }));
             String result = agent.run(conversation, app.model(), scope);
             main.post(() -> deliver(scope, answer, result));
         } catch (InterruptedException exception) {

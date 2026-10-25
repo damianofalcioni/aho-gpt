@@ -10,7 +10,8 @@
     <string name="model_help">Choose a model available to your ChatGPT account.</string>
     <string name="usage_help">Review your plan and limits in ChatGPT.</string>
     <string name="sign_out_help">Sign out and clear the selected model. If disconnection fails, remove the app in ChatGPT settings.</string>
-    <string name="overlay_help">Show answers over other apps. Answers remain in the voice panel without this permission.</string>
+    <string name="overlay_help">Keep the voice panel visible over other apps while working and answering.</string>
+    <string name="executing_tool">Running tool…</string>
     <string name="assistant_help">Choose Aho! GPT as your default assistant where supported. TV remote shortcuts need a separate button mapper.</string>
     <string name="tools_help">Rescan app actions after installing or updating apps.</string>
     <string name="tools">Tools</string>
@@ -153,7 +154,7 @@
     <string name="accessibility_description">Read the screen, act on your requests and show answers over apps. No background recording or key interception.</string>
     <string name="accessibility_disclosure">Allow screen reading and actions during voice requests. Visible text may be sent to OpenAI, including private content except password fields. No background recording. You can turn this off in Android settings.</string>
     <string name="open_settings">Open settings</string>
-    <string name="overlay_settings">Allow answers over other apps</string>
+    <string name="overlay_settings">Allow voice panel over other apps</string>
     <string name="default_assistant">Default assistant settings</string>
     <string name="refresh_tools">Refresh app actions</string>
     <string name="sign_out">Sign out</string>

@@ -22,13 +22,9 @@ public final class VoiceActivity extends Activity {
         FrameLayout root = new FrameLayout(this);
         root.setFitsSystemWindows(true);
         VoicePanel panel = new VoicePanel(this, this::speak, this::finish);
-        float density = getResources().getDisplayMetrics().density;
         int margin = getResources().getDimensionPixelSize(R.dimen.voice_panel_margin);
-        int width = Math.min(getResources().getDimensionPixelSize(R.dimen.voice_panel_max_width),
-                Math.round(getResources().getConfiguration().screenWidthDp * density) - 2 * margin);
-        int height = Math.min(getResources().getDimensionPixelSize(R.dimen.voice_panel_height),
-                Math.round(getResources().getConfiguration().screenHeightDp * density) - 2 * margin);
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(width, height, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(VoicePanelSize.width(this), VoicePanelSize.height(this),
+                Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
         params.setMargins(margin, margin, margin, margin);
         root.addView(panel, params); setContentView(root);
         controller = new VoiceController(this, panel, dismissal);

@@ -38,7 +38,9 @@ public final class VoiceController implements SpeechInput.Listener {
     }
 
     public void foreground(boolean visible) {
+        if (lifecycle.closed()) { return; }
         if (lifecycle.foreground(visible)) { stopListening(); dismissal.schedule(); }
+        presentation.foreground(visible);
         if (lifecycle.listening()) { listen(); }
     }
 
@@ -73,12 +75,18 @@ public final class VoiceController implements SpeechInput.Listener {
         if (!lifecycle.recognized()) { return; }
         main.removeCallbacksAndMessages(null);
         presentation.thinking(text);
-        request.start(text, speechTime, this::answered, this::fail);
+        request.start(text, speechTime, this::progress, this::answered, this::fail);
+    }
+
+    private void progress(boolean executingTool) {
+        if (!lifecycle.progress(executingTool)) { return; }
+        dismissal.cancel();
+        presentation.progress(executingTool);
     }
 
     private void answered(String answer) {
         if (!lifecycle.answered()) { return; }
-        String message = presentation.answered(answer, lifecycle.visible());
+        String message = presentation.answered(answer);
         if (!SpeechPreferences.enabled(activity, SpeechPreferences.OUTPUT)) { playbackCompleted(); return; }
         output.speak(message, presentation::playbackStarted, this::playbackCompleted, this::playbackFailed);
     }
@@ -92,7 +100,7 @@ public final class VoiceController implements SpeechInput.Listener {
     }
     private void playbackFailed(String reason) {
         lifecycle.finished(); conversation.clear();
-        presentation.playbackFailed(reason, lifecycle.visible());
+        presentation.playbackFailed(reason);
         dismissal.schedule();
     }
 

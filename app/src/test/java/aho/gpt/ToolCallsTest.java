@@ -68,25 +68,22 @@ public class ToolCallsTest {
         assertEquals("accepted", new JSONObject(receipt).getString(STATUS));
         assertEquals("a\n\"b\\c\tè", tools.last.getJSONObject("string_extras").getString("text"));
     }
-    @Test public void requestCancellationAndExpiryBlockValidCalls() throws Exception {
+    @Test public void requestCancellationBlocksValidCalls() throws Exception {
         RecordingTools tools = new RecordingTools();
         RequestScope cancelled = new RequestScope(); cancelled.cancel();
         ToolCalls calls = new ToolCalls(tools, cancelled);
         assertThrows(InterruptedException.class, () -> calls.execute(call(CALL_ID, VALID)));
-        long[] clock = {0};
-        ToolCalls expired = new ToolCalls(tools, new RequestScope(() -> clock[0], 10));
-        clock[0] = 10;
-        assertThrows(InterruptedException.class, () -> expired.execute(call("two", VALID)));
         assertEquals(0, tools.dispatches);
     }
-    @Test public void boundsCallsWithinASingleResponseAndResetsForNextRequest() throws Exception {
+    @Test public void longBatchRetainsReceiptsWithoutACallCountCap() throws Exception {
         RecordingTools tools = new RecordingTools();
         ToolCalls calls = new ToolCalls(tools, new RequestScope());
-        for (int i = 0; i < 64; i++) { calls.execute(call("call" + i, VALID)); }
-        assertEquals(REFUSED, new JSONObject(calls.execute(call("overflow", VALID))).getString(STATUS));
-        assertEquals(64, tools.dispatches);
+        String first = calls.execute(call("call0", VALID));
+        for (int i = 1; i < 96; i++) { calls.execute(call("call" + i, VALID)); }
+        assertEquals(first, calls.execute(call("call0", VALID)));
+        assertEquals(96, tools.dispatches);
         new ToolCalls(tools, new RequestScope()).execute(call("call0", VALID));
-        assertEquals(65, tools.dispatches);
+        assertEquals(97, tools.dispatches);
     }
     private static JSONObject call(String id, String raw) throws Exception {
         return new JSONObject().put("call_id", id).put("name", "invoke_intent").put("arguments", raw);

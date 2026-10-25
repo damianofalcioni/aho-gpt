@@ -1,5 +1,6 @@
 package aho.gpt.android.ui;
 
+import android.app.Activity;
 import android.content.Context;
 import aho.gpt.R;
 import aho.gpt.android.speech.SpeechPreferences;
@@ -10,39 +11,55 @@ final class VoicePresentation {
     private static final String SECTION_BREAK = "\n\n";
     private final Context context;
     private final VoicePanel panel;
-    private final AnswerOverlay overlay;
+    private final VoiceOverlay overlay;
     private String lastAnswer = "";
+    private String status = "";
+    private String message = "";
+    private boolean foreground = true;
+    private boolean speaking;
 
-    VoicePresentation(Context context, VoicePanel panel) {
-        this.context = context; this.panel = panel; overlay = new AnswerOverlay(context.getApplicationContext());
+    VoicePresentation(Activity activity, VoicePanel panel) {
+        context = activity; this.panel = panel; overlay = new VoiceOverlay(activity, activity::finish);
+    }
+    void foreground(boolean visible) {
+        foreground = visible;
+        if (visible) { overlay.close(); }
+        else { overlay.show(status, message); overlay.speaking(speaking); }
     }
     Locale listening(boolean followUp) {
         Locale language = SpeechPreferences.locale(context, SpeechPreferences.INPUT);
-        panel.show(context.getString(R.string.listening_language, SpeechPreferences.label(context, language)),
+        show(context.getString(R.string.listening_language, SpeechPreferences.label(context, language)),
                 followUp ? lastAnswer : "");
         panel.listening(true);
         return language;
     }
     void listeningStopped() { panel.listening(false); }
-    void playbackStarted() { panel.speaking(true); }
-    void playbackStopped() { panel.speaking(false); }
-    void thinking(String text) { panel.show(context.getString(R.string.thinking), text); }
-    String answered(String answer, boolean foreground) {
+    void playbackStarted() { speaking = true; panel.speaking(true); overlay.speaking(true); }
+    void playbackStopped() { speaking = false; panel.speaking(false); overlay.speaking(false); }
+    void thinking(String text) { show(context.getString(R.string.thinking), text); }
+    void progress(boolean executingTool) {
+        show(context.getString(executingTool ? R.string.executing_tool : R.string.thinking), message);
+    }
+    String answered(String answer) {
         lastAnswer = answer.isEmpty() ? context.getString(R.string.no_answer) : answer;
-        panel.show(context.getString(R.string.answer), lastAnswer);
-        if (!foreground) { overlay.show(lastAnswer); }
+        show(context.getString(R.string.answer), lastAnswer);
         return lastAnswer;
     }
-    void playbackFailed(String reason, boolean foreground) {
-        String message = lastAnswer + SECTION_BREAK + reason;
-        panel.show(context.getString(R.string.unavailable), message);
-        if (!foreground) { overlay.show(message); }
+    void playbackFailed(String reason) {
+        playbackStopped();
+        show(context.getString(R.string.unavailable), lastAnswer + SECTION_BREAK + reason);
     }
     void finished() {
-        panel.show(context.getString(R.string.voice_finished), lastAnswer);
+        show(context.getString(R.string.voice_finished), lastAnswer);
     }
     void failed(String message) {
-        panel.show(context.getString(R.string.unavailable), message == null ? context.getString(R.string.try_again) : message);
+        playbackStopped();
+        show(context.getString(R.string.unavailable), message == null ? context.getString(R.string.try_again) : message);
+    }
+    private void show(String state, String text) {
+        status = state; message = text; speaking = false;
+        panel.show(state, text);
+        if (!foreground) { overlay.show(state, text); }
     }
     void closeOverlay() { overlay.close(); }
 }

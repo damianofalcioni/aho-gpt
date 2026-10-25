@@ -69,6 +69,32 @@ public class VoiceLifecycleTest {
         voice.foreground(true);
         assertFalse(voice.listening());
     }
+    @Test public void toolsStayActiveAcrossForegroundChangesAndReturnToModel() {
+        VoiceLifecycle voice = listening(); voice.recognized();
+        assertEquals(VoiceLifecycle.State.THINKING, voice.state());
+        assertTrue(voice.progress(true));
+        assertEquals(VoiceLifecycle.State.EXECUTING_TOOL, voice.state());
+        assertFalse(voice.requestListening());
+        assertFalse(voice.answered());
+        assertFalse(voice.foreground(false));
+        assertTrue(voice.working());
+        assertTrue(voice.progress(false));
+        assertEquals(VoiceLifecycle.State.THINKING, voice.state());
+        assertTrue(voice.answered());
+        assertTrue(voice.playbackCompleted());
+        assertFalse(voice.listening());
+        voice.foreground(true);
+        assertTrue(voice.listening());
+    }
+    @Test public void retiredToolProgressCannotRestartAClosedOrFailedSession() {
+        VoiceLifecycle voice = listening(); voice.recognized(); voice.progress(true);
+        voice.finished();
+        assertFalse(voice.progress(false));
+        assertFalse(voice.answered());
+        voice.close();
+        assertFalse(voice.progress(true));
+        assertFalse(voice.requestListening());
+    }
 
     private VoiceLifecycle listening() {
         VoiceLifecycle voice = new VoiceLifecycle();

@@ -16,14 +16,6 @@ public class RequestScopeTest {
         assertTrue(failure.getCause() instanceof InterruptedException);
         assertEquals(0, dispatches[0]);
     }
-    @Test public void deadlineIsCheckedOnExecutionThread() {
-        long[] time = {100};
-        RequestScope scope = new RequestScope(() -> time[0], 20);
-        int[] dispatches = {0};
-        time[0] = 120;
-        assertThrows(InterruptedException.class, () -> scope.dispatch(() -> ++dispatches[0]));
-        assertEquals(0, dispatches[0]);
-    }
     @Test public void oldCancellationDoesNotRevokeNewRequest() throws Exception {
         RequestScope previous = new RequestScope();
         RequestScope current = new RequestScope();

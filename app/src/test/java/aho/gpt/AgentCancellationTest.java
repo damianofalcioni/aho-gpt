@@ -10,12 +10,13 @@ import static org.junit.Assert.*;
 
 public class AgentCancellationTest {
     private static final String OUTPUT = "output";
+    private static final String MODEL = "model";
     @Test public void completedResponseCannotExecuteAfterCancellation() throws Exception {
         RequestScope scope = new RequestScope();
         Conversation conversation = new Conversation(); conversation.begin("Open app", 1);
         CountingTools tools = new CountingTools();
         AgentLoop agent = new AgentLoop(request -> { scope.cancel(); return response(); }, tools);
-        assertThrows(InterruptedException.class, () -> agent.run(conversation, "model", scope));
+        assertThrows(InterruptedException.class, () -> agent.run(conversation, MODEL, scope));
         assertEquals(0, tools.calls);
         assertEquals(1, conversation.input().length());
     }
@@ -25,7 +26,7 @@ public class AgentCancellationTest {
         int[] rounds = {0};
         AgentLoop agent = new AgentLoop(request -> ++rounds[0] <= 2 ? response()
                 : new JSONObject().put(OUTPUT, new JSONArray()), tools);
-        agent.run(conversation, "model");
+        agent.run(conversation, MODEL);
         assertEquals(1, tools.calls);
         assertEquals(3, rounds[0]);
     }
@@ -42,8 +43,16 @@ public class AgentCancellationTest {
         JSONObject batch = response();
         batch.getJSONArray(OUTPUT).put(response().getJSONArray(OUTPUT).getJSONObject(0).put("call_id", "second"));
         AgentLoop agent = new AgentLoop(request -> batch, tools);
-        assertThrows(InterruptedException.class, () -> agent.run(conversation, "model", scope));
+        assertThrows(InterruptedException.class, () -> agent.run(conversation, MODEL, scope));
         assertEquals(1, calls[0]);
+    }
+    @Test public void closingDuringToolProgressPreventsDispatch() throws Exception {
+        RequestScope scope = new RequestScope();
+        Conversation conversation = new Conversation(); conversation.begin("Open app", 1);
+        CountingTools tools = new CountingTools();
+        AgentLoop agent = new AgentLoop(request -> response(), tools, executing -> { if (executing) { scope.cancel(); } });
+        assertThrows(InterruptedException.class, () -> agent.run(conversation, MODEL, scope));
+        assertEquals(0, tools.calls);
     }
     private static JSONObject response() throws Exception {
         return new JSONObject().put(OUTPUT, new JSONArray().put(new JSONObject().put("type", "function_call")
