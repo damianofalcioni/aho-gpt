@@ -12,6 +12,25 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class CapabilityIndexTest {
+    private static final String TOTAL = "total";
+    private static final String APPS = "apps";
+    @Test public void disabledEntriesAreAbsentFromSearchPaginationAndOverviewCounts() throws Exception {
+        Map<String, CapabilityMetadata> entries = new LinkedHashMap<>();
+        entries.put("disabled", launcher("Hidden app", "hidden.package"));
+        for (int i = 0; i < 26; i++) { entries.put("allowed" + i, launcher("Allowed app", "allowed.package")); }
+        CapabilityQuery query = new CapabilityQuery(new JSONObject());
+        CapabilityIndex index = new CapabilityIndex(entries, id -> !id.equals("disabled"));
+        CapabilityIndex.Page page = index.search(query, 0);
+        assertEquals(26, page.total()); assertEquals(25, page.nextOffset());
+        assertFalse(page.ids().contains("disabled"));
+        assertEquals("allowed25", index.search(query, page.nextOffset()).ids().get(0));
+        JSONObject overview = index.overview(query);
+        assertEquals(26, overview.getInt(TOTAL)); assertEquals(1, overview.getInt(APPS));
+        assertEquals(1, overview.getJSONArray("categories").getJSONObject(0).getInt(APPS));
+        CapabilityIndex off = new CapabilityIndex(entries, id -> false);
+        assertTrue(off.search(query, 0).ids().isEmpty());
+        assertEquals(0, off.overview(query).getInt(TOTAL));
+    }
     @Test public void ranksExactAppBeforeSubstringAndPreservesLauncherPriority() throws Exception {
         Map<String, CapabilityMetadata> entries = new LinkedHashMap<>();
         entries.put("beta", launcher("Chrome Beta", "example.beta"));
@@ -43,10 +62,10 @@ public class CapabilityIndexTest {
         entries.put("alias", launcher("Private Label", "private.package"));
         entries.put("two", launcher("Other Private Label", "other.private.package"));
         JSONObject overview = new CapabilityIndex(entries).overview(new CapabilityQuery(new JSONObject()));
-        assertEquals(3, overview.getInt("total")); assertEquals(2, overview.getInt("apps"));
+        assertEquals(3, overview.getInt(TOTAL)); assertEquals(2, overview.getInt(APPS));
         JSONArray groups = overview.getJSONArray("categories");
         assertEquals(1, groups.length()); assertEquals("open_app", groups.getJSONObject(0).getString("category"));
-        assertEquals(2, groups.getJSONObject(0).getInt("apps"));
+        assertEquals(2, groups.getJSONObject(0).getInt(APPS));
         assertFalse(overview.toString().contains("Private Label"));
         assertFalse(overview.toString().contains("private.package"));
     }
@@ -55,7 +74,7 @@ public class CapabilityIndexTest {
         Map<String, CapabilityMetadata> entries = new LinkedHashMap<>();
         entries.put("one", launcher("One", "example.one"));
         CapabilityQuery query = new CapabilityQuery(new JSONObject().put("category", "open_link"));
-        assertEquals(0, new CapabilityIndex(entries).overview(query).getInt("total"));
+        assertEquals(0, new CapabilityIndex(entries).overview(query).getInt(TOTAL));
         CapabilityIndex empty = new CapabilityIndex(Collections.emptyMap());
         assertEquals(0, empty.overview(query).getJSONArray("categories").length());
         assertEquals(-1, empty.search(query, 0).nextOffset());

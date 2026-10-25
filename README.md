@@ -34,6 +34,8 @@ You can ask Aho! GPT to open apps and use available app actions. Enable **Screen
 
 Use **Refresh app actions** after installing or updating apps. Home-screen website shortcuts require screen access and a visible, accessible icon.
 
+In **Device & permissions → Tools**, use the gear to search recognized device tools and app actions. Each entry has an enable switch and a **⋮** button showing its description, intent declarations or parameters, and limitations. The main **Tools** switch turns all tools off while keeping your individual choices. Disabled items are hidden from model tools and discovery results and cannot be dispatched by the assistant. Changing choices discards pending model responses and starts the next request with fresh context. These choices do not revoke Android permissions or undo actions already sent.
+
 Enable **Allow answers over other apps** to show answers outside the voice panel. Screen access can also provide this overlay.
 
 Where supported, **Default assistant settings** lets you select Aho! GPT for your device’s assistant shortcut. For a TV remote, configure a separate button mapper with:

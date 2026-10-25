@@ -21,6 +21,7 @@ public final class SettingsActivity extends Activity {
     private TextView status;
     private SpeechSettingsRows speech;
     private AboutInformation about;
+    private ToolsSettingsDialog tools;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state); app = (AssistantApplication) getApplication();
@@ -28,6 +29,7 @@ public final class SettingsActivity extends Activity {
         status = findViewById(R.id.connection_status);
         speech = new SpeechSettingsRows(this);
         about = new AboutInformation(this);
+        tools = new ToolsSettingsDialog(this);
         TextView version = findViewById(R.id.app_version);
         version.setText(getString(R.string.app_version, aho.gpt.BuildConfig.VERSION_NAME));
         action(R.id.connect, () -> startActivity(new Intent(this, SignInActivity.class)));
@@ -48,7 +50,7 @@ public final class SettingsActivity extends Activity {
     }
     @Override protected void onResume() { super.onResume(); refresh(); speech.refresh(); }
     @Override protected void onPause() { speech.stopTests(); super.onPause(); }
-    @Override protected void onDestroy() { speech.close(); about.close(); super.onDestroy(); }
+    @Override protected void onDestroy() { speech.close(); about.close(); tools.close(); super.onDestroy(); }
     @Override public void onRequestPermissionsResult(int request, String[] permissions, int[] grants) {
         super.onRequestPermissionsResult(request, permissions, grants);
         if (request == RecognitionSettingsDialog.PERMISSION_REQUEST) {

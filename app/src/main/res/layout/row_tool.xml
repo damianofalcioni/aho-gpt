@@ -1,0 +1,13 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" style="@style/SettingsRow"
+    android:paddingTop="4dp" android:paddingBottom="4dp">
+    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+        android:layout_weight="1" android:orientation="vertical">
+        <TextView android:id="@+id/tool_name" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textSize="16sp" />
+        <TextView android:id="@+id/tool_summary" style="@style/SettingsBody"
+            android:textSize="12sp" android:maxLines="2" android:ellipsize="middle" />
+    </LinearLayout>
+    <ImageButton android:id="@+id/tool_details" style="@style/SettingsIcon"
+        android:src="@drawable/ic_more" android:contentDescription="@string/tool_details" />
+    <Switch android:id="@+id/tool_enabled" style="@style/SettingsSwitch" android:contentDescription="@string/enable_tools" />
+</LinearLayout>

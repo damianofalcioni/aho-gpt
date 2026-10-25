@@ -6,7 +6,7 @@ import android.content.pm.PackageManager;
 import aho.gpt.core.CapabilityIndex;
 import aho.gpt.core.CapabilityMetadata;
 import aho.gpt.core.CapabilityQuery;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,11 +16,13 @@ import org.json.JSONObject;
 public final class IntentCatalog {
     private final Context context;
     private final Map<String, IntentCapability> capabilities = new LinkedHashMap<>();
-    private CapabilityIndex index = new CapabilityIndex(Collections.emptyMap());
+    private final ToolPreferences preferences;
     private int scanned;
     private int unreadable;
 
-    public IntentCatalog(Context context) { this.context = context; }
+    public IntentCatalog(Context context) { this.context = context; preferences = new ToolPreferences(context); }
+
+    public ToolPreferences preferences() { return preferences; }
 
     public synchronized void scan() {
         Map<String, IntentCapability> found = new LinkedHashMap<>();
@@ -37,9 +39,6 @@ public final class IntentCatalog {
             found.put(cap.id, cap);
         }
         capabilities.clear(); capabilities.putAll(found);
-        Map<String, CapabilityMetadata> metadata = new LinkedHashMap<>();
-        for (IntentCapability cap : found.values()) { metadata.put(cap.id, cap.metadata()); }
-        index = new CapabilityIndex(metadata);
     }
 
     private List<PackageInfo> installed(PackageManager manager) {
@@ -58,6 +57,7 @@ public final class IntentCatalog {
 
     public synchronized JSONObject search(JSONObject arguments) throws Exception {
         CapabilityQuery query = new CapabilityQuery(arguments);
+        CapabilityIndex index = enabledIndex();
         JSONObject result;
         switch (arguments.optString("mode", "search")) {
             case "overview": result = index.overview(query); break;
@@ -66,6 +66,16 @@ public final class IntentCatalog {
         }
         return result.put("packages_scanned", scanned).put("unreadable_manifests", unreadable);
     }
+
+    private CapabilityIndex enabledIndex() {
+        Map<String, CapabilityMetadata> metadata = new LinkedHashMap<>();
+        for (IntentCapability cap : capabilities.values()) {
+            metadata.put(cap.id, cap.metadata());
+        }
+        return new CapabilityIndex(metadata, id -> preferences.allows(capabilities.get(id).preferenceKey()));
+    }
+
+    public synchronized List<IntentCapability> entries() { return new ArrayList<>(capabilities.values()); }
 
     private JSONObject page(CapabilityIndex.Page matches) throws Exception {
         JSONArray page = new JSONArray();

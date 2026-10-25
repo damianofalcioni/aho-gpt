@@ -37,6 +37,7 @@ public final class ToolCalls {
     private String call(JSONObject item) throws Exception {
         if (!"device".equals(item.optString("namespace", "device"))) { return ToolOutcome.refused("UNKNOWN_NAMESPACE"); }
         String name = item.getString("name");
+        if (!tools.enabled(name)) { return ToolOutcome.refused("TOOL_DISABLED"); }
         JSONObject arguments;
         try {
             arguments = ToolArguments.validate(name, ToolJson.parse(item.getString("arguments")), tools.accessibilityAvailable());

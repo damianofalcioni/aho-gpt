@@ -65,6 +65,13 @@
         </LinearLayout>
         <View style="@style/SettingsSectionDivider" />
         <TextView style="@style/SettingsSectionHeading" android:text="@string/device_heading" />
+        <LinearLayout style="@style/SettingsRow">
+            <TextView style="@style/SettingsLabel" android:text="@string/tools" />
+            <ImageButton android:id="@+id/tools_settings" style="@style/SettingsIcon"
+                android:src="@drawable/ic_settings" android:contentDescription="@string/configure_tools" />
+            <Switch android:id="@+id/tools_enabled" style="@style/SettingsSwitch" android:contentDescription="@string/enable_tools" />
+            <ImageButton android:id="@+id/tools_info" style="@style/SettingsInfo" android:contentDescription="@string/tools_information" />
+        </LinearLayout>
         <LinearLayout style="@style/SettingsActionRow">
             <Button android:id="@+id/accessibility" style="@style/SettingsRowAction" android:text="@string/accessibility_name" />
             <ImageButton android:id="@+id/accessibility_info" style="@style/SettingsActionInfo" android:contentDescription="@string/setting_information" />
@@ -79,7 +86,7 @@
         </LinearLayout>
         <LinearLayout style="@style/SettingsActionRow">
             <Button android:id="@+id/refresh_tools" style="@style/SettingsRowAction" android:text="@string/refresh_tools" />
-            <ImageButton android:id="@+id/tools_info" style="@style/SettingsActionInfo" android:contentDescription="@string/setting_information" />
+            <ImageButton android:id="@+id/refresh_tools_info" style="@style/SettingsActionInfo" android:contentDescription="@string/setting_information" />
         </LinearLayout>
         <View style="@style/SettingsSectionDivider" />
         <TextView style="@style/SettingsSectionHeading" android:text="@string/help_heading" />

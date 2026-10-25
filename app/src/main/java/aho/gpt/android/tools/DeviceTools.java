@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 import org.json.JSONObject;
 
 public final class DeviceTools implements AgentLoop.Tools {
+    private static final String DISABLED = "TOOL_DISABLED";
     private final IntentCatalog catalog;
     private final IntentExecutor executor;
     private final Handler main = new Handler(Looper.getMainLooper());
@@ -27,9 +28,12 @@ public final class DeviceTools implements AgentLoop.Tools {
         this.catalog = catalog; this.executor = executor; this.scope = scope;
     }
     @Override public boolean accessibilityAvailable() { return AssistantAccessibilityService.connected() != null; }
+    @Override public boolean enabled(String name) { return catalog.preferences().allows(name); }
+    @Override public long configurationVersion() { return catalog.preferences().version(); }
 
     @Override public String execute(String name, JSONObject args) throws Exception {
         scope.check();
+        if (!enabled(name)) { return ToolOutcome.refused(DISABLED); }
         try { ToolArguments.validate(name, args, accessibilityAvailable()); }
         catch (Exception exception) { return ToolOutcome.refused("INVALID_ARGUMENTS"); }
         try { return executeValidated(name, args); }
@@ -45,9 +49,9 @@ public final class DeviceTools implements AgentLoop.Tools {
         switch (name) {
             case "find_intents": return catalog.search(args).toString();
             case "invoke_intent": return invoke(args);
-            case "read_screen": return onTarget(() -> service().screen().read(service()).toString());
+            case "read_screen": return onTarget(name, () -> service().screen().read(service()).toString());
             case "ui_action":
-                return onTarget(() -> act(args));
+                return onTarget(name, () -> act(args));
             default: return ToolOutcome.refused("UNKNOWN_TOOL");
         }
     }
@@ -56,6 +60,7 @@ public final class DeviceTools implements AgentLoop.Tools {
         IntentCapability cap;
         try { cap = catalog.get(args.getString("capability_id")); }
         catch (IllegalArgumentException exception) { return ToolOutcome.refused("STALE_CAPABILITY"); }
+        if (!catalog.preferences().allows(cap.preferenceKey())) { return ToolOutcome.refused(DISABLED); }
         return onMain(() -> executor.execute(cap, args, scope));
     }
 
@@ -85,10 +90,14 @@ public final class DeviceTools implements AgentLoop.Tools {
         try { return task.get(15, TimeUnit.SECONDS); }
         finally { task.cancel(false); }
     }
-    private String onTarget(Callable<String> action) throws Exception {
-        onMain(() -> { executor.revealTargetApp(); return ""; });
+    private String onTarget(String name, Callable<String> action) throws Exception {
+        String result = onMain(() -> {
+            if (!enabled(name)) { return ToolOutcome.refused(DISABLED); }
+            executor.revealTargetApp(); return "";
+        });
+        if (!result.isEmpty()) { return result; }
         // Allow the window manager to restore the target's focus before screen/global actions.
         Thread.sleep(200);
-        return onMain(action);
+        return onMain(() -> enabled(name) ? action.call() : ToolOutcome.refused(DISABLED));
     }
 }

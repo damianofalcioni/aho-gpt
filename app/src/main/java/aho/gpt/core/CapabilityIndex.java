@@ -16,7 +16,14 @@ public final class CapabilityIndex {
     private static final int PAGE_SIZE = 25;
     private final Map<String, CapabilityMetadata> entries;
 
-    public CapabilityIndex(Map<String, CapabilityMetadata> entries) { this.entries = new LinkedHashMap<>(entries); }
+    public CapabilityIndex(Map<String, CapabilityMetadata> entries) { this(entries, id -> true); }
+
+    public CapabilityIndex(Map<String, CapabilityMetadata> entries, ToolSelection enabled) {
+        this.entries = new LinkedHashMap<>();
+        for (Map.Entry<String, CapabilityMetadata> entry : entries.entrySet()) {
+            if (enabled.enabled(entry.getKey())) { this.entries.put(entry.getKey(), entry.getValue()); }
+        }
+    }
 
     public record Page(List<String> ids, int total, int nextOffset) { }
 

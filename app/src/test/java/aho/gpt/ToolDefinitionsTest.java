@@ -7,6 +7,13 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class ToolDefinitionsTest {
+    @Test public void disabledFunctionsAreNeverAdvertisedAndEmptyNamespaceIsOmitted() throws Exception {
+        JSONArray selected = ToolDefinitions.create(true, name -> name.equals("read_screen"))
+                .getJSONObject(0).getJSONArray("tools");
+        assertEquals(1, selected.length()); assertEquals("read_screen", selected.getJSONObject(0).getString("name"));
+        assertEquals(0, ToolDefinitions.create(true, name -> false).length());
+        assertEquals(0, ToolDefinitions.create(false, name -> name.equals("read_screen")).length());
+    }
     @Test public void discoveryAdvertisesOverviewAndOptionalStructuredFilters() throws Exception {
         JSONArray functions = ToolDefinitions.create(false).getJSONObject(0).getJSONArray("tools");
         assertEquals(2, functions.length());

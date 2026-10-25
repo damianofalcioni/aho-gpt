@@ -26,6 +26,7 @@ public final class IntentExecutor {
     }
     @android.annotation.SuppressLint("WearRecents") // External tools must launch in the target app's task, separate from the voice overlay.
     private String dispatch(IntentCapability cap, Intent intent) throws Exception {
+        if (!allowed(cap)) { return ToolOutcome.refused("TOOL_DISABLED"); }
         switch (cap.kind) {
             case "activity": context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); break;
             case "service":
@@ -35,6 +36,11 @@ public final class IntentExecutor {
             default: throw new IllegalArgumentException("Unsupported component type");
         }
         return ToolOutcome.accepted("INTENT_DISPATCHED");
+    }
+
+    private boolean allowed(IntentCapability cap) {
+        ToolPreferences preferences = new ToolPreferences(context);
+        return preferences.allows("invoke_intent") && preferences.allows(cap.preferenceKey());
     }
 
     public void revealTargetApp() { context.moveTaskToBack(true); }

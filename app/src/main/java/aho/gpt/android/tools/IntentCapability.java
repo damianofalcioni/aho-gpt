@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.IntentFilter;
 import aho.gpt.core.CapabilityCategory;
+import aho.gpt.core.CapabilityIdentity;
 import aho.gpt.core.CapabilityMetadata;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -19,12 +20,15 @@ public final class IntentCapability {
     public final String action;
     public final IntentFilter filter;
     private final CapabilityMetadata metadata;
+    private final String preferenceKey;
 
     public IntentCapability(String label, String kind, ComponentName component, String action, IntentFilter filter) {
         this.label = label; this.kind = kind; this.component = component; this.action = action; this.filter = filter;
         id = kind + ":" + component.flattenToString() + ":" + action + ":" + filter.toString().hashCode();
         metadata = new CapabilityMetadata(label, component.getPackageName(), component.flattenToString(), kind, action,
                 !launcherCategory().isEmpty(), values(filter.schemesIterator()), mimeTypes());
+        try { preferenceKey = CapabilityIdentity.key(describe()); }
+        catch (JSONException exception) { throw new IllegalArgumentException("Invalid intent declaration", exception); }
     }
 
     public JSONObject describe() throws JSONException {
@@ -40,6 +44,7 @@ public final class IntentCapability {
     }
 
     public CapabilityMetadata metadata() { return metadata; }
+    public String preferenceKey() { return preferenceKey; }
 
     public String launcherCategory() {
         if (!"activity".equals(kind) || !Intent.ACTION_MAIN.equals(action)) { return ""; }

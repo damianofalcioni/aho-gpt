@@ -32,7 +32,8 @@ final class AboutInformation implements AutoCloseable {
         information(R.id.accessibility_info, R.string.accessibility_name, R.string.accessibility_disclosure);
         information(R.id.overlay_info, R.string.overlay_settings, R.string.overlay_help);
         information(R.id.assistant_info, R.string.default_assistant, R.string.assistant_help);
-        information(R.id.tools_info, R.string.refresh_tools, R.string.tools_help);
+        information(R.id.refresh_tools_info, R.string.refresh_tools, R.string.tools_help);
+        information(R.id.tools_info, R.string.tools, R.string.tools_information);
     }
     private void information(int id, int title, int message) {
         activity.findViewById(id).setContentDescription(activity.getString(R.string.setting_information_for, activity.getString(title)));

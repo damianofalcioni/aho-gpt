@@ -3,7 +3,7 @@ package aho.gpt.android.tools;
 import android.app.Activity;
 import android.app.Instrumentation;
 import android.content.ComponentName;
-import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
@@ -139,18 +139,16 @@ public final class IntentLaunchTests extends Instrumentation {
     }
     private RecordingActivity activity() {
         RecordingActivity[] result = new RecordingActivity[1];
-        runOnMainSync(() -> result[0] = new RecordingActivity(getTargetContext().getContentResolver()));
+        runOnMainSync(() -> result[0] = new RecordingActivity(getTargetContext()));
         return result[0];
     }
     private void require(boolean condition, String message) { if (!condition) { throw new AssertionError(message); } }
 
     private static final class RecordingActivity extends Activity {
-        private final ContentResolver resolver;
         private Intent launched;
         private boolean hidden;
         private boolean reject;
-        RecordingActivity(ContentResolver resolver) { this.resolver = resolver; }
-        @Override public ContentResolver getContentResolver() { return resolver; }
+        RecordingActivity(Context context) { attachBaseContext(context); }
         @Override public void startActivity(Intent intent) {
             if (reject) { throw new SecurityException("Launch rejected"); }
             launched = intent;

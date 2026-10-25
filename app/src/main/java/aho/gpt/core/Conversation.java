@@ -8,6 +8,7 @@ import org.json.JSONObject;
 public final class Conversation {
     private JSONArray history = new JSONArray();
     private final FollowUpWindow window = new FollowUpWindow();
+    private long toolVersion;
 
     public void begin(String text, long now) throws JSONException {
         if (!window.isOpen(now) || history.length() > 80 || history.toString().length() > 80_000) {
@@ -27,6 +28,17 @@ public final class Conversation {
     }
 
     public JSONArray input() throws JSONException { return new JSONArray(history.toString()); }
+    public void configureTools(long version) {
+        if (toolVersion == version) { return; }
+        toolVersion = version;
+        for (int i = history.length() - 1; i >= 0; i--) {
+            JSONObject item = history.optJSONObject(i);
+            if (item != null && "user".equals(item.optString("role"))) {
+                history = new JSONArray().put(item); window.close(); return;
+            }
+        }
+        clear();
+    }
     public void answered(long now) { window.open(now); }
     public boolean continues(long now) { return window.isOpen(now); }
     public long remaining(long now) { return window.remaining(now); }

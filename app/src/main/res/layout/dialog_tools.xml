@@ -1,0 +1,12 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:padding="@dimen/page_padding">
+    <TextView style="@style/SettingsBody" android:text="@string/tools_configuration_help" />
+    <EditText android:id="@+id/tool_search" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:inputType="text" android:singleLine="true" android:hint="@string/search_tools"
+        android:importantForAutofill="no" />
+    <TextView android:id="@+id/tools_status" style="@style/SettingsBody"
+        android:accessibilityLiveRegion="polite" android:text="@string/loading_tools" />
+    <ListView android:id="@+id/tool_list" android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1" android:divider="@color/app_outline" android:dividerHeight="1dp" />
+</LinearLayout>

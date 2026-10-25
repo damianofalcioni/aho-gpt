@@ -1,6 +1,7 @@
 package aho.gpt.openai;
 
 import aho.gpt.core.CapabilityCategory;
+import aho.gpt.core.ToolSelection;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -11,6 +12,22 @@ public final class ToolDefinitions {
     private ToolDefinitions() { }
 
     public static JSONArray create(boolean accessibility) throws Exception {
+        return create(accessibility, name -> true);
+    }
+
+    public static JSONArray create(boolean accessibility, ToolSelection enabled) throws Exception {
+        JSONArray selected = new JSONArray();
+        JSONArray functions = functions(accessibility);
+        for (int i = 0; i < functions.length(); i++) {
+            JSONObject tool = functions.getJSONObject(i);
+            if (enabled.enabled(tool.getString("name"))) { selected.put(tool); }
+        }
+        if (selected.length() == 0) { return new JSONArray(); }
+        return new JSONArray().put(new JSONObject().put(TYPE, "namespace").put("name", "device")
+                .put("description", "User-controlled Android device tools").put("tools", selected));
+    }
+
+    private static JSONArray functions(boolean accessibility) throws Exception {
         JSONArray functions = new JSONArray()
                 .put(discovery())
                 .put(function("invoke_intent", "Invoke an exact discovered capability to carry out the user's request. Do not invent IDs or extras.",
@@ -27,8 +44,7 @@ public final class ToolDefinitions {
             functions.getJSONObject(3).getJSONObject(PARAMETERS).getJSONObject("properties")
                     .getJSONObject("text").put("maxLength", 4096);
         }
-        return new JSONArray().put(new JSONObject().put(TYPE, "namespace").put("name", "device")
-                .put("description", "User-controlled Android device tools").put("tools", functions));
+        return functions;
     }
 
     private static JSONObject discovery() throws Exception {
