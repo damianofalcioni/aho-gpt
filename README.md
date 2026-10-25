@@ -47,6 +47,10 @@ Package: aho.gpt (release) or aho.gpt.debug (debug)
 Activity: aho.gpt.android.ui.VoiceActivity
 ```
 
+## Diagnostic
+
+Below settings, **Diagnostic** shows microphone access, the Google app, speech providers, screen access, overlays, assistant selection, log folder access, internet status and saved setup. Rows show only **OK** or **KO**. Tap a row for its status, details and settings. Green means available, red needs attention, and yellow marks an optional, disabled or unverified check. Checks refresh while the page is open; log folder access is checked when opening the page or changing storage. No audio is recorded and sign-in is not checked online. Use the STT and TTS tests to check speech.
+
 ## Logs
 
 In **About & settings → Advanced**, turn on **Logs** to save diagnostics in `Download/AhoGPT/logs`. Allow storage access if asked; denying it keeps logging off. Use its gear to open or share files, or delete the app’s logs. Deletion asks for confirmation.

@@ -66,20 +66,15 @@
         <item name="android:includeFontPadding">false</item>
     </style>
     <style name="SettingsTitle" parent="SettingsHeadingBase">
-        <item name="android:layout_marginTop">20dp</item>
+        <item name="android:layout_marginTop">24dp</item>
+        <item name="android:paddingTop">21dp</item>
+        <item name="android:background">@drawable/bg_section_heading</item>
         <item name="android:textSize">22sp</item>
     </style>
-    <style name="SettingsDivider">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">1dp</item>
-        <item name="android:layout_marginTop">24dp</item>
-        <item name="android:background">@color/app_outline</item>
-    </style>
-    <style name="SettingsSectionDivider" parent="SettingsDivider">
-        <item name="android:layout_marginTop">16dp</item>
-    </style>
     <style name="SettingsSectionHeading" parent="SettingsHeading">
-        <item name="android:layout_marginTop">10dp</item>
+        <item name="android:layout_marginTop">16dp</item>
+        <item name="android:paddingTop">11dp</item>
+        <item name="android:background">@drawable/bg_section_heading</item>
     </style>
     <style name="SettingsRow">
         <item name="android:layout_width">match_parent</item>

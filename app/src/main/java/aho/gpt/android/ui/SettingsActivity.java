@@ -24,12 +24,14 @@ public final class SettingsActivity extends Activity {
     private AboutInformation about;
     private ToolsSettingsDialog tools;
     private LoggingSettingsRows logging;
+    private DiagnosticSection diagnostics;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state); app = (AssistantApplication) getApplication();
         setContentView(R.layout.activity_settings);
         status = findViewById(R.id.connection_status);
-        speech = new SpeechSettingsRows(this);
+        diagnostics = new DiagnosticSection(this);
+        speech = new SpeechSettingsRows(this, diagnostics.speech());
         about = new AboutInformation(this);
         tools = new ToolsSettingsDialog(this);
         logging = new LoggingSettingsRows(this, state);
@@ -51,9 +53,9 @@ public final class SettingsActivity extends Activity {
     private void action(int id, Runnable action) {
         findViewById(id).setOnClickListener(view -> action.run());
     }
-    @Override protected void onResume() { super.onResume(); refresh(); speech.refresh(); logging.refresh(); }
-    @Override protected void onPause() { speech.stopTests(); super.onPause(); }
-    @Override protected void onDestroy() { logging.close(); speech.close(); about.close(); tools.close(); super.onDestroy(); }
+    @Override protected void onResume() { super.onResume(); diagnostics.start(); refresh(); speech.refresh(); logging.refresh(); }
+    @Override protected void onPause() { diagnostics.stop(); speech.stopTests(); super.onPause(); }
+    @Override protected void onDestroy() { diagnostics.close(); logging.close(); speech.close(); about.close(); tools.close(); super.onDestroy(); }
     @Override protected void onSaveInstanceState(Bundle state) { logging.save(state); super.onSaveInstanceState(state); }
     @SuppressWarnings("deprecation") // Required native activity-result callback.
     @Override protected void onActivityResult(int request, int result, Intent data) {
@@ -62,13 +64,16 @@ public final class SettingsActivity extends Activity {
     @Override public void onRequestPermissionsResult(int request, String[] permissions, int[] grants) {
         super.onRequestPermissionsResult(request, permissions, grants);
         logging.permissionResult(request);
+        diagnostics.recheckStorage();
         if (request == RecognitionSettingsDialog.PERMISSION_REQUEST) {
             speech.permissionResult(grants.length > 0 && grants[0] == PackageManager.PERMISSION_GRANTED);
         }
     }
     private void refresh() {
-        AccountSummary.load(this, summary -> status.setText(getString(R.string.connection_status,
-                summary.account(), summary.model(), summary.tools())));
+        AccountSummary.load(this, summary -> {
+            status.setText(getString(R.string.connection_status, summary.account(), summary.model(), summary.tools()));
+            diagnostics.account(summary);
+        });
     }
 
     private void models() {

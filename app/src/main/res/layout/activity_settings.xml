@@ -22,7 +22,6 @@
             android:drawableStart="@drawable/ic_list" android:text="@string/about_terms" />
         <TextView style="@style/SettingsBody" android:layout_marginTop="16dp" android:text="@string/about_legal" />
         <TextView style="@style/SettingsBody" android:layout_marginTop="12dp" android:text="@string/about_credits" />
-        <View style="@style/SettingsDivider" />
         <TextView style="@style/SettingsTitle" android:text="@string/settings_heading" />
         <TextView style="@style/SettingsHeading" android:text="@string/languages_heading" />
         <LinearLayout style="@style/SettingsRow">
@@ -43,7 +42,6 @@
         </LinearLayout>
         <TextView android:id="@+id/stt_provider_status" style="@style/SettingsBody" android:textSize="13sp"
             android:accessibilityLiveRegion="polite" android:text="@string/language_support_loading" />
-        <View style="@style/SettingsSectionDivider" />
         <TextView style="@style/SettingsSectionHeading" android:text="@string/account_heading" />
         <TextView android:id="@+id/connection_status" style="@style/SettingsBody"
             android:accessibilityLiveRegion="polite" android:text="@string/not_connected" />
@@ -63,7 +61,6 @@
             <Button android:id="@+id/sign_out" style="@style/SettingsRowAction" android:text="@string/sign_out" />
             <ImageButton android:id="@+id/sign_out_info" style="@style/SettingsActionInfo" android:contentDescription="@string/setting_information" />
         </LinearLayout>
-        <View style="@style/SettingsSectionDivider" />
         <TextView style="@style/SettingsSectionHeading" android:text="@string/device_heading" />
         <LinearLayout style="@style/SettingsRow">
             <TextView style="@style/SettingsLabel" android:text="@string/tools" />
@@ -88,7 +85,6 @@
             <Button android:id="@+id/refresh_tools" style="@style/SettingsRowAction" android:text="@string/refresh_tools" />
             <ImageButton android:id="@+id/refresh_tools_info" style="@style/SettingsActionInfo" android:contentDescription="@string/setting_information" />
         </LinearLayout>
-        <View style="@style/SettingsSectionDivider" />
         <TextView style="@style/SettingsSectionHeading" android:text="@string/log_advanced" />
         <LinearLayout style="@style/SettingsRow">
             <TextView style="@style/SettingsLabel" android:text="@string/log_external_storage" />
@@ -104,8 +100,14 @@
             <Switch android:id="@+id/log_enabled" style="@style/SettingsSwitch" android:contentDescription="@string/log_enable" />
             <ImageButton android:id="@+id/log_info" style="@style/SettingsInfo" android:contentDescription="@string/log_information" />
         </LinearLayout>
-        <View style="@style/SettingsSectionDivider" />
-        <TextView style="@style/SettingsSectionHeading" android:text="@string/help_heading" />
+        <TextView style="@style/SettingsTitle" android:text="@string/diagnostic_heading" />
+        <TextView style="@style/SettingsHeading" android:text="@string/diagnostic_access_heading" />
+        <LinearLayout android:id="@+id/diagnostic_access" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="4dp" android:orientation="vertical" />
+        <TextView style="@style/SettingsSectionHeading" android:text="@string/diagnostic_services_heading" />
+        <LinearLayout android:id="@+id/diagnostic_services" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="4dp" android:orientation="vertical" />
+        <TextView style="@style/SettingsTitle" android:text="@string/help_heading" />
         <TextView style="@style/SettingsBody" android:text="@string/setup_help" />
     </LinearLayout>
 </ScrollView>

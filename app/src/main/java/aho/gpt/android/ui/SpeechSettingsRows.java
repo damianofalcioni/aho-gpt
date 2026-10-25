@@ -16,10 +16,11 @@ final class SpeechSettingsRows implements AutoCloseable {
     private final PlaybackSettingsClient probe;
     private final PlaybackSettingsDialog playback;
     private final RecognitionSettingsDialog recognition;
+    private final SpeechDiagnostics diagnostics;
     private AlertDialog information;
 
-    SpeechSettingsRows(Activity activity) {
-        this.activity = activity;
+    SpeechSettingsRows(Activity activity, SpeechDiagnostics diagnostics) {
+        this.activity = activity; this.diagnostics = diagnostics;
         probe = new PlaybackSettingsClient(activity);
         playback = new PlaybackSettingsDialog(activity); recognition = new RecognitionSettingsDialog(activity);
         activity.findViewById(R.id.tts_settings).setOnClickListener(view -> playback.show());
@@ -36,6 +37,7 @@ final class SpeechSettingsRows implements AutoCloseable {
                 : google ? R.string.speech_unavailable : R.string.speech_provider_disabled, input);
         providerStatus(R.id.tts_provider_status, R.string.language_support_loading, false);
         probe.load(voices -> {
+            diagnostics.loaded(voices);
             boolean available = google && voices != null && !voices.isEmpty();
             toggle(R.id.tts_enabled, SpeechPreferences.OUTPUT, available);
             providerStatus(R.id.tts_provider_status, available ? R.string.tts_ready
@@ -60,7 +62,7 @@ final class SpeechSettingsRows implements AutoCloseable {
                 .setPositiveButton(R.string.close, null).show();
     }
     void permissionResult(boolean granted) { if (granted) { recognition.test(); } }
-    void stopTests() { recognition.stopTest(); playback.close(); }
+    void stopTests() { probe.close(); recognition.stopTest(); playback.close(); }
     @Override public void close() {
         probe.close(); playback.close(); recognition.close();
         if (information != null) { information.dismiss(); information = null; }

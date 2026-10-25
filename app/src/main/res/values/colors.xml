@@ -10,4 +10,7 @@
     <color name="issue_icon">#E14646</color>
     <color name="app_ripple">#33FFFFFF</color>
     <color name="log_danger">#EF5350</color>
+    <color name="diagnostic_ok">#2ECC71</color>
+    <color name="diagnostic_error">#FF5252</color>
+    <color name="diagnostic_warning">#FFCA28</color>
 </resources>
