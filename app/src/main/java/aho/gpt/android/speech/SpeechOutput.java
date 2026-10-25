@@ -6,8 +6,10 @@ import android.os.Looper;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import aho.gpt.R;
+import aho.gpt.android.logging.AppLogger;
 
 public final class SpeechOutput {
+    private static final String TAG = "TTS";
     public interface ErrorListener { void failed(String message); }
     private final TextToSpeech engine;
     private final Context context;
@@ -29,19 +31,21 @@ public final class SpeechOutput {
             @Override public void onStart(String id) { main.post(() -> began(id)); }
             @Override public void onDone(String id) { main.post(() -> finish(id)); }
             @SuppressWarnings("deprecation") // Framework requires this abstract compatibility callback.
-            @Override public void onError(String id) { main.post(() -> playbackError(id)); }
-            @Override public void onError(String id, int code) { main.post(() -> playbackError(id)); }
+            @Override public void onError(String id) { main.post(() -> playbackError(id, -1)); }
+            @Override public void onError(String id, int code) { main.post(() -> playbackError(id, code)); }
         });
     }
 
     private void initialized(int status) {
         if (closed) { return; }
+        AppLogger.i(TAG, "Initialization status=" + status);
         ready = status == TextToSpeech.SUCCESS;
         failed = !ready;
         if (pending != null) { deliver(); }
     }
     public void speak(String text, Runnable onStart, Runnable done, ErrorListener onError) {
         if (closed) { return; }
+        AppLogger.d(TAG, "Playback requested ready=" + ready);
         stop(); pending = text; started = onStart; completed = done;
         errorHandler = onError; currentId = Long.toString(++sequence);
         if (ready || failed) { deliver(); }
@@ -52,7 +56,9 @@ public final class SpeechOutput {
             if (issue != 0) { fail(issue); return; }
             String text = pending; pending = null;
             if (engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, currentId) == TextToSpeech.ERROR) { fail(R.string.tts_playback_failed); }
-        } catch (RuntimeException exception) { fail(R.string.tts_playback_failed); }
+        } catch (RuntimeException exception) {
+            AppLogger.w(TAG, "Playback exception", exception); fail(R.string.tts_playback_failed);
+        }
     }
     private int configurationIssue() {
         if (failed) { return R.string.tts_unavailable; }
@@ -63,15 +69,21 @@ public final class SpeechOutput {
         if (support < TextToSpeech.LANG_AVAILABLE) { return R.string.tts_language_unavailable; }
         return PlaybackVoices.apply(context, engine) ? 0 : R.string.tts_voice_unavailable;
     }
-    private void began(String id) { if (id.equals(currentId) && started != null) { started.run(); } }
+    private void began(String id) {
+        if (id.equals(currentId) && started != null) { AppLogger.i(TAG, "Playback started"); started.run(); }
+    }
     private void finish(String id) { if (id.equals(currentId)) { finish(); } }
     private void finish() {
+        AppLogger.i(TAG, "Playback completed");
         Runnable callback = completed;
         clear();
         if (callback != null) { callback.run(); }
     }
-    private void playbackError(String id) { if (id.equals(currentId)) { fail(R.string.tts_playback_failed); } }
+    private void playbackError(String id, int code) {
+        if (id.equals(currentId)) { AppLogger.w(TAG, "Playback error=" + code); fail(R.string.tts_playback_failed); }
+    }
     private void fail(int message) {
+        AppLogger.w(TAG, "Playback unavailable reason=" + context.getResources().getResourceEntryName(message));
         ErrorListener callback = errorHandler;
         clear();
         if (callback != null) {
@@ -80,6 +92,6 @@ public final class SpeechOutput {
         }
     }
     private void clear() { started = null; completed = null; errorHandler = null; pending = null; currentId = ""; }
-    public void stop() { clear(); engine.stop(); }
+    public void stop() { if (!currentId.isEmpty()) { AppLogger.d(TAG, "Playback stopped"); } clear(); engine.stop(); }
     public void close() { closed = true; stop(); engine.shutdown(); main.removeCallbacksAndMessages(null); }
 }

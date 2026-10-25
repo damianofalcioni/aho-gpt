@@ -10,9 +10,11 @@ import android.view.Gravity;
 import android.view.WindowManager;
 import aho.gpt.R;
 import aho.gpt.android.access.AssistantAccessibilityService;
+import aho.gpt.android.logging.AppLogger;
 
 /** Mirrors the voice panel over target apps without taking their input focus. */
 final class VoiceOverlay {
+    private static final String TAG = "Overlay";
     private final Context app;
     private final Runnable onClose;
     private WindowManager manager;
@@ -28,7 +30,7 @@ final class VoiceOverlay {
 
     private void attach() {
         AssistantAccessibilityService access = AssistantAccessibilityService.connected();
-        if (access == null && !Settings.canDrawOverlays(app)) { return; }
+        if (access == null && !Settings.canDrawOverlays(app)) { AppLogger.d(TAG, "Permission unavailable"); return; }
         Context context = new ContextThemeWrapper(access == null ? app : access, R.style.AppTheme);
         manager = context.getSystemService(WindowManager.class);
         view = new VoicePanel(context, this::speak, onClose);
@@ -38,8 +40,8 @@ final class VoiceOverlay {
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, PixelFormat.TRANSLUCENT);
         params.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
         params.y = context.getResources().getDimensionPixelSize(R.dimen.voice_panel_margin);
-        try { manager.addView(view, params); }
-        catch (RuntimeException exception) { view = null; }
+        try { manager.addView(view, params); AppLogger.d(TAG, "Attached accessibility=" + (access != null)); }
+        catch (RuntimeException exception) { AppLogger.w(TAG, "Attach failed", exception); view = null; }
     }
 
     @android.annotation.SuppressLint("WearRecents") // Returning from an overlay requires NEW_TASK.
@@ -59,7 +61,10 @@ final class VoiceOverlay {
     void close() {
         if (view == null) { return; }
         try { manager.removeView(view); }
-        catch (IllegalArgumentException exception) { view.setVisibility(android.view.View.GONE); }
+        catch (IllegalArgumentException exception) {
+            AppLogger.w(TAG, "Detach failed", exception); view.setVisibility(android.view.View.GONE);
+        }
         view = null;
+        AppLogger.d(TAG, "Closed");
     }
 }

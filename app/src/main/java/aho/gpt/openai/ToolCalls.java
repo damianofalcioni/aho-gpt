@@ -18,16 +18,20 @@ public final class ToolCalls {
     public String execute(JSONObject item) throws Exception {
         scope.check();
         String id = item.getString("call_id");
-        if (item.getString("arguments").length() > 80_000) { return ToolOutcome.refused("INVALID_ARGUMENTS"); }
+        if (item.getString("arguments").length() > 80_000) { return receipt(item, ToolOutcome.refused("INVALID_ARGUMENTS"), false); }
         String signature = signature(item);
         if (signatures.containsKey(id)) {
-            if (!signature.equals(signatures.get(id))) { return ToolOutcome.refused("CALL_ID_REUSED"); }
-            return receipts.get(id);
+            if (!signature.equals(signatures.get(id))) { return receipt(item, ToolOutcome.refused("CALL_ID_REUSED"), false); }
+            return receipt(item, receipts.get(id), true);
         }
-        if (id.isEmpty() || id.length() > 512) { return ToolOutcome.refused("INVALID_CALL_ID"); }
+        if (id.isEmpty() || id.length() > 512) { return receipt(item, ToolOutcome.refused("INVALID_CALL_ID"), false); }
         signatures.put(id, signature);
         String result = call(item);
         receipts.put(id, result);
+        return receipt(item, result, false);
+    }
+    private String receipt(JSONObject item, String result, boolean replayed) {
+        tools.receipt(item.optString("name"), result, replayed);
         return result;
     }
     private String signature(JSONObject item) throws Exception {

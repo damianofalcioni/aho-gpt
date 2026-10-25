@@ -18,6 +18,7 @@ import aho.gpt.android.logging.AppLogger;
 import java.io.IOException;
 
 public final class SignInActivity extends Activity {
+    private static final String TAG = "Auth";
     private volatile LoopbackCallback callback;
     private WebView web;
     private TextView status;
@@ -55,7 +56,9 @@ public final class SignInActivity extends Activity {
                 }
             });
             layout.addView(web, new LinearLayout.LayoutParams(-1, 0, 1));
-        } catch (RuntimeException exception) { status.setText(R.string.browser_required); }
+        } catch (RuntimeException exception) {
+            AppLogger.w(TAG, "WebView unavailable", exception); status.setText(R.string.browser_required);
+        }
     }
 
     private boolean allowed(Uri uri) {
@@ -64,7 +67,7 @@ public final class SignInActivity extends Activity {
     }
 
     private void begin(AssistantApplication app) {
-        AppLogger.i("Auth", "Sign-in started");
+        AppLogger.i(TAG, "Sign-in started");
         try (LoopbackCallback listener = new LoopbackCallback()) {
             callback = listener;
             OAuthAttempt attempt = new OAuthAttempt(listener.redirect(), app.auth().client());
@@ -72,10 +75,10 @@ public final class SignInActivity extends Activity {
             runOnUiThread(() -> showAuthorization(uri));
             app.auth().complete(attempt, listener.await(attempt.state,
                     getString(R.string.sign_in_received), getString(R.string.sign_in_invalid_callback)));
-            AppLogger.i("Auth", "Sign-in completed");
+            AppLogger.i(TAG, "Sign-in completed");
             runOnUiThread(() -> { if (!destroyed) { finish(); } });
         } catch (Exception exception) {
-            AppLogger.e("Auth", "Sign-in stopped", exception);
+            AppLogger.e(TAG, "Sign-in stopped", exception);
             runOnUiThread(() -> { if (!destroyed) { status.setText(exception.getMessage()); } });
         }
     }
@@ -88,8 +91,10 @@ public final class SignInActivity extends Activity {
 
     private void openBrowser() {
         if (authorization == null) { return; }
-        try { startActivity(new Intent(Intent.ACTION_VIEW, authorization)); }
-        catch (android.content.ActivityNotFoundException exception) { status.setText(R.string.browser_required); }
+        try { startActivity(new Intent(Intent.ACTION_VIEW, authorization)); AppLogger.i(TAG, "Browser opened"); }
+        catch (android.content.ActivityNotFoundException exception) {
+            AppLogger.w(TAG, "Browser unavailable", exception); status.setText(R.string.browser_required);
+        }
     }
 
     private void closeListener() {

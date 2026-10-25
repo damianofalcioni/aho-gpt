@@ -12,6 +12,7 @@ public final class AgentLoop {
         boolean accessibilityAvailable();
         default boolean enabled(String name) { return true; }
         default long configurationVersion() { return 0; }
+        default void receipt(String name, String result, boolean replayed) { }
         String execute(String name, JSONObject arguments) throws Exception;
     }
     private final Transport transport;

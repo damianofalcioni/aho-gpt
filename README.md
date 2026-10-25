@@ -51,7 +51,7 @@ Activity: aho.gpt.android.ui.VoiceActivity
 
 In **About & settings → Advanced**, turn on **Logs** to save diagnostics in `Download/AhoGPT/logs`. Allow storage access if asked; denying it keeps logging off. Use its gear to open or share files, or delete the app’s logs. Deletion asks for confirmation.
 
-Logging is off by default. Crashes may still create a log when storage is accessible. Logs include device details and diagnostic events, but no credentials, spoken requests, answers or screen text. Files survive uninstall. **Advanced → Use external storage** saves to a supported SD card instead. Missing storage or write failures turn logging off; enable it again after fixing access.
+Logging is off by default. Crashes may still create a log when storage is accessible. Logs include device details, request timing, speech errors and tool status, but no credentials, spoken requests, answers or screen text. Files survive uninstall. **Advanced → Use external storage** saves to a supported SD card instead. Missing storage or write failures turn logging off; enable it again after fixing access.
 
 ## Privacy and account limits
 

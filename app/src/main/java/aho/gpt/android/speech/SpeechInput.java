@@ -7,8 +7,10 @@ import android.speech.SpeechRecognizer;
 import java.util.ArrayList;
 import java.util.Locale;
 import aho.gpt.R;
+import aho.gpt.android.logging.AppLogger;
 
 public final class SpeechInput implements RecognitionListener {
+    private static final String TAG = "STT";
     public interface Listener {
         void began();
         void result(String text);
@@ -21,11 +23,13 @@ public final class SpeechInput implements RecognitionListener {
     public SpeechInput(Context context, Listener listener) {
         this.listener = listener;
         recognizer = SpeechRecognizerProvider.create(context);
+        AppLogger.d(TAG, "Recognizer created onDevice=" + SpeechRecognizerProvider.onDevice(context));
         recognizer.setRecognitionListener(this);
     }
 
     public static boolean available(Context context) { return SpeechRecognizerProvider.available(context); }
     public void start(Locale locale) {
+        AppLogger.d(TAG, "Acquisition requested");
         active = true; recognizer.startListening(SpeechRecognizerProvider.request(locale));
     }
     public static String errorText(Context context, int error) {
@@ -38,9 +42,9 @@ public final class SpeechInput implements RecognitionListener {
         }
         return context.getString(R.string.speech_error, error);
     }
-    public void cancel() { active = false; recognizer.cancel(); }
+    public void cancel() { if (active) { AppLogger.d(TAG, "Acquisition cancelled"); } active = false; recognizer.cancel(); }
     public void close() { cancel(); recognizer.destroy(); }
-    @Override public void onBeginningOfSpeech() { if (active) { listener.began(); } }
+    @Override public void onBeginningOfSpeech() { if (active) { AppLogger.d(TAG, "Speech began"); listener.began(); } }
     @Override public void onResults(Bundle results) {
         if (!active) { return; }
         active = false;
@@ -51,7 +55,7 @@ public final class SpeechInput implements RecognitionListener {
         else { listener.result(texts.get(0)); }
     }
     @Override public void onError(int error) { if (active) { active = false; listener.error(error); } }
-    @Override public void onReadyForSpeech(Bundle params) { }
+    @Override public void onReadyForSpeech(Bundle params) { if (active) { AppLogger.d(TAG, "Ready"); } }
     @Override public void onRmsChanged(float rms) { }
     @Override public void onBufferReceived(byte[] buffer) { }
     @Override public void onEndOfSpeech() { }

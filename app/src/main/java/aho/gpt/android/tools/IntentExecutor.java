@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import aho.gpt.openai.ToolOutcome;
 import aho.gpt.core.RequestScope;
+import aho.gpt.android.logging.AppLogger;
 import org.json.JSONObject;
 
 public final class IntentExecutor {
@@ -21,8 +22,12 @@ public final class IntentExecutor {
         catch (IllegalArgumentException | SecurityException exception) { return ToolOutcome.refused("INVALID_INTENT_ARGUMENTS"); }
         try { return scope.dispatch(() -> dispatch(cap, intent)); }
         catch (SecurityException | android.content.ActivityNotFoundException exception) {
+            AppLogger.w("Tools", "Android dispatch rejected", exception);
             return ToolOutcome.rejected("ANDROID_DISPATCH_REJECTED");
-        } catch (RuntimeException exception) { return ToolOutcome.unknown("INTENT_DISPATCH_UNCONFIRMED"); }
+        } catch (RuntimeException exception) {
+            AppLogger.w("Tools", "Intent dispatch unconfirmed", exception);
+            return ToolOutcome.unknown("INTENT_DISPATCH_UNCONFIRMED");
+        }
     }
     @android.annotation.SuppressLint("WearRecents") // External tools must launch in the target app's task, separate from the voice overlay.
     private String dispatch(IntentCapability cap, Intent intent) throws Exception {

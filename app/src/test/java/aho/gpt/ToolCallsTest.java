@@ -4,6 +4,8 @@ import aho.gpt.core.RequestScope;
 import aho.gpt.openai.AgentLoop;
 import aho.gpt.openai.ToolCalls;
 import aho.gpt.openai.ToolOutcome;
+import java.util.ArrayList;
+import java.util.List;
 import org.json.JSONObject;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -20,6 +22,10 @@ public class ToolCallsTest {
         String receipt = calls.execute(item);
         assertEquals(receipt, calls.execute(item));
         assertEquals(1, tools.dispatches);
+        assertEquals(2, tools.receipts.size());
+        assertEquals(receipt, tools.receipts.get(1));
+        assertEquals(Boolean.FALSE, tools.replayed.get(0));
+        assertEquals(Boolean.TRUE, tools.replayed.get(1));
         assertFalse(new JSONObject(receipt).getBoolean("completion_verified"));
     }
     @Test public void reusedIdWithDifferentArgumentsIsRefused() throws Exception {
@@ -28,6 +34,8 @@ public class ToolCallsTest {
         calls.execute(call(CALL_ID, VALID));
         JSONObject changed = new JSONObject(calls.execute(call(CALL_ID, "{\"capability_id\":\"other\"}")));
         assertEquals("CALL_ID_REUSED", changed.getString("code"));
+        assertEquals(changed.toString(), new JSONObject(tools.receipts.get(1)).toString());
+        assertEquals(Boolean.FALSE, tools.replayed.get(1));
         assertEquals(1, tools.dispatches);
     }
     @Test public void uncertainMutationIsCachedWithoutLeakingExceptionText() throws Exception {
@@ -51,6 +59,7 @@ public class ToolCallsTest {
             assertEquals(REFUSED, new JSONObject(calls.execute(call("bad" + i, malformed[i]))).getString(STATUS));
         }
         assertEquals(0, tools.dispatches);
+        assertEquals(malformed.length, tools.receipts.size());
     }
     @Test public void rejectsOversizedAndIncorrectlyTypedArguments() throws Exception {
         RecordingTools tools = new RecordingTools();
@@ -58,6 +67,7 @@ public class ToolCallsTest {
         assertEquals(REFUSED, new JSONObject(calls.execute(call("large", "x".repeat(80_001)))).getString(STATUS));
         assertEquals(REFUSED, new JSONObject(calls.execute(call("type", "{\"capability_id\":7}"))).getString(STATUS));
         assertEquals(0, tools.dispatches);
+        assertEquals(2, tools.receipts.size());
     }
     @Test public void validEscapesAndWhitespacePreserveUserText() throws Exception {
         RecordingTools tools = new RecordingTools();
@@ -89,10 +99,13 @@ public class ToolCallsTest {
         return new JSONObject().put("call_id", id).put("name", "invoke_intent").put("arguments", raw);
     }
     private static final class RecordingTools implements AgentLoop.Tools {
+        final List<String> receipts = new ArrayList<>();
+        final List<Boolean> replayed = new ArrayList<>();
         int dispatches;
         boolean fail;
         JSONObject last;
         @Override public boolean accessibilityAvailable() { return false; }
+        @Override public void receipt(String name, String result, boolean cached) { receipts.add(result); replayed.add(cached); }
         @Override public String execute(String name, JSONObject args) throws Exception {
             dispatches++; last = args;
             if (fail) { throw new IllegalStateException("private content must not escape"); }

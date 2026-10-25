@@ -26,6 +26,7 @@ public final class IntentCatalog {
     public ToolPreferences preferences() { return preferences; }
 
     public synchronized void scan() {
+        AppLogger.d("Catalog", "Scan started");
         Map<String, IntentCapability> found = new LinkedHashMap<>();
         PackageManager manager = context.getPackageManager();
         PackageManifestScanner scanner = new PackageManifestScanner(manager, context.getPackageName());
@@ -34,13 +35,17 @@ public final class IntentCatalog {
             if (info.packageName.equals(context.getPackageName())) { continue; }
             scanned++;
             try { for (IntentCapability cap : scanner.scan(info)) { found.put(cap.id, cap); } }
-            catch (Exception exception) { unreadable++; }
+            catch (Exception exception) { unreadable(exception); }
         }
         for (IntentCapability cap : new ResolvedActivityScanner(manager, context.getPackageName()).scan()) {
             found.put(cap.id, cap);
         }
         capabilities.clear(); capabilities.putAll(found);
         AppLogger.i("Catalog", "Scan complete packages=" + scanned + " unreadable=" + unreadable + " actions=" + found.size());
+    }
+    private void unreadable(Exception exception) {
+        unreadable++;
+        if (unreadable == 1) { AppLogger.w("Catalog", "Manifest unreadable; first failure", exception); }
     }
 
     private List<PackageInfo> installed(PackageManager manager) {

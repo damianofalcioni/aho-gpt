@@ -3,6 +3,7 @@ package aho.gpt.android.auth;
 import android.content.Context;
 import android.net.Uri;
 import aho.gpt.android.net.OpenAiHttp;
+import aho.gpt.android.logging.AppLogger;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -12,6 +13,7 @@ import java.util.UUID;
 import org.json.JSONObject;
 
 public final class OAuthManager {
+    private static final String TAG = "Auth";
     private static final String CLIENT = "client_id";
     private static final String ACCESS = "access_token";
     private static final String REFRESH = "refresh_token";
@@ -57,15 +59,18 @@ public final class OAuthManager {
         JSONObject saved = store.load();
         requirePermission(saved);
         if (saved.optLong("expires_at") < System.currentTimeMillis() + 60_000) {
+            AppLogger.i(TAG, "Token refresh started");
             JSONObject fresh = token("grant_type", REFRESH, CLIENT, saved.getString(CLIENT),
                     REFRESH, saved.getString(REFRESH), "resource", OAuthAttempt.RESOURCE);
             saveTokens(saved, fresh);
+            AppLogger.i(TAG, "Token refresh completed");
         }
         requirePermission(saved);
         return saved.getString(ACCESS);
     }
 
     public synchronized void signOut() throws Exception {
+        AppLogger.i(TAG, "Sign-out started");
         JSONObject saved = store.load();
         String refresh = saved.optString(REFRESH);
         try {
@@ -73,6 +78,7 @@ public final class OAuthManager {
         } finally {
             saved.remove(ACCESS); saved.remove(REFRESH); saved.remove("id_token");
             saved.remove("scope"); saved.remove("expires_at"); store.save(saved);
+            AppLogger.i(TAG, "Local credentials cleared");
         }
     }
 
@@ -80,6 +86,7 @@ public final class OAuthManager {
         JSONObject discovery = http.json(OAuthAttempt.ISSUER + "/.well-known/openid-configuration", "", null, "");
         http.emptyPost(discovery.getString("revocation_endpoint"), form("token", refresh,
                 "token_type_hint", REFRESH, CLIENT, saved.getString(CLIENT)));
+        AppLogger.i(TAG, "Revocation completed");
     }
 
     private void saveTokens(JSONObject saved, JSONObject tokens) throws Exception {
@@ -94,6 +101,7 @@ public final class OAuthManager {
     }
     private void requirePermission(JSONObject saved) throws IOException {
         if (!Arrays.asList(saved.optString("scope").split(" ")).contains(OAuthAttempt.DIRECT_SCOPE)) {
+            AppLogger.w(TAG, "Plan usage permission missing");
             throw new IOException("Continue with ChatGPT in setup and allow ChatGPT plan usage.");
         }
     }

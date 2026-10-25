@@ -22,7 +22,7 @@ public final class OpenAiHttp {
     }
     public void cancelResponse(RequestScope scope) {
         HttpsURLConnection current = connectionFor(scope);
-        if (current != null) { current.disconnect(); }
+        if (current != null) { AppLogger.d("HTTP", "Response cancellation requested"); current.disconnect(); }
     }
     private synchronized HttpsURLConnection connectionFor(RequestScope scope) {
         if (activeResponse == null) { return null; }
@@ -35,32 +35,42 @@ public final class OpenAiHttp {
         if (lease != null && lease.equals(activeResponse)) { activeResponse = null; }
     }
     public void emptyPost(String url, String body) throws IOException {
-        HttpsURLConnection connection = connect(url, "", body, "application/x-www-form-urlencoded");
-        try (InputStream input = checkedInput(connection)) { read(input); }
-        finally { connection.disconnect(); }
+        try (HttpDiagnostics diagnostics = new HttpDiagnostics(url, true)) {
+            HttpsURLConnection connection = connect(url, "", body, "application/x-www-form-urlencoded");
+            try (InputStream input = checkedInput(connection, diagnostics)) { read(input); diagnostics.completed(); }
+            finally { connection.disconnect(); }
+        }
     }
 
     public JSONObject json(String url, String token, String body, String contentType)
             throws IOException, JSONException {
-        HttpsURLConnection connection = connect(url, token, body, contentType);
-        try (InputStream input = checkedInput(connection)) {
-            return new JSONObject(read(input));
-        } finally { connection.disconnect(); }
+        try (HttpDiagnostics diagnostics = new HttpDiagnostics(url, body != null)) {
+            HttpsURLConnection connection = connect(url, token, body, contentType);
+            try (InputStream input = checkedInput(connection, diagnostics)) {
+                JSONObject result = new JSONObject(read(input));
+                diagnostics.completed();
+                return result;
+            } finally { connection.disconnect(); }
+        }
     }
 
     public JSONObject response(String token, JSONObject body, RequestScope scope)
             throws IOException, JSONException, InterruptedException {
         scope.check();
-        HttpsURLConnection connection = connect("https://api.openai.com/v1/responses", token,
-                body.toString(), "application/json");
-        ResponseLease lease = null;
-        try {
-            lease = activate(connection, scope);
-            return stream(connection);
-        } finally { release(lease); connection.disconnect(); }
+        String url = "https://api.openai.com/v1/responses";
+        try (HttpDiagnostics diagnostics = new HttpDiagnostics(url, true)) {
+            HttpsURLConnection connection = connect(url, token, body.toString(), "application/json");
+            ResponseLease lease = null;
+            try {
+                lease = activate(connection, scope);
+                JSONObject result = stream(connection, diagnostics);
+                diagnostics.completed();
+                return result;
+            } finally { release(lease); connection.disconnect(); }
+        }
     }
-    private JSONObject stream(HttpsURLConnection connection) throws IOException, JSONException {
-        try (InputStream input = checkedInput(connection);
+    private JSONObject stream(HttpsURLConnection connection, HttpDiagnostics diagnostics) throws IOException, JSONException {
+        try (InputStream input = checkedInput(connection, diagnostics);
                 InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8)) {
             return SseResponseReader.read(reader);
         }
@@ -89,9 +99,9 @@ public final class OpenAiHttp {
         return connection;
     }
 
-    private InputStream checkedInput(HttpsURLConnection connection) throws IOException {
+    private InputStream checkedInput(HttpsURLConnection connection, HttpDiagnostics diagnostics) throws IOException {
         int status = connection.getResponseCode();
-        AppLogger.i("HTTP", "Response status=" + status);
+        diagnostics.status(status);
         if (status >= 200 && status < 300) { return connection.getInputStream(); }
         String detail = "";
         InputStream error = connection.getErrorStream();

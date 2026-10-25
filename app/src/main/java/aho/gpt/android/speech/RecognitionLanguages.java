@@ -7,6 +7,7 @@ import android.os.Looper;
 import android.speech.RecognitionSupport;
 import android.speech.RecognitionSupportCallback;
 import android.speech.SpeechRecognizer;
+import aho.gpt.android.logging.AppLogger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +26,7 @@ public final class RecognitionLanguages implements AutoCloseable {
         long request = generation;
         main.postDelayed(() -> complete(request, null), 5000);
         try { query(request); }
-        catch (RuntimeException exception) { complete(request, null); }
+        catch (RuntimeException exception) { AppLogger.w("STT", "Support query failed", exception); complete(request, null); }
     }
 
     private void query(long request) {
@@ -39,13 +40,16 @@ public final class RecognitionLanguages implements AutoCloseable {
                         if (!onDevice) { tags.addAll(support.getOnlineLanguages()); }
                         complete(request, tags);
                     }
-                    @Override public void onError(int error) { complete(request, null); }
+                    @Override public void onError(int error) {
+                        AppLogger.w("STT", "Support query error=" + error); complete(request, null);
+                    }
                 });
     }
 
     private void complete(long request, List<String> tags) {
         if (request != generation) { return; }
         LanguageCatalogCallback result = callback;
+        AppLogger.d("STT", "Support query reported=" + (tags != null) + " languages=" + (tags == null ? 0 : tags.size()));
         close();
         if (result != null) { result.loaded(tags); }
     }

@@ -7,10 +7,12 @@ import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.speech.tts.Voice;
 import aho.gpt.R;
+import aho.gpt.android.logging.AppLogger;
 import java.util.List;
 
 /** Lifecycle-owned default-engine probe and explicit settings preview. */
 public final class PlaybackSettingsClient implements AutoCloseable {
+    private static final String TAG = "TTS";
     public interface Loaded { void loaded(List<Voice> voices); }
     public interface PreviewResult { void completed(String message); }
     private final Context context;
@@ -26,17 +28,18 @@ public final class PlaybackSettingsClient implements AutoCloseable {
         long request = generation;
         main.postDelayed(() -> complete(request, null), 5000);
         try { engine = new TextToSpeech(context, status -> main.post(() -> initialized(request, status))); }
-        catch (RuntimeException exception) { complete(request, null); }
+        catch (RuntimeException exception) { AppLogger.w(TAG, "Voice query failed", exception); complete(request, null); }
     }
     private void initialized(long request, int status) {
         if (request != generation || loaded == null) { return; }
         if (status != TextToSpeech.SUCCESS) { complete(request, null); return; }
         try { complete(request, PlaybackVoices.available(engine)); }
-        catch (RuntimeException exception) { complete(request, null); }
+        catch (RuntimeException exception) { AppLogger.w(TAG, "Voice query failed", exception); complete(request, null); }
     }
     private void complete(long request, List<Voice> voices) {
         if (request != generation || loaded == null) { return; }
         Loaded callback = loaded;
+        AppLogger.d(TAG, "Voice query reported=" + (voices != null) + " voices=" + (voices == null ? 0 : voices.size()));
         loaded = null; main.removeCallbacksAndMessages(null);
         callback.loaded(voices);
     }
@@ -56,9 +59,10 @@ public final class PlaybackSettingsClient implements AutoCloseable {
             }
             if (engine.speak(context.getString(R.string.speech_test_sample), TextToSpeech.QUEUE_FLUSH, null, "preview")
                     == TextToSpeech.ERROR) { report(R.string.speech_test_failed); }
-        } catch (RuntimeException exception) { report(R.string.speech_test_failed); }
+        } catch (RuntimeException exception) { AppLogger.w(TAG, "Preview failed", exception); report(R.string.speech_test_failed); }
     }
     private void report(int message) {
+        AppLogger.d(TAG, "Preview result=" + context.getResources().getResourceEntryName(message));
         main.post(() -> { if (previewResult != null) { previewResult.completed(context.getString(message)); } });
     }
     @Override public void close() {

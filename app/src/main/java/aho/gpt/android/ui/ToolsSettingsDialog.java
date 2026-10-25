@@ -14,6 +14,7 @@ import android.widget.TextView;
 import aho.gpt.R;
 import aho.gpt.android.AssistantApplication;
 import aho.gpt.android.tools.ToolPreferences;
+import aho.gpt.android.logging.AppLogger;
 import java.util.List;
 
 final class ToolsSettingsDialog implements AutoCloseable {
@@ -49,6 +50,7 @@ final class ToolsSettingsDialog implements AutoCloseable {
             List<RecognizedTool> tools = RecognizedTool.load(activity, app.catalog());
             activity.runOnUiThread(() -> { if (current(request)) { loaded(content, tools); } });
         } catch (Exception exception) {
+            AppLogger.w("Tools", "Configuration load failed", exception);
             activity.runOnUiThread(() -> {
                 if (current(request)) { ((TextView) content.findViewById(R.id.tools_status)).setText(R.string.tools_load_failed); }
             });

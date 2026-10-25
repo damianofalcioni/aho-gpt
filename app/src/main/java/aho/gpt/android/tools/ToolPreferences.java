@@ -2,6 +2,7 @@ package aho.gpt.android.tools;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import aho.gpt.android.logging.AppLogger;
 
 /** Stores user choices only; discovered app metadata remains in memory. */
 public final class ToolPreferences {
@@ -19,6 +20,8 @@ public final class ToolPreferences {
         synchronized (preferences) {
             if (selected(key) == enabled) { return; }
             preferences.edit().putBoolean(key, enabled).putLong(VERSION, version() + 1).apply();
+            AppLogger.i("Tools", "Configuration changed master=" + ENABLED.equals(key) + " enabled=" + enabled
+                    + " revision=" + version());
         }
     }
     public boolean allows(String key) { return enabled() && selected(key); }

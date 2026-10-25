@@ -3,6 +3,7 @@ package aho.gpt.android.ui;
 import android.app.Activity;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import aho.gpt.R;
 import aho.gpt.android.AssistantApplication;
 import aho.gpt.android.logging.AppLogger;
@@ -36,11 +37,16 @@ final class VoiceRequest {
         work = app.worker().submit(() -> run(scope, text, speechTime, progress, answer, failure));
     }
     private void run(RequestScope scope, String text, long speechTime, AgentLoop.Progress progress, Callback answer, Callback failure) {
+        long started = SystemClock.elapsedRealtime();
+        AppLogger.d(TAG, "Request worker started");
         try {
             scope.check(); conversation.begin(text, speechTime);
             DeviceTools tools = new DeviceTools(app.catalog(), new IntentExecutor(activity), scope);
             AgentLoop agent = new AgentLoop(body -> app.http().response(app.auth().accessToken(), body, scope), tools,
-                    executing -> main.post(() -> { if (active == scope) { progress.update(executing); } }));
+                    executing -> {
+                        AppLogger.d(TAG, executing ? "Executing tool" : "Thinking");
+                        main.post(() -> { if (active == scope) { progress.update(executing); } });
+                    });
             String result = agent.run(conversation, app.model(), scope);
             AppLogger.i(TAG, "Request answered");
             main.post(() -> deliver(scope, answer, result));
@@ -50,10 +56,10 @@ final class VoiceRequest {
         } catch (Exception exception) {
             AppLogger.e(TAG, "Request failed", exception);
             main.post(() -> deliver(scope, failure, exception.getMessage()));
-        }
+        } finally { AppLogger.i(TAG, "Request finished elapsedMs=" + (SystemClock.elapsedRealtime() - started)); }
     }
     private void deliver(RequestScope scope, Callback callback, String value) {
-        if (active != scope) { return; }
+        if (active != scope) { AppLogger.d(TAG, "Retired request callback ignored"); return; }
         active = null; work = null; scope.cancel();
         callback.accept(value);
     }

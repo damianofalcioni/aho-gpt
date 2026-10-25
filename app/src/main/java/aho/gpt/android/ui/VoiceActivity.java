@@ -11,6 +11,7 @@ import android.view.WindowManager;
 import android.widget.FrameLayout;
 import aho.gpt.R;
 import aho.gpt.android.speech.SpeechPreferences;
+import aho.gpt.android.logging.AppLogger;
 
 /** Explicit component for TV button mappers: android.ui.VoiceActivity. */
 public final class VoiceActivity extends Activity {
@@ -34,12 +35,14 @@ public final class VoiceActivity extends Activity {
         dismissal.cancel();
         if (!SpeechPreferences.enabled(this, SpeechPreferences.INPUT)) { controller.listen(); return; }
         if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            AppLogger.i("Speech", "Microphone permission requested");
             requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 1);
         } else { controller.listen(); }
     }
     @Override public void onRequestPermissionsResult(int request, String[] permissions, int[] grants) {
         super.onRequestPermissionsResult(request, permissions, grants);
         if (request != 1) { return; }
+        AppLogger.i("Speech", "Microphone permission granted=" + (grants.length > 0 && grants[0] == PackageManager.PERMISSION_GRANTED));
         if (grants.length > 0 && grants[0] == PackageManager.PERMISSION_GRANTED) { controller.listen(); }
         else { controller.error(SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS); }
     }

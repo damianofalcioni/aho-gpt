@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.os.Looper;
 import aho.gpt.android.access.AssistantAccessibilityService;
 import aho.gpt.android.logging.ToolDiagnostics;
+import aho.gpt.android.logging.AppLogger;
 import aho.gpt.openai.AgentLoop;
 import aho.gpt.core.RequestScope;
 import aho.gpt.openai.ToolArguments;
@@ -33,10 +34,9 @@ public final class DeviceTools implements AgentLoop.Tools {
     @Override public long configurationVersion() { return catalog.preferences().version(); }
 
     @Override public String execute(String name, JSONObject args) throws Exception {
-        String result = executeChecked(name, args);
-        ToolDiagnostics.completed(name, result);
-        return result;
+        return executeChecked(name, args);
     }
+    @Override public void receipt(String name, String result, boolean replayed) { ToolDiagnostics.completed(name, result, replayed); }
     private String executeChecked(String name, JSONObject args) throws Exception {
         scope.check();
         if (!enabled(name)) { return ToolOutcome.refused(DISABLED); }
@@ -45,10 +45,14 @@ public final class DeviceTools implements AgentLoop.Tools {
         try { return executeValidated(name, args); }
         catch (InterruptedException exception) { throw exception; }
         catch (ExecutionException exception) { return executionFailure(exception); }
-        catch (Exception exception) { return ToolOutcome.unknown("TOOL_EXECUTION_UNCONFIRMED"); }
+        catch (Exception exception) {
+            AppLogger.w("Tools", "Execution unconfirmed", exception);
+            return ToolOutcome.unknown("TOOL_EXECUTION_UNCONFIRMED");
+        }
     }
     private String executionFailure(ExecutionException exception) throws Exception {
         if (exception.getCause() instanceof InterruptedException) { throw (InterruptedException) exception.getCause(); }
+        AppLogger.w("Tools", "Queued execution unconfirmed", exception);
         return ToolOutcome.unknown("TOOL_EXECUTION_UNCONFIRMED");
     }
     private String executeValidated(String name, JSONObject args) throws Exception {
