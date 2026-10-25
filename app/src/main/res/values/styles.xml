@@ -20,6 +20,12 @@
         <item name="android:colorBackgroundFloating">@color/app_surface</item>
         <item name="android:windowBackground">@drawable/bg_panel</item>
     </style>
+    <style name="LogBrowserTheme" parent="AppTheme">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowDisablePreview">true</item>
+    </style>
     <style name="VoiceTheme" parent="AppTheme">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>

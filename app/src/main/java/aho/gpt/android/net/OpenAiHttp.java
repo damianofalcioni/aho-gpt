@@ -1,6 +1,7 @@
 package aho.gpt.android.net;
 
 import aho.gpt.openai.SseResponseReader;
+import aho.gpt.android.logging.AppLogger;
 import aho.gpt.core.RequestScope;
 import java.io.IOException;
 import java.io.InputStream;
@@ -90,6 +91,7 @@ public final class OpenAiHttp {
 
     private InputStream checkedInput(HttpsURLConnection connection) throws IOException {
         int status = connection.getResponseCode();
+        AppLogger.i("HTTP", "Response status=" + status);
         if (status >= 200 && status < 300) { return connection.getInputStream(); }
         String detail = "";
         InputStream error = connection.getErrorStream();

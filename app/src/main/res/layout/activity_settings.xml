@@ -89,6 +89,22 @@
             <ImageButton android:id="@+id/refresh_tools_info" style="@style/SettingsActionInfo" android:contentDescription="@string/setting_information" />
         </LinearLayout>
         <View style="@style/SettingsSectionDivider" />
+        <TextView style="@style/SettingsSectionHeading" android:text="@string/log_advanced" />
+        <LinearLayout style="@style/SettingsRow">
+            <TextView style="@style/SettingsLabel" android:text="@string/log_external_storage" />
+            <Switch android:id="@+id/log_external_storage" style="@style/SettingsSwitch"
+                android:contentDescription="@string/log_external_storage" />
+            <ImageButton android:id="@+id/log_storage_info" style="@style/SettingsInfo"
+                android:contentDescription="@string/setting_information" />
+        </LinearLayout>
+        <LinearLayout style="@style/SettingsRow">
+            <TextView style="@style/SettingsLabel" android:text="@string/logs" />
+            <ImageButton android:id="@+id/log_settings" style="@style/SettingsIcon"
+                android:src="@drawable/ic_settings" android:contentDescription="@string/log_configure" />
+            <Switch android:id="@+id/log_enabled" style="@style/SettingsSwitch" android:contentDescription="@string/log_enable" />
+            <ImageButton android:id="@+id/log_info" style="@style/SettingsInfo" android:contentDescription="@string/log_information" />
+        </LinearLayout>
+        <View style="@style/SettingsSectionDivider" />
         <TextView style="@style/SettingsSectionHeading" android:text="@string/help_heading" />
         <TextView style="@style/SettingsBody" android:text="@string/setup_help" />
     </LinearLayout>

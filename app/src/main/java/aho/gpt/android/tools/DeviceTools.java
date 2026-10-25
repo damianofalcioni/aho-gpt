@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityService;
 import android.os.Handler;
 import android.os.Looper;
 import aho.gpt.android.access.AssistantAccessibilityService;
+import aho.gpt.android.logging.ToolDiagnostics;
 import aho.gpt.openai.AgentLoop;
 import aho.gpt.core.RequestScope;
 import aho.gpt.openai.ToolArguments;
@@ -32,6 +33,11 @@ public final class DeviceTools implements AgentLoop.Tools {
     @Override public long configurationVersion() { return catalog.preferences().version(); }
 
     @Override public String execute(String name, JSONObject args) throws Exception {
+        String result = executeChecked(name, args);
+        ToolDiagnostics.completed(name, result);
+        return result;
+    }
+    private String executeChecked(String name, JSONObject args) throws Exception {
         scope.check();
         if (!enabled(name)) { return ToolOutcome.refused(DISABLED); }
         try { ToolArguments.validate(name, args, accessibilityAvailable()); }

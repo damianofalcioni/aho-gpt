@@ -164,4 +164,19 @@
     <string name="not_connected">Not connected</string>
     <string name="connection_status">%1$s\n%2$s\nApp actions: %3$d</string>
     <string name="setup_help">Tap the microphone and speak. After each answer, listening starts automatically for up to eight seconds so you can reply without pressing a button. After silence or an error, the panel closes in three seconds. Tap × to close and cancel pending work. Tap the app logo for settings.</string>
+    <string name="logs">Logs</string>
+    <string name="log_configure">Configure logs</string>
+    <string name="log_enable">Log enabled</string>
+    <string name="log_information">Log information</string>
+    <string name="log_help">Save diagnostic events in Downloads. Logging is off by default. Crashes may still create a log. Logs include device details, but no credentials, speech, answers or screen text. Use the gear to open or delete logs.</string>
+    <string name="log_advanced">Advanced</string>
+    <string name="log_external_storage">Use external storage</string>
+    <string name="log_storage_help">Save logs in the SD card Downloads folder. Off uses phone Downloads. Missing storage stops logging. Files stay in place and survive uninstall.</string>
+    <string name="log_sd_access">Select the SD card Download folder to allow log saving.</string>
+    <string name="log_storage_failed">Cannot access log storage. Check permissions and available storage.</string>
+    <string name="log_open">Open</string>
+    <string name="log_delete">Delete</string>
+    <string name="log_delete_confirm">Permanently delete Aho! GPT logs in %1$s? Other files and folders stay.</string>
+    <string name="log_deleted">Logs deleted.</string>
+    <string name="log_browser_unavailable">No file browser or viewer available.</string>
 </resources>

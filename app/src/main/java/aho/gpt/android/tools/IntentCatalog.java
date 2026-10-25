@@ -3,6 +3,7 @@ package aho.gpt.android.tools;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import aho.gpt.android.logging.AppLogger;
 import aho.gpt.core.CapabilityIndex;
 import aho.gpt.core.CapabilityMetadata;
 import aho.gpt.core.CapabilityQuery;
@@ -39,6 +40,7 @@ public final class IntentCatalog {
             found.put(cap.id, cap);
         }
         capabilities.clear(); capabilities.putAll(found);
+        AppLogger.i("Catalog", "Scan complete packages=" + scanned + " unreadable=" + unreadable + " actions=" + found.size());
     }
 
     private List<PackageInfo> installed(PackageManager manager) {

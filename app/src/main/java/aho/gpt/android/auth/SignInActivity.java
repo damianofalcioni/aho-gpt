@@ -14,6 +14,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import aho.gpt.R;
 import aho.gpt.android.AssistantApplication;
+import aho.gpt.android.logging.AppLogger;
 import java.io.IOException;
 
 public final class SignInActivity extends Activity {
@@ -63,6 +64,7 @@ public final class SignInActivity extends Activity {
     }
 
     private void begin(AssistantApplication app) {
+        AppLogger.i("Auth", "Sign-in started");
         try (LoopbackCallback listener = new LoopbackCallback()) {
             callback = listener;
             OAuthAttempt attempt = new OAuthAttempt(listener.redirect(), app.auth().client());
@@ -70,8 +72,10 @@ public final class SignInActivity extends Activity {
             runOnUiThread(() -> showAuthorization(uri));
             app.auth().complete(attempt, listener.await(attempt.state,
                     getString(R.string.sign_in_received), getString(R.string.sign_in_invalid_callback)));
+            AppLogger.i("Auth", "Sign-in completed");
             runOnUiThread(() -> { if (!destroyed) { finish(); } });
         } catch (Exception exception) {
+            AppLogger.e("Auth", "Sign-in stopped", exception);
             runOnUiThread(() -> { if (!destroyed) { status.setText(exception.getMessage()); } });
         }
     }

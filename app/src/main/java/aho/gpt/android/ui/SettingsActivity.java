@@ -10,6 +10,7 @@ import android.provider.Settings;
 import android.widget.TextView;
 import aho.gpt.R;
 import aho.gpt.android.AssistantApplication;
+import aho.gpt.android.logging.AppLogger;
 import aho.gpt.android.auth.SignInActivity;
 import java.util.ArrayList;
 import org.json.JSONArray;
@@ -22,6 +23,7 @@ public final class SettingsActivity extends Activity {
     private SpeechSettingsRows speech;
     private AboutInformation about;
     private ToolsSettingsDialog tools;
+    private LoggingSettingsRows logging;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state); app = (AssistantApplication) getApplication();
@@ -30,6 +32,7 @@ public final class SettingsActivity extends Activity {
         speech = new SpeechSettingsRows(this);
         about = new AboutInformation(this);
         tools = new ToolsSettingsDialog(this);
+        logging = new LoggingSettingsRows(this, state);
         TextView version = findViewById(R.id.app_version);
         version.setText(getString(R.string.app_version, aho.gpt.BuildConfig.VERSION_NAME));
         action(R.id.connect, () -> startActivity(new Intent(this, SignInActivity.class)));
@@ -48,11 +51,17 @@ public final class SettingsActivity extends Activity {
     private void action(int id, Runnable action) {
         findViewById(id).setOnClickListener(view -> action.run());
     }
-    @Override protected void onResume() { super.onResume(); refresh(); speech.refresh(); }
+    @Override protected void onResume() { super.onResume(); refresh(); speech.refresh(); logging.refresh(); }
     @Override protected void onPause() { speech.stopTests(); super.onPause(); }
-    @Override protected void onDestroy() { speech.close(); about.close(); tools.close(); super.onDestroy(); }
+    @Override protected void onDestroy() { logging.close(); speech.close(); about.close(); tools.close(); super.onDestroy(); }
+    @Override protected void onSaveInstanceState(Bundle state) { logging.save(state); super.onSaveInstanceState(state); }
+    @SuppressWarnings("deprecation") // Required native activity-result callback.
+    @Override protected void onActivityResult(int request, int result, Intent data) {
+        super.onActivityResult(request, result, data); logging.storageResult(request, result, data);
+    }
     @Override public void onRequestPermissionsResult(int request, String[] permissions, int[] grants) {
         super.onRequestPermissionsResult(request, permissions, grants);
+        logging.permissionResult(request);
         if (request == RecognitionSettingsDialog.PERMISSION_REQUEST) {
             speech.permissionResult(grants.length > 0 && grants[0] == PackageManager.PERMISSION_GRANTED);
         }
@@ -101,6 +110,7 @@ public final class SettingsActivity extends Activity {
         catch (android.content.ActivityNotFoundException exception) { status.setText(R.string.setting_unavailable); }
     }
     private void showError(Exception exception) {
+        AppLogger.e("Settings", "Settings action failed", exception);
         runOnUiThread(() -> { if (!isFinishing()) { status.setText(exception.getMessage()); } });
     }
 }

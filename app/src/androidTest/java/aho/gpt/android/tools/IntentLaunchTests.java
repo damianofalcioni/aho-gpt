@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import org.json.JSONObject;
+import aho.gpt.android.logging.storage.LogStorageTest;
 
 /** Dependency-free framework tests; run with connectedHandheldDebugAndroidTest. */
 public final class IntentLaunchTests extends Instrumentation {
@@ -16,6 +17,8 @@ public final class IntentLaunchTests extends Instrumentation {
     private String shortcutLabel;
     private String screenMarker;
     private boolean voiceTasks;
+    private boolean logStorage;
+    private boolean logPermission;
 
     @Override public void onCreate(Bundle arguments) {
         super.onCreate(arguments);
@@ -23,10 +26,13 @@ public final class IntentLaunchTests extends Instrumentation {
         shortcutLabel = arguments == null ? "" : arguments.getString("home_shortcut", "");
         screenMarker = arguments == null ? "" : arguments.getString("screen_marker", "");
         voiceTasks = arguments != null && "true".equals(arguments.getString("voice_tasks"));
+        logStorage = arguments != null && "true".equals(arguments.getString("log_storage"));
+        logPermission = arguments != null && "true".equals(arguments.getString("log_permission"));
         start();
     }
 
     @Override public void onStart() {
+        if (loggingRequested()) { storageTests(); return; }
         if (voiceTasks) { new VoiceTaskTest(this).run(); return; }
         if (!targetPackage.isEmpty()) { new InstalledAppLaunchTest(this, targetPackage).run(); return; }
         if (!shortcutLabel.isEmpty()) { new HomeShortcutLaunchTest(this, shortcutLabel, screenMarker).run(); return; }
@@ -62,6 +68,15 @@ public final class IntentLaunchTests extends Instrumentation {
             return false;
         }
     }
+
+    private void storageTests() {
+        boolean passed = logPermission ? check(0, "logPermission", () -> new LogPermissionTest(this).run(), 1)
+                : check(0, "logStorage", () -> new LogStorageTest(getTargetContext()).run(), 1);
+        Bundle results = new Bundle();
+        results.putString("stream", "Tests run: 1, Failures: " + (passed ? 0 : 1) + "\n");
+        finish(Activity.RESULT_OK, results);
+    }
+    private boolean loggingRequested() { return logStorage || logPermission; }
 
     private interface Check { void run() throws Exception; }
 

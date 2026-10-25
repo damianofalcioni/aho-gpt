@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.os.Looper;
 import aho.gpt.R;
 import aho.gpt.android.AssistantApplication;
+import aho.gpt.android.logging.AppLogger;
 import aho.gpt.android.tools.DeviceTools;
 import aho.gpt.android.tools.IntentExecutor;
 import aho.gpt.core.Conversation;
@@ -14,6 +15,7 @@ import java.util.concurrent.Future;
 
 /** Owns inference lifetime and suppresses callbacks from retired spoken turns. */
 final class VoiceRequest {
+    private static final String TAG = "Voice";
     interface Callback { void accept(String value); }
     private final Activity activity;
     private final AssistantApplication app;
@@ -30,6 +32,7 @@ final class VoiceRequest {
         cancel();
         RequestScope scope = new RequestScope();
         active = scope;
+        AppLogger.i(TAG, "Request started");
         work = app.worker().submit(() -> run(scope, text, speechTime, progress, answer, failure));
     }
     private void run(RequestScope scope, String text, long speechTime, AgentLoop.Progress progress, Callback answer, Callback failure) {
@@ -39,10 +42,13 @@ final class VoiceRequest {
             AgentLoop agent = new AgentLoop(body -> app.http().response(app.auth().accessToken(), body, scope), tools,
                     executing -> main.post(() -> { if (active == scope) { progress.update(executing); } }));
             String result = agent.run(conversation, app.model(), scope);
+            AppLogger.i(TAG, "Request answered");
             main.post(() -> deliver(scope, answer, result));
         } catch (InterruptedException exception) {
+            AppLogger.i(TAG, "Request stopped");
             main.post(() -> deliver(scope, failure, activity.getString(R.string.request_stopped)));
         } catch (Exception exception) {
+            AppLogger.e(TAG, "Request failed", exception);
             main.post(() -> deliver(scope, failure, exception.getMessage()));
         }
     }
@@ -53,6 +59,7 @@ final class VoiceRequest {
     }
     void cancel() {
         if (active != null) {
+            AppLogger.i(TAG, "Request cancelled");
             RequestScope retiring = active;
             active = null; retiring.cancel(); app.http().cancelResponse(retiring);
         }

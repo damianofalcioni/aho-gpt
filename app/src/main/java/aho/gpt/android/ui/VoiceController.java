@@ -7,6 +7,7 @@ import android.os.SystemClock;
 import android.speech.SpeechRecognizer;
 import aho.gpt.R;
 import aho.gpt.android.AssistantApplication;
+import aho.gpt.android.logging.AppLogger;
 import aho.gpt.android.speech.SpeechInput;
 import aho.gpt.android.speech.SpeechOutput;
 import aho.gpt.android.speech.SpeechAvailability;
@@ -46,6 +47,7 @@ public final class VoiceController implements SpeechInput.Listener {
 
     public void listen() {
         if (!lifecycle.requestListening()) { return; }
+        AppLogger.i("Speech", "Listening started");
         dismissal.cancel();
         output.stop(); presentation.closeOverlay(); main.removeCallbacksAndMessages(null);
         if (!canListen()) { return; }
@@ -99,12 +101,14 @@ public final class VoiceController implements SpeechInput.Listener {
         else { dismissal.schedule(); }
     }
     private void playbackFailed(String reason) {
+        AppLogger.w("Speech", "Playback failed");
         lifecycle.finished(); conversation.clear();
         presentation.playbackFailed(reason);
         dismissal.schedule();
     }
 
     @Override public void error(int error) {
+        AppLogger.w("Speech", "Recognition error=" + error);
         main.removeCallbacksAndMessages(null);
         if (error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT || error == SpeechRecognizer.ERROR_NO_MATCH) { expired(); return; }
         fail(SpeechInput.errorText(activity, error));
