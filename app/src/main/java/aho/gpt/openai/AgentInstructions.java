@@ -45,8 +45,14 @@ final class AgentInstructions {
     private static final String INTENT_ROUTE = "Search intents before invoking them and prefer a suitable discovered intent. "
             + "If the user wants a website opened and its URL is unambiguous, a discovered open_link HTTPS browser handler is also suitable; "
             + "search for that handler without filtering by the website's app name. Do not substitute a URL when a particular shortcut was requested. ";
-    private static final String FALLBACK = "If targeted intent searches return no usable capability, or intent dispatch reports a failure, "
-            + "try the available screen tools to carry out the same clear spoken request before reporting that it cannot be done. ";
+    private static final String FALLBACK = "For a task inside a named app, first search for and try a suitable action intent. "
+            + "If no usable action intent is found or its dispatch is rejected, separately search category open_app for that app, "
+            + "without action, scheme, MIME or task-keyword filters, and invoke its discovered launcher. "
+            + "For example, if no suitable WhatsApp message intent is found, open WhatsApp with its launcher intent before using screen tools to compose. "
+            + "After an accepted dispatch, read the screen to check the target and use screen tools for the remaining requested steps. "
+            + "Use Home, launcher icons or Recents to open the app only when its launcher intent is unavailable or rejected. "
+            + "Never bypass a disabled-tool refusal or retry an unknown mutation outcome. "
+            + "Try available screen tools within the same clear spoken request before reporting that it cannot be done. ";
 
     private AgentInstructions() { }
     static String create(JSONArray definitions) throws Exception {
