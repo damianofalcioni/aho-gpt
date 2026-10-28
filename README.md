@@ -20,3 +20,5 @@ Requests, temporary context and selected tool results go to OpenAI. With screen 
 Models and usage limits depend on your authorized ChatGPT account. Device actions depend on available apps, permissions and accessible controls; completion is not guaranteed. This is an unofficial app.
 
 Technical details, limitations and build instructions are in [SPECIFICATION.md](SPECIFICATION.md).
+
+Licensed under the [MIT License](LICENSE).
