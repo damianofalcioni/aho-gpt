@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="artwork/Aho-GPT.png" alt="Aho! GPT logo" width="160" height="160">
+</p>
+
 # Aho! GPT
 
 A lightweight voice assistant for Android phones, tablets, TV and Wear OS. It connects OpenAI models to your device so you can ask questions and act across apps by speaking.
