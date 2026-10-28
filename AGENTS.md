@@ -5,6 +5,7 @@ Read `SPECIFICATION.md` before changing product behavior. Use focused Java compo
 - Keep Android framework APIs and lifecycle wiring under `aho.gpt.android`; keep model protocol and session policy independently JVM-testable.
 - Keep all UI labels in `strings.xml`. Do not add a chat interface or a persistent conversation store.
 - Always use short, plain descriptions in UI text, documentation and replies. Include only essential details.
+- Keep README short and focused on the app's idea and main features. Avoid setup steps and detailed usage instructions; keep technical details in SPECIFICATION.md.
 - Use only the documented public OpenAI OAuth/Responses path. Never embed a client secret, API key, stolen client ID or private ChatGPT backend endpoint.
 - Keep issued OAuth registrations, host IDs, credentials and account identity consistent. Never log tokens, authorization URLs or screen contents.
 - Keep the TV mapper entry point exported. Do not intercept microphone or remote keys in the accessibility service.
