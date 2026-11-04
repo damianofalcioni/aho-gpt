@@ -49,22 +49,6 @@
         <item name="android:elevation">0dp</item>
         <item name="android:stateListAnimator">@null</item>
     </style>
-    <style name="SettingsAction" parent="AssistantButton">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_marginTop">8dp</item>
-    </style>
-    <style name="SettingsActionRow" parent="SettingsRow">
-        <item name="android:layout_marginTop">8dp</item>
-    </style>
-    <style name="SettingsRowAction" parent="AssistantButton">
-        <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_weight">1</item>
-        <item name="android:paddingTop">0dp</item>
-        <item name="android:paddingBottom">0dp</item>
-        <item name="android:includeFontPadding">false</item>
-    </style>
     <style name="SettingsTitle" parent="SettingsHeadingBase">
         <item name="android:layout_marginTop">24dp</item>
         <item name="android:paddingTop">21dp</item>
@@ -106,10 +90,6 @@
         <item name="android:src">@drawable/ic_info</item>
         <item name="android:padding">8dp</item>
     </style>
-    <style name="SettingsActionInfo" parent="SettingsInfo">
-        <item name="android:layout_marginStart">8dp</item>
-        <item name="android:contentDescription">@string/setting_information</item>
-    </style>
     <style name="SettingsSwitch">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">48dp</item>
@@ -148,5 +128,48 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textSize">14sp</item>
         <item name="android:textColor">@color/settings_text_secondary</item>
+    </style>
+    <style name="ConfigContent">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingBottom">4dp</item>
+    </style>
+    <style name="ConfigRow" parent="SettingsRow">
+        <item name="android:layout_marginTop">0dp</item>
+    </style>
+    <style name="ConfigLabel" parent="@android:style/Widget.TextView">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+    <style name="ConfigSpinner" parent="@android:style/Widget.Material.Spinner">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginStart">12dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:background">@drawable/bg_spinner_field</item>
+        <item name="android:popupBackground">@drawable/bg_spinner_popup</item>
+        <item name="android:paddingStart">8dp</item>
+        <item name="android:paddingEnd">36dp</item>
+    </style>
+    <style name="ConfigAction" parent="AssistantButton">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">52dp</item>
+        <item name="android:layout_gravity">end</item>
+        <item name="android:layout_marginTop">12dp</item>
+        <item name="android:minWidth">96dp</item>
+        <item name="android:paddingTop">0dp</item>
+        <item name="android:paddingBottom">0dp</item>
+    </style>
+    <style name="ConfigTextAction" parent="@android:style/Widget.Material.Button.Borderless">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:layout_gravity">end</item>
+        <item name="android:textAllCaps">false</item>
     </style>
 </resources>

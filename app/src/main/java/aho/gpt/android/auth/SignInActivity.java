@@ -24,19 +24,28 @@ public final class SignInActivity extends Activity {
     private TextView status;
     private Uri authorization;
     private volatile boolean destroyed;
+    private boolean usage;
+
+    @android.annotation.SuppressLint("WearRecents") // This temporary account task must not replace the app's launcher task.
+    public static void open(Activity activity, boolean usage) {
+        activity.startActivity(new Intent(activity, SignInActivity.class).putExtra("usage", usage)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
+    }
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        usage = getIntent().getBooleanExtra("usage", false);
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setFitsSystemWindows(true);
         int padding = getResources().getDimensionPixelSize(R.dimen.page_padding);
         layout.setPadding(padding, padding, padding, padding);
-        status = new TextView(this); status.setText(R.string.signing_in); layout.addView(status);
+        status = new TextView(this); status.setText(usage ? R.string.manage_usage : R.string.signing_in); layout.addView(status);
         Button browser = new Button(this); browser.setText(R.string.open_browser);
         browser.setOnClickListener(view -> openBrowser()); layout.addView(browser);
         setContentView(layout);
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_WATCH)) { createWebView(layout); }
+        if (usage) { showAuthorization(Uri.parse("https://chatgpt.com/settings/usage")); return; }
         AssistantApplication app = (AssistantApplication) getApplication();
         app.authWorker().execute(() -> begin(app));
     }
@@ -51,6 +60,10 @@ public final class SignInActivity extends Activity {
             web.getSettings().setAllowContentAccess(false);
             CookieManager.getInstance().setAcceptThirdPartyCookies(web, false);
             web.setWebViewClient(new WebViewClient() {
+                @SuppressWarnings("deprecation") // Android 6 delivers this navigation callback.
+                @Override public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                    return !allowed(Uri.parse(url));
+                }
                 @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                     return !allowed(request.getUrl());
                 }
@@ -63,7 +76,7 @@ public final class SignInActivity extends Activity {
 
     private boolean allowed(Uri uri) {
         if ("https".equals(uri.getScheme())) { return true; }
-        return "127.0.0.1".equals(uri.getHost()) && "/auth/callback".equals(uri.getPath());
+        return !usage && "http".equals(uri.getScheme()) && "127.0.0.1".equals(uri.getHost()) && "/auth/callback".equals(uri.getPath());
     }
 
     private void begin(AssistantApplication app) {
@@ -89,9 +102,13 @@ public final class SignInActivity extends Activity {
         if (web != null) { web.loadUrl(uri.toString()); } else { openBrowser(); }
     }
 
+    @android.annotation.SuppressLint("WearRecents") // Keep the external browser alive when this temporary task is removed.
     private void openBrowser() {
         if (authorization == null) { return; }
-        try { startActivity(new Intent(Intent.ACTION_VIEW, authorization)); AppLogger.i(TAG, "Browser opened"); }
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, authorization).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            AppLogger.i(TAG, "Browser opened");
+        }
         catch (android.content.ActivityNotFoundException exception) {
             AppLogger.w(TAG, "Browser unavailable", exception); status.setText(R.string.browser_required);
         }
@@ -100,6 +117,9 @@ public final class SignInActivity extends Activity {
     private void closeListener() {
         if (callback == null) { return; }
         try { callback.close(); } catch (IOException exception) { status.setText(R.string.sign_in_cancelled); }
+    }
+    @Override public void finish() {
+        if (isTaskRoot()) { super.finishAndRemoveTask(); } else { super.finish(); }
     }
     @Override public void onDestroy() {
         destroyed = true; closeListener();

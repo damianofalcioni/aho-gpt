@@ -6,11 +6,9 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.speech.SpeechRecognizer;
 import aho.gpt.R;
-import aho.gpt.android.AssistantApplication;
 import aho.gpt.android.logging.AppLogger;
 import aho.gpt.android.speech.SpeechInput;
 import aho.gpt.android.speech.SpeechOutput;
-import aho.gpt.android.speech.SpeechAvailability;
 import aho.gpt.android.speech.SpeechPreferences;
 import aho.gpt.core.Conversation;
 import aho.gpt.core.VoiceLifecycle;
@@ -21,7 +19,6 @@ public final class VoiceController implements SpeechInput.Listener {
     private static final long INITIAL_LISTENING_MS = 15_000;
     private static final long SPEECH_TIMEOUT_MS = 20_000;
     private final Activity activity;
-    private final AssistantApplication app;
     private final VoicePresentation presentation;
     private final Conversation conversation = new Conversation();
     private final VoiceLifecycle lifecycle = new VoiceLifecycle();
@@ -30,16 +27,17 @@ public final class VoiceController implements SpeechInput.Listener {
     private final SpeechOutput output;
     private final VoiceRequest request;
     private final VoiceDismissal dismissal;
+    private final VoiceAccountWatch accountWatch;
     private long speechTime;
 
     VoiceController(Activity activity, VoicePanel panel, VoiceDismissal dismissal) {
         this.activity = activity;
         presentation = new VoicePresentation(activity, panel);
         this.dismissal = dismissal;
-        app = (AssistantApplication) activity.getApplication();
         request = new VoiceRequest(activity, conversation);
         input = SpeechInput.available(activity) ? new SpeechInput(activity, this) : null;
         output = new SpeechOutput(activity);
+        accountWatch = new VoiceAccountWatch(activity, this::fail);
     }
 
     public void foreground(boolean visible) {
@@ -79,15 +77,10 @@ public final class VoiceController implements SpeechInput.Listener {
     }
 
     private boolean canListen() {
-        int issue = SpeechAvailability.inputIssue(activity, input != null);
+        int issue = VoiceReadiness.issue(activity, input != null);
         if (issue != 0) {
             AppLogger.w(SPEECH_TAG, "Listening unavailable reason=" + activity.getResources().getResourceEntryName(issue));
             fail(activity.getString(issue));
-            return false;
-        }
-        if (app.model().isEmpty()) {
-            AppLogger.w(TAG, "Model setup required");
-            fail(activity.getString(R.string.setup_required));
             return false;
         }
         return true;
@@ -174,6 +167,7 @@ public final class VoiceController implements SpeechInput.Listener {
     }
     public void close() {
         if (!lifecycle.close()) { return; }
+        accountWatch.close();
         AppLogger.i(TAG, "Session closed");
         request.cancel();
         conversation.clear();

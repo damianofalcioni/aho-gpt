@@ -1,0 +1,4 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/bg_button" />
+    <item android:drawable="@drawable/ic_chevron_down" android:gravity="end|center_vertical" android:right="12dp" />
+</layer-list>

@@ -1,18 +1,18 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="wrap_content">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="vertical" android:padding="20dp">
-        <Button android:id="@+id/speech_language" style="@style/SettingsAction"
-            android:enabled="false" android:text="@string/device_language_short"
-            android:contentDescription="@string/choose_speech_language" />
-        <Button android:id="@+id/speech_voice" style="@style/SettingsAction"
-            android:enabled="false" android:text="@string/choose_voice" />
+    <LinearLayout style="@style/ConfigContent">
+        <LinearLayout style="@style/ConfigRow">
+            <TextView android:id="@+id/speech_choice_label" style="@style/ConfigLabel" android:text="@string/speech_language_label" />
+            <Spinner android:id="@+id/speech_choice" style="@style/ConfigSpinner"
+                android:enabled="false" android:contentDescription="@string/choose_speech_language" />
+            <ImageButton android:id="@+id/test_speech" style="@style/SettingsIcon"
+                android:layout_marginStart="8dp" android:enabled="false"
+                android:src="@drawable/ic_play" android:contentDescription="@string/test_speech" />
+        </LinearLayout>
         <TextView android:id="@+id/speech_support" style="@style/SettingsBody"
-            android:layout_marginTop="12dp" android:accessibilityLiveRegion="polite"
+            android:layout_marginTop="8dp" android:accessibilityLiveRegion="polite"
             android:text="@string/language_support_loading" />
-        <Button android:id="@+id/test_speech" style="@style/SettingsAction"
-            android:enabled="false" android:text="@string/test_speech" />
-        <Button android:id="@+id/android_speech_settings" style="@style/SettingsAction"
+        <Button android:id="@+id/android_speech_settings" style="@style/ConfigAction"
             android:drawableEnd="@drawable/ic_settings" android:drawablePadding="8dp"
             android:text="@string/android_speech_settings" />
     </LinearLayout>

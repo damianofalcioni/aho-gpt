@@ -9,6 +9,7 @@ import android.os.Looper;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import aho.gpt.R;
 import aho.gpt.android.speech.RecognitionLanguages;
@@ -24,7 +25,6 @@ final class RecognitionSettingsDialog implements AutoCloseable, SpeechInput.List
     private final RecognitionLanguages languages;
     private final Handler main = new Handler(Looper.getMainLooper());
     private AlertDialog dialog;
-    private AlertDialog picker;
     private View content;
     private SpeechInput input;
 
@@ -33,33 +33,30 @@ final class RecognitionSettingsDialog implements AutoCloseable, SpeechInput.List
         close();
         content = activity.getLayoutInflater().inflate(R.layout.dialog_speech_settings, new FrameLayout(activity), false);
         dialog = new AlertDialog.Builder(activity).setTitle(R.string.stt_language).setView(content)
-                .setPositiveButton(R.string.close, null).create();
+                .setNeutralButton(R.string.test_speech, null)
+                .setPositiveButton(android.R.string.ok, null).create();
         dialog.setOnDismissListener(ignored -> stop());
-        content.findViewById(R.id.speech_voice).setVisibility(View.GONE);
+        content.findViewById(R.id.test_speech).setVisibility(View.GONE);
         ((Button) content.findViewById(R.id.android_speech_settings)).setText(R.string.android_stt_settings);
         content.findViewById(R.id.android_speech_settings).setOnClickListener(view -> SpeechSettingsNavigation.open(activity, false));
-        content.findViewById(R.id.test_speech).setEnabled(SpeechAvailability.input(activity));
-        content.findViewById(R.id.test_speech).setOnClickListener(view -> test());
-        label(); dialog.show();
+        dialog.show();
+        dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setEnabled(false);
+        dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(view -> test());
         if (!SpeechAvailability.input(activity)) { status(activity.getString(R.string.speech_unavailable)); return; }
         languages.load(this::loaded);
     }
-    private void label() {
-        ((Button) content.findViewById(R.id.speech_language)).setText(SpeechPreferences.selectionLabel(activity, SpeechPreferences.INPUT));
-    }
     private void loaded(List<String> tags) {
-        Button language = content.findViewById(R.id.speech_language);
-        language.setEnabled(true);
-        language.setOnClickListener(view -> {
-            stopTest(); picker = SpeechLanguagePicker.show(activity, SpeechPreferences.INPUT, R.string.stt_language,
-                    tags, () -> { label(); languages.load(this::loaded); });
-        });
+        dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setEnabled(SpeechAvailability.input(activity));
+        RecognitionLanguageSpinner.bind(activity, content.findViewById(R.id.speech_choice), tags,
+                () -> { stopTest(); languages.load(this::loaded); });
         if (tags == null) { status(activity.getString(R.string.language_support_unknown)); return; }
-        status(tags.isEmpty() ? activity.getString(R.string.language_support_empty)
-                : activity.getResources().getQuantityString(R.plurals.language_support_reported, tags.size(), tags.size()));
+        if (tags.isEmpty()) { status(activity.getString(R.string.language_support_empty)); }
+        else { content.findViewById(R.id.speech_support).setVisibility(View.GONE); }
     }
     void test() {
         if (dialog == null || !dialog.isShowing()) { return; }
+        languages.close();
+        if (!SpeechAvailability.input(activity)) { status(activity.getString(R.string.speech_unavailable)); return; }
         if (activity.checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             activity.requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, PERMISSION_REQUEST); return;
         }
@@ -75,14 +72,16 @@ final class RecognitionSettingsDialog implements AutoCloseable, SpeechInput.List
     @Override public void began() { }
     @Override public void result(String text) { stopTest(); status(activity.getString(R.string.speech_test_result, text)); }
     @Override public void error(int error) { stopTest(); status(SpeechInput.errorText(activity, error)); }
-    private void status(String message) { ((TextView) content.findViewById(R.id.speech_support)).setText(message); }
+    private void status(String message) {
+        TextView status = content.findViewById(R.id.speech_support); status.setVisibility(View.VISIBLE); status.setText(message);
+    }
     void stopTest() {
         main.removeCallbacksAndMessages(null);
         if (input != null) { input.close(); input = null; }
     }
     private void stop() {
         stopTest(); languages.close();
-        if (picker != null) { picker.dismiss(); picker = null; }
+        if (content != null) { ((Spinner) content.findViewById(R.id.speech_choice)).setOnItemSelectedListener(null); }
     }
     @Override public void close() { stop(); if (dialog != null) { dialog.dismiss(); dialog = null; } }
 }

@@ -23,9 +23,10 @@ final class AccessDiagnostics implements AutoCloseable {
         this.activity = activity;
         add(R.string.diagnostic_microphone, () -> appSettings(activity.getPackageName()));
         add(R.string.diagnostic_google, () -> appSettings(GOOGLE));
-        add(R.string.accessibility_name, () -> activity.findViewById(R.id.accessibility).performClick());
-        add(R.string.diagnostic_overlay, () -> activity.findViewById(R.id.overlay).performClick());
-        add(R.string.diagnostic_assistant, () -> activity.findViewById(R.id.default_assistant).performClick());
+        add(R.string.accessibility_name, () -> open(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)));
+        add(R.string.diagnostic_overlay, () -> open(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:" + activity.getPackageName()))));
+        add(R.string.diagnostic_assistant, () -> open(new Intent(Settings.ACTION_VOICE_INPUT_SETTINGS)));
     }
     private void add(int title, Runnable action) {
         rows.add(new DiagnosticRow(activity, R.id.diagnostic_access, title, action));
@@ -73,7 +74,10 @@ final class AccessDiagnostics implements AutoCloseable {
         return component != null && activity.getPackageName().equals(component.getPackageName());
     }
     private void appSettings(String name) {
-        try { activity.startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + name))); }
+        open(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + name)));
+    }
+    private void open(Intent intent) {
+        try { activity.startActivity(intent); }
         catch (android.content.ActivityNotFoundException | SecurityException exception) {
             Toast.makeText(activity, R.string.setting_unavailable, Toast.LENGTH_SHORT).show();
         }

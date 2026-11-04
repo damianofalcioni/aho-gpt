@@ -11,7 +11,7 @@ A lightweight voice assistant for Android phones, tablets, TV and Wear OS. It co
 - **Voice conversations:** spoken answers and automatic follow-up listening, with temporary context and no saved chat history.
 - **App actions:** open apps and use their available actions. Optional accessibility access lets the assistant read screen text and operate visible controls.
 - **Your choice of tools:** enable or disable individual device functions and app actions. Android permissions and app restrictions still apply.
-- **Speech options:** separate recognition and playback languages, installed voices and optional spoken answers.
+- **Account and speech settings:** a ChatGPT enable switch, model choice, recognition language, installed voices and speech tests.
 - **Device integration:** support for the system assistant shortcut, external TV button mappers and a voice panel over other apps where permitted.
 - **Diagnostics:** local status checks and optional logs that exclude credentials, requests, answers and screen text.
 
@@ -22,6 +22,8 @@ The app uses a simple native interface, with no chat screen, wake word or persis
 Requests, temporary context and selected tool results go to OpenAI. With screen access enabled, visible text may also be sent, excluding password fields. Speech providers may process audio or answer text online.
 
 Models and usage limits depend on your authorized ChatGPT account. Device actions depend on available apps, permissions and accessible controls; completion is not guaranteed. This is an unofficial app.
+
+[Homepage](https://damianofalcioni.github.io/aho-gpt/) · [Changelog](docs/CHANGELOG/index.html) · [Privacy policy](docs/privacy-policy/index.html) · [Terms of service](docs/terms-of-service/index.html)
 
 Technical details, limitations and build instructions are in [SPECIFICATION.md](SPECIFICATION.md).
 

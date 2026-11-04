@@ -9,23 +9,21 @@ import aho.gpt.R;
 /** Launcher with local setup status and the primary voice action. */
 public final class MainActivity extends Activity {
     private boolean ready;
-    private int setupTarget = R.id.connect;
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         setContentView(R.layout.activity_main);
         findViewById(R.id.about_settings).setOnClickListener(view -> settings());
-        findViewById(R.id.home_account).setOnClickListener(view -> settings(R.id.connect));
-        findViewById(R.id.home_model).setOnClickListener(view -> settings(R.id.choose_model));
+        findViewById(R.id.home_account).setOnClickListener(view -> settings(R.id.chatgpt_settings));
+        findViewById(R.id.home_model).setOnClickListener(view -> settings(R.id.chatgpt_settings));
         findViewById(R.id.speak).setOnClickListener(view -> {
             if (ready) { startActivity(new Intent(this, VoiceActivity.class)); }
-            else { settings(setupTarget); }
+            else { settings(R.id.chatgpt_settings); }
         });
         findViewById(R.id.speak).requestFocus();
     }
     @Override protected void onResume() { super.onResume(); AccountSummary.load(this, this::summary); }
     private void summary(AccountSummary.Snapshot snapshot) {
         ready = snapshot.ready();
-        setupTarget = snapshot.connected() ? R.id.choose_model : R.id.connect;
         ((TextView) findViewById(R.id.home_account)).setText(snapshot.account());
         ((TextView) findViewById(R.id.home_model)).setText(snapshot.model());
     }

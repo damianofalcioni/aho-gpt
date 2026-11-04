@@ -28,7 +28,8 @@ final class AccountSummary {
             String name = account.optString("email");
             if (name.isEmpty()) { name = activity.getString(R.string.connected); }
             return new Snapshot(connected ? name : activity.getString(R.string.not_connected),
-                    model.isEmpty() ? activity.getString(R.string.no_model) : model, app.catalog().size(), connected, connected && !model.isEmpty());
+                    model.isEmpty() ? activity.getString(R.string.no_model) : model, app.catalog().size(), connected,
+                    connected && !model.isEmpty() && app.chatgptEnabled());
         } catch (Exception exception) {
             return new Snapshot(activity.getString(R.string.account_unavailable),
                     model.isEmpty() ? activity.getString(R.string.no_model) : model, app.catalog().size(), false, false);

@@ -1,0 +1,22 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content">
+    <LinearLayout style="@style/ConfigContent">
+        <LinearLayout style="@style/ConfigRow">
+            <TextView style="@style/ConfigLabel" android:text="@string/account_label" />
+            <TextView android:id="@+id/account_name" style="@style/SettingsLabel"
+                android:layout_marginStart="12dp" android:textSize="15sp" android:text="@string/not_logged_in" />
+            <ImageButton android:id="@+id/account_configure" style="@style/SettingsIcon"
+                android:src="@drawable/ic_settings" android:contentDescription="@string/continue_chatgpt" />
+        </LinearLayout>
+        <LinearLayout style="@style/ConfigRow">
+            <TextView style="@style/ConfigLabel" android:text="@string/model_label" />
+            <Spinner android:id="@+id/account_model" style="@style/ConfigSpinner"
+                android:contentDescription="@string/choose_model" />
+        </LinearLayout>
+        <Button android:id="@+id/account_manage" style="@style/ConfigAction" android:text="@string/manage" />
+        <Button android:id="@+id/account_sign_out" style="@style/ConfigTextAction"
+            android:text="@string/sign_out_action" android:textColor="@color/log_danger" />
+        <TextView android:id="@+id/account_status" style="@style/SettingsBody"
+            android:accessibilityLiveRegion="polite" android:visibility="gone" />
+    </LinearLayout>
+</ScrollView>

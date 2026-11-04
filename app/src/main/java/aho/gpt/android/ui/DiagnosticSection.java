@@ -30,7 +30,7 @@ final class DiagnosticSection implements AutoCloseable {
         access = new AccessDiagnostics(activity); storage = new StorageDiagnostics(activity);
         network = new NetworkDiagnostics(activity);
         speech = new SpeechDiagnostics(activity);
-        add(R.string.diagnostic_account, R.id.connect); add(R.string.diagnostic_model, R.id.choose_model);
+        add(R.string.diagnostic_account, R.id.chatgpt_settings); add(R.string.diagnostic_model, R.id.chatgpt_settings);
         add(R.string.tools, R.id.tools_settings); add(R.string.logs, R.id.log_settings);
         folders = activity.getSharedPreferences("output_folders", Activity.MODE_PRIVATE);
         listener = (preferences, key) -> main.post(() -> { if (active) { storage.refresh(); } });

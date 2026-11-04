@@ -10,6 +10,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public final class AssistantApplication extends Application {
+    private static final String SETTINGS = "settings";
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final ExecutorService authWorker = Executors.newSingleThreadExecutor();
     private OAuthManager auth;
@@ -27,8 +28,12 @@ public final class AssistantApplication extends Application {
     public OAuthManager auth() { return auth; }
     public IntentCatalog catalog() { return catalog; }
     public OpenAiHttp http() { return http; }
-    public String model() { return getSharedPreferences("settings", MODE_PRIVATE).getString("model", ""); }
-    public void model(String slug) { getSharedPreferences("settings", MODE_PRIVATE).edit().putString("model", slug).apply(); }
+    public boolean chatgptEnabled() { return getSharedPreferences(SETTINGS, MODE_PRIVATE).getBoolean("chatgpt_enabled", true); }
+    public void chatgptEnabled(boolean enabled) {
+        getSharedPreferences(SETTINGS, MODE_PRIVATE).edit().putBoolean("chatgpt_enabled", enabled).apply();
+    }
+    public String model() { return getSharedPreferences(SETTINGS, MODE_PRIVATE).getString("model", ""); }
+    public void model(String slug) { getSharedPreferences(SETTINGS, MODE_PRIVATE).edit().putString("model", slug).apply(); }
     @SuppressWarnings("deprecation") // Still delivered on older supported Android versions.
     @Override public void onLowMemory() { AppLogger.w("App", "Low memory"); super.onLowMemory(); }
     @SuppressWarnings("deprecation") // Still delivered on older supported Android versions.

@@ -43,23 +43,12 @@
         <TextView android:id="@+id/stt_provider_status" style="@style/SettingsBody" android:textSize="13sp"
             android:accessibilityLiveRegion="polite" android:text="@string/language_support_loading" />
         <TextView style="@style/SettingsSectionHeading" android:text="@string/account_heading" />
-        <TextView android:id="@+id/connection_status" style="@style/SettingsBody"
-            android:accessibilityLiveRegion="polite" android:text="@string/not_connected" />
-        <LinearLayout style="@style/SettingsActionRow">
-            <Button android:id="@+id/connect" style="@style/SettingsRowAction" android:text="@string/continue_chatgpt" />
-            <ImageButton android:id="@+id/account_info" style="@style/SettingsActionInfo" android:contentDescription="@string/setting_information" />
-        </LinearLayout>
-        <LinearLayout style="@style/SettingsActionRow">
-            <Button android:id="@+id/choose_model" style="@style/SettingsRowAction" android:text="@string/choose_model" />
-            <ImageButton android:id="@+id/model_info" style="@style/SettingsActionInfo" android:contentDescription="@string/setting_information" />
-        </LinearLayout>
-        <LinearLayout style="@style/SettingsActionRow">
-            <Button android:id="@+id/manage_usage" style="@style/SettingsRowAction" android:text="@string/manage_usage" />
-            <ImageButton android:id="@+id/usage_info" style="@style/SettingsActionInfo" android:contentDescription="@string/setting_information" />
-        </LinearLayout>
-        <LinearLayout style="@style/SettingsActionRow">
-            <Button android:id="@+id/sign_out" style="@style/SettingsRowAction" android:text="@string/sign_out" />
-            <ImageButton android:id="@+id/sign_out_info" style="@style/SettingsActionInfo" android:contentDescription="@string/setting_information" />
+        <LinearLayout style="@style/SettingsRow">
+            <TextView style="@style/SettingsLabel" android:text="@string/chatgpt" />
+            <ImageButton android:id="@+id/chatgpt_settings" style="@style/SettingsIcon"
+                android:src="@drawable/ic_settings" android:contentDescription="@string/configure_chatgpt" />
+            <Switch android:id="@+id/chatgpt_enabled" style="@style/SettingsSwitch" android:contentDescription="@string/enable_chatgpt" />
+            <ImageButton android:id="@+id/chatgpt_info" style="@style/SettingsInfo" android:contentDescription="@string/configure_chatgpt" />
         </LinearLayout>
         <TextView style="@style/SettingsSectionHeading" android:text="@string/device_heading" />
         <LinearLayout style="@style/SettingsRow">
@@ -68,22 +57,6 @@
                 android:src="@drawable/ic_settings" android:contentDescription="@string/configure_tools" />
             <Switch android:id="@+id/tools_enabled" style="@style/SettingsSwitch" android:contentDescription="@string/enable_tools" />
             <ImageButton android:id="@+id/tools_info" style="@style/SettingsInfo" android:contentDescription="@string/tools_information" />
-        </LinearLayout>
-        <LinearLayout style="@style/SettingsActionRow">
-            <Button android:id="@+id/accessibility" style="@style/SettingsRowAction" android:text="@string/accessibility_name" />
-            <ImageButton android:id="@+id/accessibility_info" style="@style/SettingsActionInfo" android:contentDescription="@string/setting_information" />
-        </LinearLayout>
-        <LinearLayout style="@style/SettingsActionRow">
-            <Button android:id="@+id/overlay" style="@style/SettingsRowAction" android:text="@string/overlay_settings" />
-            <ImageButton android:id="@+id/overlay_info" style="@style/SettingsActionInfo" android:contentDescription="@string/setting_information" />
-        </LinearLayout>
-        <LinearLayout style="@style/SettingsActionRow">
-            <Button android:id="@+id/default_assistant" style="@style/SettingsRowAction" android:text="@string/default_assistant" />
-            <ImageButton android:id="@+id/assistant_info" style="@style/SettingsActionInfo" android:contentDescription="@string/setting_information" />
-        </LinearLayout>
-        <LinearLayout style="@style/SettingsActionRow">
-            <Button android:id="@+id/refresh_tools" style="@style/SettingsRowAction" android:text="@string/refresh_tools" />
-            <ImageButton android:id="@+id/refresh_tools_info" style="@style/SettingsActionInfo" android:contentDescription="@string/setting_information" />
         </LinearLayout>
         <TextView style="@style/SettingsSectionHeading" android:text="@string/log_advanced" />
         <LinearLayout style="@style/SettingsRow">
@@ -107,7 +80,5 @@
         <TextView style="@style/SettingsSectionHeading" android:text="@string/diagnostic_services_heading" />
         <LinearLayout android:id="@+id/diagnostic_services" android:layout_width="match_parent"
             android:layout_height="wrap_content" android:layout_marginTop="4dp" android:orientation="vertical" />
-        <TextView style="@style/SettingsTitle" android:text="@string/help_heading" />
-        <TextView style="@style/SettingsBody" android:text="@string/setup_help" />
     </LinearLayout>
 </ScrollView>

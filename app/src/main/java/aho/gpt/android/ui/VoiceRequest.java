@@ -42,7 +42,10 @@ final class VoiceRequest {
         try {
             scope.check(); conversation.begin(text, speechTime);
             DeviceTools tools = new DeviceTools(app.catalog(), new IntentExecutor(activity), scope);
-            AgentLoop agent = new AgentLoop(body -> app.http().response(app.auth().accessToken(), body, scope), tools,
+            AgentLoop agent = new AgentLoop(body -> {
+                if (!app.chatgptEnabled()) { throw new IllegalStateException(activity.getString(R.string.chatgpt_disabled)); }
+                return app.http().response(app.auth().accessToken(), body, scope);
+            }, tools,
                     executing -> {
                         AppLogger.d(TAG, executing ? "Executing tool" : "Thinking");
                         main.post(() -> { if (active == scope) { progress.update(executing); } });

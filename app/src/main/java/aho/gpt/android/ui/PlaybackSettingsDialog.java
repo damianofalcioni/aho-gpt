@@ -9,17 +9,14 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import aho.gpt.R;
 import aho.gpt.android.speech.PlaybackSettingsClient;
-import aho.gpt.android.speech.SpeechPreferences;
 import aho.gpt.android.speech.SpeechAvailability;
-import java.util.ArrayList;
 import java.util.List;
 
-/** Voice choices and an explicit preview; never starts a conversation. */
+/** Installed voice spinner and explicit playback preview. */
 final class PlaybackSettingsDialog implements AutoCloseable {
     private final Activity activity;
     private final PlaybackSettingsClient client;
     private AlertDialog dialog;
-    private AlertDialog picker;
     private View content;
 
     PlaybackSettingsDialog(Activity activity) { this.activity = activity; client = new PlaybackSettingsClient(activity); }
@@ -27,9 +24,10 @@ final class PlaybackSettingsDialog implements AutoCloseable {
         close();
         content = activity.getLayoutInflater().inflate(R.layout.dialog_speech_settings, new FrameLayout(activity), false);
         dialog = new AlertDialog.Builder(activity).setTitle(R.string.tts_language).setView(content)
-                .setPositiveButton(R.string.close, null).create();
-        dialog.setOnDismissListener(ignored -> stop());
-        content.findViewById(R.id.speech_language).setVisibility(View.GONE);
+                .setPositiveButton(android.R.string.ok, null).create();
+        dialog.setOnDismissListener(ignored -> client.close());
+        ((TextView) content.findViewById(R.id.speech_choice_label)).setText(R.string.speech_voice_label);
+        content.findViewById(R.id.speech_choice).setContentDescription(activity.getString(R.string.choose_voice));
         ((Button) content.findViewById(R.id.android_speech_settings)).setText(R.string.android_tts_settings);
         content.findViewById(R.id.android_speech_settings).setOnClickListener(view -> SpeechSettingsNavigation.open(activity, true));
         dialog.show();
@@ -38,55 +36,16 @@ final class PlaybackSettingsDialog implements AutoCloseable {
     }
     private void loaded(List<Voice> voices) {
         if (voices == null) { status(activity.getString(R.string.tts_unavailable)); return; }
-        Button choose = content.findViewById(R.id.speech_voice);
-        choose.setEnabled(true); label(voices);
-        choose.setOnClickListener(view -> choose(voices));
-        List<String> tags = new ArrayList<>();
-        for (Voice voice : voices) { tags.add(voice.getLocale().toLanguageTag()); }
-        Button language = content.findViewById(R.id.speech_language);
-        language.setVisibility(View.VISIBLE); language.setEnabled(true);
-        language.setText(SpeechPreferences.selectionLabel(activity, SpeechPreferences.OUTPUT));
-        language.setOnClickListener(view -> picker = SpeechLanguagePicker.show(activity, SpeechPreferences.OUTPUT,
-                R.string.tts_language, tags, () -> {
-                    SpeechPreferences.voice(activity, ""); label(voices);
-                    language.setText(SpeechPreferences.selectionLabel(activity, SpeechPreferences.OUTPUT));
-                }));
-        content.findViewById(R.id.test_speech).setEnabled(true);
+        PlaybackVoiceSpinner.bind(activity, content.findViewById(R.id.speech_choice), voices);
+        content.findViewById(R.id.test_speech).setEnabled(!voices.isEmpty());
         content.findViewById(R.id.test_speech).setOnClickListener(view -> {
             status(activity.getString(R.string.speech_test_playing)); client.test(this::status);
         });
-        status(activity.getString(voices.isEmpty() ? R.string.language_support_empty : R.string.tts_voice_help));
+        if (voices.isEmpty()) { status(activity.getString(R.string.language_support_empty)); }
+        else { content.findViewById(R.id.speech_support).setVisibility(View.GONE); }
     }
-    private void label(List<Voice> voices) {
-        Button button = content.findViewById(R.id.speech_voice);
-        button.setText(R.string.default_voice);
-        for (Voice voice : voices) {
-            if (voice.getName().equals(SpeechPreferences.voice(activity))) { button.setText(name(voice)); }
-        }
+    private void status(String message) {
+        TextView status = content.findViewById(R.id.speech_support); status.setVisibility(View.VISIBLE); status.setText(message);
     }
-    private String name(Voice voice) {
-        return activity.getString(R.string.voice_label, SpeechPreferences.label(activity, voice.getLocale()), voice.getName());
-    }
-    private void choose(List<Voice> voices) {
-        List<String> labels = new ArrayList<>(); labels.add(activity.getString(R.string.default_voice));
-        int selected = 0;
-        for (Voice voice : voices) {
-            labels.add(name(voice));
-            if (voice.getName().equals(SpeechPreferences.voice(activity))) { selected = labels.size() - 1; }
-        }
-        picker = new AlertDialog.Builder(activity).setTitle(R.string.choose_voice)
-                .setSingleChoiceItems(labels.toArray(new String[0]), selected, (ignored, which) -> {
-                    select(voices, which); label(voices); picker.dismiss();
-                }).setNegativeButton(android.R.string.cancel, null).show();
-    }
-    private void select(List<Voice> voices, int which) {
-        SpeechPreferences.voice(activity, which == 0 ? "" : voices.get(which - 1).getName());
-        if (which > 0) {
-            SpeechPreferences.select(activity, SpeechPreferences.OUTPUT, voices.get(which - 1).getLocale().toLanguageTag());
-            ((Button) content.findViewById(R.id.speech_language)).setText(SpeechPreferences.selectionLabel(activity, SpeechPreferences.OUTPUT));
-        }
-    }
-    private void status(String message) { ((TextView) content.findViewById(R.id.speech_support)).setText(message); }
-    private void stop() { client.close(); if (picker != null) { picker.dismiss(); picker = null; } }
-    @Override public void close() { stop(); if (dialog != null) { dialog.dismiss(); dialog = null; } }
+    @Override public void close() { client.close(); if (dialog != null) { dialog.dismiss(); dialog = null; } }
 }
