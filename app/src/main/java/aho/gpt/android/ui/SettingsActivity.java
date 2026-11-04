@@ -14,7 +14,7 @@ public final class SettingsActivity extends LocalizedActivity {
     private ToolsSettingsDialog tools;
     private LoggingSettingsRows logging;
     private DiagnosticSection diagnostics;
-    private ChatGptSettingsDialog account;
+    private AiProviderRows account;
     private AppLanguageSettings language;
 
     @Override public void onCreate(Bundle state) {
@@ -26,7 +26,7 @@ public final class SettingsActivity extends LocalizedActivity {
         about = new AboutInformation(this);
         tools = new ToolsSettingsDialog(this);
         logging = new LoggingSettingsRows(this, state);
-        account = new ChatGptSettingsDialog(this);
+        account = new AiProviderRows(this);
         TextView version = findViewById(R.id.app_version);
         version.setText(getString(R.string.app_version, aho.gpt.BuildConfig.VERSION_NAME));
         int target = getIntent().getIntExtra(TARGET, 0);

@@ -29,9 +29,9 @@
         <p>This policy covers Aho! GPT, an Android voice assistant published by Damiano Falcioni.</p>
         <h2>Requests and speech</h2>
         <p>Spoken requests are handled by your Android recognition provider. The app prefers on-device recognition when available; providers may process audio online. Your playback provider receives answer text and may also use online services.</p>
-        <p>Requests, temporary conversation context and selected tool results go directly to OpenAI. Optional screen tools can send visible text, excluding password fields. App-action searches may send selected app metadata to OpenAI.</p>
+        <p>Requests, temporary conversation context and selected tool results go directly to your selected AI provider: OpenAI or your configured server. Optional screen tools can send visible text, excluding password fields. App-action searches may send selected app metadata. Custom HTTP servers receive data and tokens without transport encryption.</p>
         <h2>Data on your device</h2>
-        <p>The app stores settings, your model choice, a stable installation identifier and protected sign-in details. Account information stays associated with its issued registration. Credentials and local storage grants are excluded from backups.</p>
+        <p>The app stores settings, your model choice, a stable installation identifier and protected sign-in details. Custom server addresses and encrypted tokens stay separate from ChatGPT credentials. Account information stays associated with its issued registration. Credentials and local storage grants are excluded from backups.</p>
         <p>Conversation context stays in memory and is cleared when the session expires, fails or is destroyed. There is no persistent chat history. The installed-app catalog stays local except for selected entries returned during your requests.</p>
         <h2>Permissions and actions</h2>
         <p>Microphone access is used for voice requests and explicit recognition tests. Accessibility access is optional and allows screen reading, requested actions and the voice overlay. It does not retain background screen events or intercept keys. Overlay access and default-assistant selection are optional.</p>
@@ -41,7 +41,7 @@
         <p>Logs are saved in the selected Downloads folder. They can survive uninstall. Delete them through Logs settings or your file manager.</p>
         <h2>Sign-out and deletion</h2>
         <p>Sign-out attempts to revoke the renewable session and clears local tokens. If remote revocation cannot be confirmed, the app tells you to disconnect it in ChatGPT settings. The account registration and installation identifier remain for later sign-in.</p>
-        <p>Clear Android app storage or uninstall to remove app-managed settings and credentials. Delete exported log files separately. Data handled by OpenAI, speech providers and other apps follows their own retention policies.</p>
+        <p>Clear Android app storage or uninstall to remove app-managed settings and credentials. Delete exported log files separately. Data handled by AI servers, speech providers and other apps follows their own retention policies.</p>
         <h2>This website and third parties</h2>
         <p>The developer does not operate a server that receives app requests, analytics or crash reports. This static website uses no analytics, cookies or browser storage. GitHub Pages serves it and handles connection information under GitHub’s privacy policy. Sign-in and usage pages may use OpenAI cookies in the app’s WebView or your browser.</p>
         <h2>Contact and changes</h2>

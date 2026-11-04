@@ -1,4 +1,20 @@
 <resources>
+    <string name="custom">Custom</string>
+    <string name="configure_custom">Configure Custom provider</string>
+    <string name="enable_custom">Enable Custom provider</string>
+    <string name="custom_endpoint">Endpoint</string>
+    <string name="custom_token">API token (optional)</string>
+    <string name="custom_config_help">Use an OpenAI-compatible API base, ending in /v1. Refresh after editing the address or token. 127.0.0.1 means this device.</string>
+    <string name="custom_model_first">First available</string>
+    <string name="custom_models_refresh">Refresh to load server models.</string>
+    <string name="custom_models_ready">Choose a model, then tap OK to save.</string>
+    <string name="custom_help">Send requests and selected tool results to your server instead of ChatGPT. Use the gear to set its address, optional token and model. HTTP sends data without encryption. Tools need a model that supports them.</string>
+    <string name="custom_endpoint_invalid">Enter an HTTP or HTTPS API base without a login, query or fragment.</string>
+    <string name="custom_load_failed">Could not read the saved token. Close and try again.</string>
+    <string name="custom_save_failed">Could not save settings. Try again.</string>
+    <string name="server_model">Server model</string>
+    <string name="provider_disabled">Enable an AI provider in Settings.</string>
+    <string name="provider_changed">AI provider settings changed. Speak again.</string>
     <string name="app_name">Aho! GPT</string>
     <string name="close_symbol">×</string>
     <string name="about_settings">About &amp; settings</string>
@@ -26,9 +42,9 @@
     <string name="tool_invoke_intent">Run app actions</string>
     <string name="tool_read_screen">Read screen</string>
     <string name="tool_ui_action">Screen actions</string>
-    <string name="tool_find_intents_info">Find actions available in installed apps. Selected app details may be sent to OpenAI for your request.</string>
+    <string name="tool_find_intents_info">Find actions available in installed apps. Selected app details may be sent to your AI provider for your request.</string>
     <string name="tool_invoke_intent_info">Run app actions for your spoken request. Android permissions and app limits still apply.</string>
-    <string name="tool_read_screen_info">Read visible text for your request. Requires screen access. Text may be sent to OpenAI; password fields are excluded.</string>
+    <string name="tool_read_screen_info">Read visible text for your request. Requires screen access. Text may be sent to your AI provider; password fields are excluded.</string>
     <string name="tool_ui_action_info">Use visible controls for your request, such as tapping, typing or going back. Requires screen access.</string>
     <string name="tool_available">Available when enabled</string>
     <string name="tool_needs_accessibility">Requires Screen access &amp; actions in Android settings</string>
@@ -148,7 +164,7 @@
     <string name="manage_usage">Manage ChatGPT usage</string>
     <string name="accessibility_name">Screen access &amp; actions</string>
     <string name="accessibility_description">Read the screen, act on your requests and show answers over apps. No background recording or key interception.</string>
-    <string name="accessibility_disclosure">Allow screen reading and actions during voice requests. Visible text may be sent to OpenAI, including private content except password fields. No background recording. You can turn this off in Android settings.</string>
+    <string name="accessibility_disclosure">Allow screen reading and actions during voice requests. Visible text may be sent to your AI provider, including private content except password fields. No background recording. You can turn this off in Android settings.</string>
     <string name="open_settings">Open settings</string>
     <string name="sign_out">Sign out</string>
     <string name="revoke_failed">Signed out here. To finish disconnecting, remove this app in ChatGPT settings.</string>
@@ -184,7 +200,6 @@
     <string name="configure_chatgpt">Configure ChatGPT</string>
     <string name="enable_chatgpt">Enable ChatGPT</string>
     <string name="chatgpt_help">Use your ChatGPT account for requests. Turning this off keeps your account and model saved. Use the gear to sign in, choose a model or manage usage.</string>
-    <string name="chatgpt_disabled">Enable ChatGPT in settings to continue.</string>
     <string name="account_label">Account</string>
     <string name="model_label">Model</string>
     <string name="not_logged_in">Not logged in</string>

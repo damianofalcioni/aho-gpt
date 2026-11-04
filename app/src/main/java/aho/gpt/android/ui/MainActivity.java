@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TextView;
 import aho.gpt.R;
+import aho.gpt.android.net.ProviderSettings;
 
 /** Launcher with local setup status and the primary voice action. */
 public final class MainActivity extends LocalizedActivity {
@@ -29,6 +30,7 @@ public final class MainActivity extends LocalizedActivity {
     }
     private void settings() { startActivity(new Intent(this, SettingsActivity.class)); }
     private void settings(int target) {
-        startActivity(new Intent(this, SettingsActivity.class).putExtra(SettingsActivity.TARGET, target));
+        int selected = new ProviderSettings(this).customEnabled() ? R.id.custom_settings : target;
+        startActivity(new Intent(this, SettingsActivity.class).putExtra(SettingsActivity.TARGET, selected));
     }
 }

@@ -59,6 +59,13 @@
             <Switch android:id="@+id/chatgpt_enabled" style="@style/SettingsSwitch" android:contentDescription="@string/enable_chatgpt" />
             <ImageButton android:id="@+id/chatgpt_info" style="@style/SettingsInfo" android:contentDescription="@string/configure_chatgpt" />
         </LinearLayout>
+        <LinearLayout style="@style/SettingsRow">
+            <TextView style="@style/SettingsLabel" android:text="@string/custom" />
+            <ImageButton android:id="@+id/custom_settings" style="@style/SettingsIcon"
+                android:src="@drawable/ic_settings" android:contentDescription="@string/configure_custom" />
+            <Switch android:id="@+id/custom_enabled" style="@style/SettingsSwitch" android:contentDescription="@string/enable_custom" />
+            <ImageButton android:id="@+id/custom_info" style="@style/SettingsInfo" android:contentDescription="@string/configure_custom" />
+        </LinearLayout>
         <TextView style="@style/SettingsSectionHeading" android:text="@string/device_heading" />
         <LinearLayout style="@style/SettingsRow">
             <TextView style="@style/SettingsLabel" android:text="@string/tools" />

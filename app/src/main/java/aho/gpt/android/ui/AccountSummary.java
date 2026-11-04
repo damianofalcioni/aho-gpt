@@ -3,6 +3,7 @@ package aho.gpt.android.ui;
 import android.app.Activity;
 import aho.gpt.R;
 import aho.gpt.android.AssistantApplication;
+import aho.gpt.android.net.ProviderSettings;
 import org.json.JSONObject;
 
 /** Loads local account metadata on the worker; never refreshes tokens or contacts the model. */
@@ -12,13 +13,26 @@ final class AccountSummary {
     private AccountSummary() { }
 
     static void load(Activity activity, Loaded loaded) {
+        load(activity, loaded, true);
+    }
+    static void loadChatGpt(Activity activity, Loaded loaded) {
+        load(activity, loaded, false);
+    }
+    private static void load(Activity activity, Loaded loaded, boolean selected) {
         AssistantApplication app = (AssistantApplication) activity.getApplication();
         app.worker().execute(() -> {
-            Snapshot summary = read(activity, app);
+            Snapshot summary = selected && new ProviderSettings(app).customEnabled()
+                    ? custom(activity, app)
+                    : read(activity, app);
             activity.runOnUiThread(() -> {
                 if (!activity.isFinishing() && !activity.isDestroyed()) { loaded.loaded(summary); }
             });
         });
+    }
+    private static Snapshot custom(Activity activity, AssistantApplication app) {
+        String model = new ProviderSettings(app).customModel();
+        return new Snapshot(activity.getString(R.string.custom), model.isEmpty() ? activity.getString(R.string.server_model) : model,
+                app.catalog().size(), true, true);
     }
     private static Snapshot read(Activity activity, AssistantApplication app) {
         String model = app.model();

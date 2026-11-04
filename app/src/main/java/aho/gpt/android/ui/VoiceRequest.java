@@ -7,6 +7,7 @@ import android.os.SystemClock;
 import aho.gpt.R;
 import aho.gpt.android.AssistantApplication;
 import aho.gpt.android.logging.AppLogger;
+import aho.gpt.android.net.ProviderSession;
 import aho.gpt.android.tools.DeviceTools;
 import aho.gpt.android.tools.IntentExecutor;
 import aho.gpt.core.Conversation;
@@ -42,10 +43,8 @@ final class VoiceRequest {
         try {
             scope.check(); conversation.begin(text, speechTime);
             DeviceTools tools = new DeviceTools(app.catalog(), new IntentExecutor(activity), scope);
-            AgentLoop agent = new AgentLoop(body -> {
-                if (!app.chatgptEnabled()) { throw new IllegalStateException(activity.getString(R.string.chatgpt_disabled)); }
-                return app.http().response(app.auth().accessToken(), body, scope);
-            }, tools,
+            ProviderSession provider = new ProviderSession(app, scope);
+            AgentLoop agent = new AgentLoop(provider::respond, tools,
                     executing -> {
                         AppLogger.d(TAG, executing ? "Executing tool" : "Thinking");
                         main.post(() -> { if (active == scope) { progress.update(executing); } });
@@ -70,7 +69,7 @@ final class VoiceRequest {
         if (active != null) {
             AppLogger.i(TAG, "Request cancelled");
             RequestScope retiring = active;
-            active = null; retiring.cancel(); app.http().cancelResponse(retiring);
+            active = null; retiring.cancel(); app.http().cancelResponse(retiring); app.customHttp().cancel(retiring);
         }
         if (work != null) { work.cancel(true); work = null; }
     }

@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.Switch;
 import android.widget.TextView;
 import aho.gpt.R;
 import aho.gpt.android.AssistantApplication;
@@ -22,9 +21,6 @@ final class ChatGptSettingsDialog implements AutoCloseable {
 
     ChatGptSettingsDialog(Activity activity) {
         this.activity = activity; app = (AssistantApplication) activity.getApplication();
-        Switch toggle = activity.findViewById(R.id.chatgpt_enabled);
-        toggle.setChecked(app.chatgptEnabled());
-        toggle.setOnCheckedChangeListener((button, enabled) -> app.chatgptEnabled(enabled));
         activity.findViewById(R.id.chatgpt_settings).setOnClickListener(view -> show());
     }
     private void show() {
@@ -42,7 +38,7 @@ final class ChatGptSettingsDialog implements AutoCloseable {
     void refresh() {
         if (dialog == null || !dialog.isShowing()) { return; }
         int request = ++generation;
-        AccountSummary.load(activity, summary -> {
+        AccountSummary.loadChatGpt(activity, summary -> {
             if (!current(request)) { return; }
             ((TextView) content.findViewById(R.id.account_name)).setText(summary.connected()
                     ? summary.account() : activity.getString(R.string.not_logged_in));

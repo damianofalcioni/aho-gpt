@@ -27,6 +27,7 @@ final class AboutInformation implements AutoCloseable {
     }
     private void settingsHelp() {
         information(R.id.chatgpt_info, R.string.chatgpt, R.string.chatgpt_help);
+        information(R.id.custom_info, R.string.custom, R.string.custom_help);
         information(R.id.tools_info, R.string.tools, R.string.tools_information);
     }
     private void information(int id, int title, int message) {

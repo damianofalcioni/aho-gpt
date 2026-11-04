@@ -1,4 +1,20 @@
 <resources>
+    <string name="custom">Personalizzato</string>
+    <string name="configure_custom">Configura fornitore personalizzato</string>
+    <string name="enable_custom">Abilita fornitore personalizzato</string>
+    <string name="custom_endpoint">Endpoint</string>
+    <string name="custom_token">Token API (facoltativo)</string>
+    <string name="custom_config_help">Usa un indirizzo API compatibile con OpenAI che termina in /v1. Aggiorna dopo aver modificato indirizzo o token. 127.0.0.1 indica questo dispositivo.</string>
+    <string name="custom_model_first">Primo disponibile</string>
+    <string name="custom_models_refresh">Aggiorna per caricare i modelli del server.</string>
+    <string name="custom_models_ready">Scegli un modello e tocca OK per salvare.</string>
+    <string name="custom_help">Invia richieste e risultati degli strumenti al tuo server al posto di ChatGPT. Usa la rotella per impostare indirizzo, token facoltativo e modello. HTTP invia dati senza cifratura. Gli strumenti richiedono un modello compatibile.</string>
+    <string name="custom_endpoint_invalid">Inserisci un indirizzo API HTTP o HTTPS senza credenziali, query o frammenti.</string>
+    <string name="custom_load_failed">Impossibile leggere il token salvato. Chiudi e riprova.</string>
+    <string name="custom_save_failed">Impossibile salvare le impostazioni. Riprova.</string>
+    <string name="server_model">Modello del server</string>
+    <string name="provider_disabled">Abilita un fornitore IA nelle impostazioni.</string>
+    <string name="provider_changed">Impostazioni del fornitore IA cambiate. Parla di nuovo.</string>
     <string name="app_name">Aho! GPT</string>
     <string name="close_symbol">×</string>
     <string name="about_settings">Info e impostazioni</string>
@@ -26,9 +42,9 @@
     <string name="tool_invoke_intent">Esegui azioni delle app</string>
     <string name="tool_read_screen">Leggi schermo</string>
     <string name="tool_ui_action">Azioni sullo schermo</string>
-    <string name="tool_find_intents_info">Trova le azioni disponibili nelle app installate. I dettagli selezionati possono essere inviati a OpenAI per la tua richiesta.</string>
+    <string name="tool_find_intents_info">Trova le azioni disponibili nelle app installate. I dettagli selezionati possono essere inviati al fornitore IA per la tua richiesta.</string>
     <string name="tool_invoke_intent_info">Esegui azioni delle app per la tua richiesta vocale. Restano validi i permessi Android e i limiti delle app.</string>
-    <string name="tool_read_screen_info">Leggi il testo visibile per la tua richiesta. Richiede accesso allo schermo. Il testo può essere inviato a OpenAI, esclusi i campi password.</string>
+    <string name="tool_read_screen_info">Leggi il testo visibile per la tua richiesta. Richiede accesso allo schermo. Il testo può essere inviato al fornitore IA, esclusi i campi password.</string>
     <string name="tool_ui_action_info">Usa i controlli visibili per la tua richiesta: tocca, scrivi o torna indietro. Richiede accesso allo schermo.</string>
     <string name="tool_available">Disponibile se abilitato</string>
     <string name="tool_needs_accessibility">Richiede Accesso e azioni sullo schermo nelle impostazioni Android</string>
@@ -148,7 +164,7 @@
     <string name="manage_usage">Gestisci l’utilizzo di ChatGPT</string>
     <string name="accessibility_name">Accesso e azioni sullo schermo</string>
     <string name="accessibility_description">Legge lo schermo, esegue le richieste e mostra le risposte sopra le app. Nessuna registrazione in background o intercettazione dei tasti.</string>
-    <string name="accessibility_disclosure">Consenti lettura e azioni sullo schermo durante le richieste vocali. Il testo visibile può essere inviato a OpenAI, inclusi contenuti privati ma esclusi i campi password. Nessuna registrazione in background. Puoi disattivare nelle impostazioni Android.</string>
+    <string name="accessibility_disclosure">Consenti lettura e azioni sullo schermo durante le richieste vocali. Il testo visibile può essere inviato al fornitore IA, inclusi contenuti privati ma esclusi i campi password. Nessuna registrazione in background. Puoi disattivare nelle impostazioni Android.</string>
     <string name="open_settings">Apri impostazioni</string>
     <string name="sign_out">Esci</string>
     <string name="revoke_failed">Disconnesso su questo dispositivo. Per completare, rimuovi l’app nelle impostazioni di ChatGPT.</string>
@@ -184,7 +200,6 @@
     <string name="configure_chatgpt">Configura ChatGPT</string>
     <string name="enable_chatgpt">Abilita ChatGPT</string>
     <string name="chatgpt_help">Usa il tuo account ChatGPT per le richieste. Se disattivato, account e modello restano salvati. Usa l’ingranaggio per accedere, scegliere un modello o gestire l’utilizzo.</string>
-    <string name="chatgpt_disabled">Abilita ChatGPT nelle impostazioni per continuare.</string>
     <string name="account_label">Account</string>
     <string name="model_label">Modello</string>
     <string name="not_logged_in">Accesso non effettuato</string>

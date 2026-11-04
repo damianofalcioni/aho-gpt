@@ -1,4 +1,12 @@
-<network-security-config>
-    <base-config cleartextTrafficPermitted="false"><trust-anchors><certificates src="system" /></trust-anchors></base-config>
+<network-security-config xmlns:tools="http://schemas.android.com/tools">
+    <!-- Custom HTTP hostnames are user supplied at runtime. Its transport refuses redirects;
+         OpenAI domains and the separate OAuth/Responses transport remain HTTPS-only. -->
+    <base-config cleartextTrafficPermitted="true" tools:ignore="InsecureBaseConfiguration">
+        <trust-anchors><certificates src="system" /></trust-anchors>
+    </base-config>
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">openai.com</domain>
+        <domain includeSubdomains="true">chatgpt.com</domain>
+    </domain-config>
     <domain-config cleartextTrafficPermitted="true"><domain includeSubdomains="false">127.0.0.1</domain></domain-config>
 </network-security-config>

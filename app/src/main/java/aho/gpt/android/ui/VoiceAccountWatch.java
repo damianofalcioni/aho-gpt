@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.SharedPreferences;
 import aho.gpt.R;
 import aho.gpt.android.AssistantApplication;
+import aho.gpt.android.net.ProviderSettings;
 
 /** Retires active work when the provider is disabled or sign-out clears the model. */
 final class VoiceAccountWatch implements AutoCloseable {
@@ -15,9 +16,9 @@ final class VoiceAccountWatch implements AutoCloseable {
         AssistantApplication app = (AssistantApplication) activity.getApplication();
         settings = activity.getSharedPreferences("settings", Activity.MODE_PRIVATE);
         listener = (preferences, key) -> {
-            if ("chatgpt_enabled".equals(key) || "model".equals(key)) {
-                if (!app.chatgptEnabled()) { unavailable.accept(activity.getString(R.string.chatgpt_disabled)); }
-                else if (app.model().isEmpty()) { unavailable.accept(activity.getString(R.string.setup_required)); }
+            if ("provider_revision".equals(key)) { unavailable.accept(activity.getString(R.string.provider_changed)); }
+            else if ("model".equals(key) && !new ProviderSettings(app).customEnabled() && app.model().isEmpty()) {
+                unavailable.accept(activity.getString(R.string.setup_required));
             }
         };
         settings.registerOnSharedPreferenceChangeListener(listener);

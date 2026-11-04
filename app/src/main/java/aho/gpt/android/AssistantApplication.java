@@ -3,6 +3,8 @@ package aho.gpt.android;
 import android.app.Application;
 import aho.gpt.android.auth.OAuthManager;
 import aho.gpt.android.net.OpenAiHttp;
+import aho.gpt.android.net.CustomHttp;
+import aho.gpt.android.net.ProviderSettings;
 import aho.gpt.android.logging.AppDiagnostics;
 import aho.gpt.android.logging.AppLogger;
 import aho.gpt.android.tools.IntentCatalog;
@@ -16,6 +18,7 @@ public final class AssistantApplication extends Application {
     private OAuthManager auth;
     private IntentCatalog catalog;
     private final OpenAiHttp http = new OpenAiHttp();
+    private final CustomHttp customHttp = new CustomHttp();
 
     @Override public void onCreate() {
         super.onCreate();
@@ -28,9 +31,10 @@ public final class AssistantApplication extends Application {
     public OAuthManager auth() { return auth; }
     public IntentCatalog catalog() { return catalog; }
     public OpenAiHttp http() { return http; }
-    public boolean chatgptEnabled() { return getSharedPreferences(SETTINGS, MODE_PRIVATE).getBoolean("chatgpt_enabled", true); }
+    public CustomHttp customHttp() { return customHttp; }
+    public boolean chatgptEnabled() { return new ProviderSettings(this).chatgptEnabled(); }
     public void chatgptEnabled(boolean enabled) {
-        getSharedPreferences(SETTINGS, MODE_PRIVATE).edit().putBoolean("chatgpt_enabled", enabled).apply();
+        new ProviderSettings(this).enable(false, enabled);
     }
     public String model() { return getSharedPreferences(SETTINGS, MODE_PRIVATE).getString("model", ""); }
     public void model(String slug) { getSharedPreferences(SETTINGS, MODE_PRIVATE).edit().putString("model", slug).apply(); }

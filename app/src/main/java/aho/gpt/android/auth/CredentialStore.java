@@ -24,7 +24,10 @@ public final class CredentialStore {
     private final AtomicFile file;
 
     public CredentialStore(Context context) {
-        file = new AtomicFile(new File(context.getNoBackupFilesDir(), "openai.enc"));
+        this(context, "openai.enc");
+    }
+    public CredentialStore(Context context, String name) {
+        file = new AtomicFile(new File(context.getNoBackupFilesDir(), name));
     }
 
     public synchronized JSONObject load() throws IOException, GeneralSecurityException, JSONException {
