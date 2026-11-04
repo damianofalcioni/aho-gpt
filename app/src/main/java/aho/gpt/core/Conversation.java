@@ -11,11 +11,15 @@ public final class Conversation {
     private long toolVersion;
 
     public void begin(String text, long now) throws JSONException {
-        if (!window.isOpen(now) || history.length() > 80 || history.toString().length() > 80_000) {
+        begin(new JSONObject().put("role", "user").put("content", text), now, 80_000);
+    }
+    public void beginAudio(JSONObject message, long now) throws JSONException { begin(message, now, 4_000_000); }
+    private void begin(JSONObject message, long now, int limit) {
+        if (!window.isOpen(now) || history.length() > 80 || history.toString().length() + message.toString().length() > limit) {
             clear();
         }
         window.close();
-        history.put(new JSONObject().put("role", "user").put("content", text));
+        history.put(message);
     }
 
     public void append(JSONArray items) {

@@ -146,16 +146,21 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textSize">16sp</item>
     </style>
-    <style name="ConfigSpinner" parent="@android:style/Widget.Material.Spinner">
-        <item name="android:layout_width">0dp</item>
+    <style name="ConfigSpinnerBase" parent="@android:style/Widget.Material.Spinner">
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_weight">1</item>
-        <item name="android:layout_marginStart">12dp</item>
         <item name="android:minHeight">48dp</item>
         <item name="android:background">@drawable/bg_spinner_field</item>
         <item name="android:popupBackground">@drawable/bg_spinner_popup</item>
         <item name="android:paddingStart">8dp</item>
         <item name="android:paddingEnd">36dp</item>
+    </style>
+    <style name="ConfigSpinner" parent="ConfigSpinnerBase">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginStart">12dp</item>
+    </style>
+    <style name="ConfigFullSpinner" parent="ConfigSpinnerBase">
+        <item name="android:layout_width">match_parent</item>
     </style>
     <style name="ConfigAction" parent="AssistantButton">
         <item name="android:layout_width">wrap_content</item>

@@ -53,7 +53,7 @@ public final class SpeechProviderNoticeTest {
     }
     private void switchState(Activity activity) {
         Switch toggle = activity.findViewById(R.id.stt_enabled);
-        boolean available = SpeechAvailability.input(activity);
+        boolean available = SpeechAvailability.voiceInput(activity);
         require(toggle.isEnabled(), "Live STT switch must accept attempts for provider feedback");
         require(toggle.getAlpha() == (available ? 1f : 0.5f), "Unavailable STT must appear muted");
         require(toggle.isChecked() == (available && SpeechPreferences.enabled(activity, SpeechPreferences.INPUT)),

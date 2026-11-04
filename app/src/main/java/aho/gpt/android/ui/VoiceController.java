@@ -8,7 +8,7 @@ import android.speech.SpeechRecognizer;
 import aho.gpt.R;
 import aho.gpt.android.logging.AppLogger;
 import aho.gpt.android.speech.SpeechInput;
-import aho.gpt.android.speech.SpeechOutput;
+import aho.gpt.android.speech.VoiceSpeech;
 import aho.gpt.android.speech.SpeechPreferences;
 import aho.gpt.core.Conversation;
 import aho.gpt.core.VoiceLifecycle;
@@ -23,8 +23,7 @@ public final class VoiceController implements SpeechInput.Listener {
     private final Conversation conversation = new Conversation();
     private final VoiceLifecycle lifecycle = new VoiceLifecycle();
     private final Handler main = new Handler(Looper.getMainLooper());
-    private final SpeechInput input;
-    private final SpeechOutput output;
+    private final VoiceSpeech speech;
     private final VoiceRequest request;
     private final VoiceDismissal dismissal;
     private final VoiceAccountWatch accountWatch;
@@ -35,8 +34,7 @@ public final class VoiceController implements SpeechInput.Listener {
         presentation = new VoicePresentation(activity, panel);
         this.dismissal = dismissal;
         request = new VoiceRequest(activity, conversation);
-        input = SpeechInput.available(activity) ? new SpeechInput(activity, this) : null;
-        output = new SpeechOutput(activity);
+        speech = new VoiceSpeech(activity, this);
         accountWatch = new VoiceAccountWatch(activity, this::fail);
     }
 
@@ -55,12 +53,13 @@ public final class VoiceController implements SpeechInput.Listener {
         if (!lifecycle.requestListening()) { return; }
         AppLogger.i(SPEECH_TAG, "Listening started");
         prepareListening();
-        if (!canListen()) { return; }
+        int issue = VoiceReadiness.issue(activity, speech.available());
+        if (issue != 0) { fail(activity.getString(issue)); return; }
         boolean followUp = conversation.continues(SystemClock.elapsedRealtime());
         speechTime = SystemClock.elapsedRealtime();
         try {
-            input.cancel();
-            input.start(presentation.listening(followUp));
+            speech.cancel();
+            speech.start(presentation.listening(followUp));
             long timeout = followUp ? conversation.remaining(speechTime) : INITIAL_LISTENING_MS;
             main.postDelayed(this::expired, timeout);
         } catch (RuntimeException exception) {
@@ -71,19 +70,9 @@ public final class VoiceController implements SpeechInput.Listener {
 
     private void prepareListening() {
         dismissal.cancel();
-        output.stop();
+        speech.stop();
         presentation.closeOverlay();
         main.removeCallbacksAndMessages(null);
-    }
-
-    private boolean canListen() {
-        int issue = VoiceReadiness.issue(activity, input != null);
-        if (issue != 0) {
-            AppLogger.w(SPEECH_TAG, "Listening unavailable reason=" + activity.getResources().getResourceEntryName(issue));
-            fail(activity.getString(issue));
-            return false;
-        }
-        return true;
     }
 
     @Override public void began() {
@@ -92,12 +81,21 @@ public final class VoiceController implements SpeechInput.Listener {
         main.removeCallbacksAndMessages(null);
         main.postDelayed(this::expired, SPEECH_TIMEOUT_MS);
     }
+    @Override public void processing() {
+        if (!lifecycle.listening()) { return; }
+        main.removeCallbacksAndMessages(null); presentation.transcribing();
+    }
     @Override public void result(String text) {
         if (!lifecycle.recognized()) { return; }
         AppLogger.i(SPEECH_TAG, "Recognition completed");
         main.removeCallbacksAndMessages(null);
         presentation.thinking(text);
         request.start(text, speechTime, this::progress, this::answered, this::fail);
+    }
+    @Override public void audio(byte[] wav) {
+        if (!lifecycle.recognized()) { return; }
+        main.removeCallbacksAndMessages(null); presentation.listeningStopped(); presentation.thinking("");
+        request.startAudio(wav, speechTime, this::progress, this::answered, this::fail);
     }
 
     private void progress(boolean executingTool) {
@@ -106,7 +104,8 @@ public final class VoiceController implements SpeechInput.Listener {
         presentation.progress(executingTool);
     }
 
-    private void answered(String answer) {
+    private void answered(String answer) { answered(answer, null); }
+    private void answered(String answer, byte[] pcm) {
         if (!lifecycle.answered()) { return; }
         String message = presentation.answered(answer);
         if (!SpeechPreferences.enabled(activity, SpeechPreferences.OUTPUT)) {
@@ -114,7 +113,7 @@ public final class VoiceController implements SpeechInput.Listener {
             playbackCompleted();
             return;
         }
-        output.speak(message, presentation::playbackStarted, this::playbackCompleted, this::playbackFailed);
+        speech.answer(message, pcm, presentation::playbackStarted, this::playbackCompleted, this::playbackFailed);
     }
 
     private void playbackCompleted() {
@@ -152,7 +151,7 @@ public final class VoiceController implements SpeechInput.Listener {
     private void stopListening() {
         presentation.listeningStopped();
         main.removeCallbacksAndMessages(null);
-        if (input != null) { input.cancel(); }
+        speech.cancel();
     }
     private void fail(String message) {
         if (lifecycle.closed()) { return; }
@@ -161,7 +160,7 @@ public final class VoiceController implements SpeechInput.Listener {
         request.cancel();
         conversation.clear();
         stopListening();
-        output.stop();
+        speech.stop();
         presentation.failed(message);
         dismissal.schedule();
     }
@@ -173,8 +172,7 @@ public final class VoiceController implements SpeechInput.Listener {
         conversation.clear();
         dismissal.cancel();
         stopListening();
-        output.close();
+        speech.close();
         presentation.closeOverlay();
-        if (input != null) { input.close(); }
     }
 }

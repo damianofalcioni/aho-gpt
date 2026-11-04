@@ -34,6 +34,7 @@ final class VoicePresentation {
         return language;
     }
     void listeningStopped() { panel.listening(false); }
+    void transcribing() { listeningStopped(); show(context.getString(R.string.transcribing), lastAnswer); }
     void playbackStarted() { speaking = true; panel.speaking(true); overlay.speaking(true); }
     void playbackStopped() { speaking = false; panel.speaking(false); overlay.speaking(false); }
     void thinking(String text) { show(context.getString(R.string.thinking), text); }

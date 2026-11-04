@@ -1,13 +1,17 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent" android:layout_height="wrap_content">
     <LinearLayout style="@style/ConfigContent">
-        <TextView android:id="@+id/custom_status" style="@style/SettingsBody"
-            android:text="@string/custom_config_help" android:accessibilityLiveRegion="polite" />
-        <TextView style="@style/ConfigLabel" android:layout_marginTop="8dp"
+        <TextView style="@style/ConfigLabel"
             android:labelFor="@id/custom_endpoint" android:text="@string/custom_endpoint" />
-        <EditText android:id="@+id/custom_endpoint" android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:minHeight="48dp" android:inputType="textUri" android:singleLine="true" android:saveEnabled="false"
-            android:importantForAutofill="no" />
+        <LinearLayout style="@style/ConfigRow">
+            <EditText android:id="@+id/custom_endpoint" android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:minHeight="48dp" android:inputType="textUri" android:singleLine="true"
+                android:saveEnabled="false" android:importantForAutofill="no" />
+            <ImageButton android:id="@+id/custom_endpoint_info" style="@style/SettingsInfo"
+                android:contentDescription="@string/setting_information" />
+        </LinearLayout>
+        <TextView android:id="@+id/custom_status" style="@style/SettingsBody"
+            android:visibility="gone" android:accessibilityLiveRegion="polite" />
         <TextView style="@style/ConfigLabel" android:layout_marginTop="8dp"
             android:labelFor="@id/custom_token" android:text="@string/custom_token" />
         <!-- Optional user-supplied server token, not an account-password sign-in flow. -->
@@ -22,5 +26,25 @@
         <TextView android:id="@+id/custom_model_status" style="@style/SettingsBody"
             android:accessibilityLiveRegion="polite" android:text="@string/custom_models_refresh" />
         <Button android:id="@+id/custom_models_refresh" style="@style/ConfigTextAction" android:text="@string/refresh" />
+        <LinearLayout style="@style/ConfigRow">
+            <TextView android:id="@+id/custom_speech_label" style="@style/SettingsLabel"
+                android:labelFor="@id/custom_speech_apis" android:text="@string/custom_speech_apis" />
+            <ImageButton android:id="@+id/custom_speech_settings" style="@style/SettingsIcon"
+                android:src="@drawable/ic_settings" android:contentDescription="@string/server_speech_settings" />
+            <Switch android:id="@+id/custom_speech_apis" style="@style/SettingsSwitch"
+                android:contentDescription="@string/custom_speech_apis" android:saveEnabled="false" />
+            <ImageButton android:id="@+id/custom_speech_info" style="@style/SettingsInfo"
+                android:contentDescription="@string/setting_information" />
+        </LinearLayout>
+        <LinearLayout style="@style/ConfigRow">
+            <TextView android:id="@+id/custom_realtime_label" style="@style/SettingsLabel"
+                android:labelFor="@id/custom_realtime_api" android:text="@string/custom_realtime_api" />
+            <ImageButton android:id="@+id/custom_realtime_settings" style="@style/SettingsIcon"
+                android:src="@drawable/ic_settings" android:contentDescription="@string/server_realtime_settings" />
+            <Switch android:id="@+id/custom_realtime_api" style="@style/SettingsSwitch"
+                android:contentDescription="@string/custom_realtime_api" android:saveEnabled="false" />
+            <ImageButton android:id="@+id/custom_realtime_info" style="@style/SettingsInfo"
+                android:contentDescription="@string/setting_information" />
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>

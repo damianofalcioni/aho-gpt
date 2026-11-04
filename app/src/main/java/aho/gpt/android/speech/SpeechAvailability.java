@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import aho.gpt.R;
+import aho.gpt.android.net.ProviderSettings;
 
 /** Speech availability depends on providers, never on the Google app alone. */
 public final class SpeechAvailability {
@@ -19,6 +20,7 @@ public final class SpeechAvailability {
     public static boolean input(Context context) {
         return SpeechInput.available(context);
     }
+    public static boolean voiceInput(Context context) { return new ProviderSettings(context).serverAudio() || input(context); }
     public static int inputIssue(Context context, boolean available) {
         if (!SpeechPreferences.enabled(context, SpeechPreferences.INPUT)) { return R.string.stt_disabled; }
         if (context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {

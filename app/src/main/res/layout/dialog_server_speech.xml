@@ -1,0 +1,20 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content">
+    <LinearLayout style="@style/ConfigContent">
+        <TextView style="@style/ConfigLabel" android:labelFor="@id/server_transcription_model"
+            android:text="@string/server_transcription_model" />
+        <Spinner android:id="@+id/server_transcription_model" style="@style/ConfigFullSpinner"
+            android:contentDescription="@string/server_transcription_model" android:saveEnabled="false" />
+        <TextView style="@style/ConfigLabel" android:layout_marginTop="8dp" android:labelFor="@id/server_speech_model"
+            android:text="@string/server_speech_model" />
+        <Spinner android:id="@+id/server_speech_model" style="@style/ConfigFullSpinner"
+            android:contentDescription="@string/server_speech_model" android:saveEnabled="false" />
+        <TextView style="@style/ConfigLabel" android:layout_marginTop="8dp" android:labelFor="@id/server_speech_voice"
+            android:text="@string/server_speech_voice" />
+        <Spinner android:id="@+id/server_speech_voice" style="@style/ConfigFullSpinner"
+            android:contentDescription="@string/server_speech_voice" android:saveEnabled="false" />
+        <TextView android:id="@+id/server_speech_status" style="@style/SettingsBody" android:layout_marginTop="8dp"
+            android:accessibilityLiveRegion="polite" android:text="@string/server_speech_loading" />
+        <Button android:id="@+id/server_speech_refresh" style="@style/ConfigTextAction" android:text="@string/refresh" />
+    </LinearLayout>
+</ScrollView>

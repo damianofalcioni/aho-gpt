@@ -19,7 +19,9 @@ public class CustomProviderTest {
     private static final String CONTENT = "content";
     private static final String TOOL_CALLS = "tool_calls";
     @Test public void normalizesLocalAndRemoteApiBases() {
-        assertEquals(ServerEndpoint.DEFAULT, ServerEndpoint.normalize(" http://127.0.0.1:8080/v1/ "));
+        assertEquals("https://api.openai.com/v1", ServerEndpoint.DEFAULT);
+        assertEquals(ServerEndpoint.DEFAULT, ServerEndpoint.normalize(" https://api.openai.com/v1/ "));
+        assertEquals("http://127.0.0.1:8080/v1", ServerEndpoint.normalize(" http://127.0.0.1:8080/v1/ "));
         assertEquals("http://192.168.1.10:8080/v1", ServerEndpoint.normalize("http://192.168.1.10:8080/v1"));
         assertEquals("https://example.org/api/v1", ServerEndpoint.normalize("https://example.org/api/v1/"));
     }

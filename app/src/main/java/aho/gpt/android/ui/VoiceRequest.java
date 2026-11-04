@@ -23,12 +23,17 @@ final class VoiceRequest {
     private final AssistantApplication app;
     private final Conversation conversation;
     private final Handler main = new Handler(Looper.getMainLooper());
+    private final RealtimeRequest realtime;
     private RequestScope active;
     private Future<?> work;
 
     VoiceRequest(Activity activity, Conversation conversation) {
         this.activity = activity; this.conversation = conversation;
         app = (AssistantApplication) activity.getApplication();
+        realtime = new RealtimeRequest(activity, conversation);
+    }
+    void startAudio(byte[] wav, long time, AgentLoop.Progress progress, RealtimeRequest.Answer answer, Callback failure) {
+        cancel(); realtime.start(wav, time, progress, answer, failure);
     }
     void start(String text, long speechTime, AgentLoop.Progress progress, Callback answer, Callback failure) {
         cancel();
@@ -66,6 +71,7 @@ final class VoiceRequest {
         callback.accept(value);
     }
     void cancel() {
+        realtime.cancel();
         if (active != null) {
             AppLogger.i(TAG, "Request cancelled");
             RequestScope retiring = active;

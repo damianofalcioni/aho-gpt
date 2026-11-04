@@ -4,7 +4,7 @@ import java.net.URI;
 
 /** A user supplied API base; credentials belong in the separate token field. */
 public final class ServerEndpoint {
-    public static final String DEFAULT = "http://127.0.0.1:8080/v1";
+    public static final String DEFAULT = "https://api.openai.com/v1";
     private ServerEndpoint() { }
     public static String normalize(String value) {
         URI uri = URI.create(value.trim());

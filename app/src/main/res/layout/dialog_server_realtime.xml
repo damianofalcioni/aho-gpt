@@ -1,0 +1,11 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content">
+    <LinearLayout style="@style/ConfigContent">
+        <TextView style="@style/ConfigLabel" android:labelFor="@id/server_realtime_voice" android:text="@string/server_realtime_voice" />
+        <Spinner android:id="@+id/server_realtime_voice" style="@style/ConfigFullSpinner"
+            android:contentDescription="@string/server_realtime_voice" android:saveEnabled="false" />
+        <TextView android:id="@+id/server_speech_status" style="@style/SettingsBody" android:layout_marginTop="8dp"
+            android:accessibilityLiveRegion="polite" android:text="@string/server_speech_loading" />
+        <Button android:id="@+id/server_speech_refresh" style="@style/ConfigTextAction" android:text="@string/refresh" />
+    </LinearLayout>
+</ScrollView>

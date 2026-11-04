@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.Switch;
 import android.widget.TextView;
 import aho.gpt.R;
+import aho.gpt.android.net.ProviderSettings;
 import aho.gpt.android.speech.PlaybackSettingsClient;
 import aho.gpt.android.speech.SpeechAvailability;
 import aho.gpt.android.speech.SpeechPreferences;
@@ -32,10 +33,14 @@ final class SpeechSettingsRows implements AutoCloseable {
         toggle(R.id.tts_enabled, SpeechPreferences.OUTPUT, false);
     }
     void refresh() {
-        boolean input = SpeechAvailability.input(activity);
+        boolean input = SpeechAvailability.voiceInput(activity);
         inputToggle.refresh(input);
         toggle(R.id.tts_enabled, SpeechPreferences.OUTPUT, false);
         providerStatus(R.id.stt_provider_status, input ? R.string.stt_ready : R.string.speech_unavailable, input);
+        if (new ProviderSettings(activity).serverAudio()) {
+            probe.close(); toggle(R.id.tts_enabled, SpeechPreferences.OUTPUT, true);
+            providerStatus(R.id.tts_provider_status, R.string.tts_ready, true); return;
+        }
         providerStatus(R.id.tts_provider_status, R.string.language_support_loading, false);
         probe.load(voices -> {
             boolean available = voices != null && !voices.isEmpty();
@@ -57,8 +62,11 @@ final class SpeechSettingsRows implements AutoCloseable {
     }
     private void info(int title, int message, int statusId) {
         TextView status = activity.findViewById(statusId);
+        ProviderSettings provider = new ProviderSettings(activity);
+        int details = provider.serverAudio() ? R.string.custom_speech_help : message;
+        if (provider.customRealtime()) { details = R.string.custom_realtime_help; }
         information = new AlertDialog.Builder(activity).setTitle(title)
-                .setMessage(activity.getString(R.string.setting_info_with_status, status.getText(), activity.getString(message)))
+                .setMessage(activity.getString(R.string.setting_info_with_status, status.getText(), activity.getString(details)))
                 .setPositiveButton(R.string.close, null).show();
     }
     void permissionResult(boolean granted) { if (granted) { recognition.test(); } }

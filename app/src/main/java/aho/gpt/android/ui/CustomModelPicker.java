@@ -22,6 +22,7 @@ import java.util.concurrent.Future;
 
 /** Dialog-local discovery never changes saved settings or shares a voice connection. */
 final class CustomModelPicker implements AutoCloseable {
+    interface Selection { void accept(String model); }
     private final Activity activity;
     private final Spinner spinner;
     private final TextView status;
@@ -35,8 +36,10 @@ final class CustomModelPicker implements AutoCloseable {
     private Future<?> work;
     private String source;
     private String model;
+    private final Selection selection;
 
-    CustomModelPicker(Activity activity, View content) {
+    CustomModelPicker(Activity activity, View content, Selection selection) {
+        this.selection = selection;
         this.activity = activity;
         spinner = content.findViewById(R.id.custom_model); status = content.findViewById(R.id.custom_model_status);
         endpoint = content.findViewById(R.id.custom_endpoint); token = content.findViewById(R.id.custom_token);
@@ -94,7 +97,9 @@ final class CustomModelPicker implements AutoCloseable {
             ids.add(model); names.add(verified ? activity.getString(R.string.saved_choice_unavailable, model) : model);
         }
         spinner.setEnabled(ids.size() > 1);
-        SpinnerChoices.bind(activity, spinner, names, ids.indexOf(model), position -> model = ids.get(position));
+        SpinnerChoices.bind(activity, spinner, names, ids.indexOf(model), position -> {
+            model = ids.get(position); selection.accept(model);
+        });
     }
     private void stop() {
         if (active != null) { active.cancel(); http.cancel(active); active = null; }

@@ -15,7 +15,7 @@ final class SpeechInputToggle implements AutoCloseable {
     private final SpeechProviderNotice notice;
 
     SpeechInputToggle(Activity activity) {
-        this(activity, activity.findViewById(R.id.stt_enabled), () -> SpeechAvailability.input(activity),
+        this(activity, activity.findViewById(R.id.stt_enabled), () -> SpeechAvailability.voiceInput(activity),
                 new SpeechProviderNotice(activity));
     }
     SpeechInputToggle(Activity activity, Switch control, Availability availability, SpeechProviderNotice notice) {

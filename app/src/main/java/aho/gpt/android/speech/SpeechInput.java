@@ -12,6 +12,8 @@ import aho.gpt.android.logging.AppLogger;
 public final class SpeechInput implements RecognitionListener {
     private static final String TAG = "STT";
     public interface Listener {
+        default void processing() { }
+        default void audio(byte[] wav) { }
         void began();
         void result(String text);
         void error(int error);

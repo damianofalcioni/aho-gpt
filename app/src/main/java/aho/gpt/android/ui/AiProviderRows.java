@@ -14,10 +14,12 @@ final class AiProviderRows implements AutoCloseable {
     private final ChatGptSettingsDialog account;
     private final CustomSettingsDialog server;
     private boolean refreshing;
-    AiProviderRows(Activity activity) {
+    private final Runnable changed;
+    AiProviderRows(Activity activity, Runnable changed) {
+        this.changed = changed;
         this.activity = activity;
         settings = new ProviderSettings(activity);
-        account = new ChatGptSettingsDialog(activity); server = new CustomSettingsDialog(activity);
+        account = new ChatGptSettingsDialog(activity); server = new CustomSettingsDialog(activity, changed);
         chatgpt = activity.findViewById(R.id.chatgpt_enabled); custom = activity.findViewById(R.id.custom_enabled);
         refresh();
         chatgpt.setOnCheckedChangeListener((button, enabled) -> toggle(false, enabled));
@@ -25,7 +27,7 @@ final class AiProviderRows implements AutoCloseable {
     }
     private void toggle(boolean isCustom, boolean enabled) {
         if (refreshing) { return; }
-        settings.enable(isCustom, enabled); refresh();
+        settings.enable(isCustom, enabled); refresh(); changed.run();
         if (isCustom && enabled) { CustomNetworkAccess.request(activity); }
     }
     void refresh() {
@@ -34,4 +36,5 @@ final class AiProviderRows implements AutoCloseable {
         refreshing = false; account.refresh();
     }
     @Override public void close() { account.close(); server.close(); }
+    void pause() { server.pause(); }
 }

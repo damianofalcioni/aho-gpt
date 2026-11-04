@@ -32,7 +32,8 @@ public final class ProviderSession {
     }
     private void prepare() throws Exception {
         if (endpoint != null) { return; }
-        endpoint = settings.endpoint(); token = settings.token(); check();
+        ProviderSettings.CustomConfig config = settings.customConfig();
+        check(); endpoint = config.endpoint(); token = config.token();
         model = settings.customModel();
         if (model.isEmpty()) { model = ServerModels.first(app.customHttp().json(endpoint + "/models", token, null, scope)); }
         check();

@@ -26,7 +26,7 @@ public final class SettingsActivity extends LocalizedActivity {
         about = new AboutInformation(this);
         tools = new ToolsSettingsDialog(this);
         logging = new LoggingSettingsRows(this, state);
-        account = new AiProviderRows(this);
+        account = new AiProviderRows(this, speech::refresh);
         TextView version = findViewById(R.id.app_version);
         version.setText(getString(R.string.app_version, aho.gpt.BuildConfig.VERSION_NAME));
         int target = getIntent().getIntExtra(TARGET, 0);
@@ -36,7 +36,7 @@ public final class SettingsActivity extends LocalizedActivity {
         super.onResume(); diagnostics.start();
         account.refresh(); speech.refresh(); logging.refresh(); tools.start();
     }
-    @Override protected void onPause() { diagnostics.stop(); speech.stopTests(); tools.stop(); super.onPause(); }
+    @Override protected void onPause() { diagnostics.stop(); speech.stopTests(); account.pause(); tools.stop(); super.onPause(); }
     @Override protected void onDestroy() {
         diagnostics.close(); logging.close(); speech.close(); about.close(); tools.close(); account.close(); language.close(); super.onDestroy();
     }
