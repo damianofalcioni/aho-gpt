@@ -13,7 +13,7 @@ A lightweight voice assistant for Android phones, tablets, TV and Wear OS. It co
 - **Your choice of tools:** enable or disable individual device functions and app actions. Android permissions and app restrictions still apply.
 - **Account and speech settings:** a ChatGPT enable switch, model choice, recognition language, installed voices and speech tests.
 - **Device integration:** support for the system assistant shortcut, external TV button mappers and a voice panel over other apps where permitted.
-- **Diagnostics:** local status checks and optional logs that exclude credentials, requests, answers and screen text.
+- **Permissions and logs:** direct Android access settings and optional logs that exclude credentials, requests, answers and screen text.
 
 The app uses a simple native interface, with no chat screen, wake word or persistent background listening. Answers are guided to be concise and follow the language and tone of your latest request.
 

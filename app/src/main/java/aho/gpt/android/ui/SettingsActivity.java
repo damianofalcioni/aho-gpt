@@ -20,11 +20,11 @@ public final class SettingsActivity extends Activity {
         super.onCreate(state);
         setContentView(R.layout.activity_settings);
         diagnostics = new DiagnosticSection(this);
-        speech = new SpeechSettingsRows(this, diagnostics.speech());
+        speech = new SpeechSettingsRows(this);
         about = new AboutInformation(this);
         tools = new ToolsSettingsDialog(this);
         logging = new LoggingSettingsRows(this, state);
-        account = new ChatGptSettingsDialog(this, () -> AccountSummary.load(this, diagnostics::account));
+        account = new ChatGptSettingsDialog(this);
         TextView version = findViewById(R.id.app_version);
         version.setText(getString(R.string.app_version, aho.gpt.BuildConfig.VERSION_NAME));
         int target = getIntent().getIntExtra(TARGET, 0);
@@ -32,7 +32,6 @@ public final class SettingsActivity extends Activity {
     }
     @Override protected void onResume() {
         super.onResume(); diagnostics.start();
-        AccountSummary.load(this, diagnostics::account);
         account.refresh(); speech.refresh(); logging.refresh(); tools.start();
     }
     @Override protected void onPause() { diagnostics.stop(); speech.stopTests(); tools.stop(); super.onPause(); }
@@ -43,6 +42,7 @@ public final class SettingsActivity extends Activity {
     @SuppressWarnings("deprecation") // Required native activity-result callback.
     @Override protected void onActivityResult(int request, int result, Intent data) {
         super.onActivityResult(request, result, data); logging.storageResult(request, result, data);
+        diagnostics.storageResult(request, result, data);
     }
     @Override public void onRequestPermissionsResult(int request, String[] permissions, int[] grants) {
         super.onRequestPermissionsResult(request, permissions, grants);

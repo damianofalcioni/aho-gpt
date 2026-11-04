@@ -9,7 +9,6 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import aho.gpt.R;
 import aho.gpt.android.speech.PlaybackSettingsClient;
-import aho.gpt.android.speech.SpeechAvailability;
 import java.util.List;
 
 /** Installed voice spinner and explicit playback preview. */
@@ -31,7 +30,6 @@ final class PlaybackSettingsDialog implements AutoCloseable {
         ((Button) content.findViewById(R.id.android_speech_settings)).setText(R.string.android_tts_settings);
         content.findViewById(R.id.android_speech_settings).setOnClickListener(view -> SpeechSettingsNavigation.open(activity, true));
         dialog.show();
-        if (!SpeechAvailability.googleAppEnabled(activity)) { status(activity.getString(R.string.speech_provider_disabled)); return; }
         client.load(this::loaded);
     }
     private void loaded(List<Voice> voices) {

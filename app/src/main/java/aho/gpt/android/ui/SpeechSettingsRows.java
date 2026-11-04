@@ -16,32 +16,31 @@ final class SpeechSettingsRows implements AutoCloseable {
     private final PlaybackSettingsClient probe;
     private final PlaybackSettingsDialog playback;
     private final RecognitionSettingsDialog recognition;
-    private final SpeechDiagnostics diagnostics;
+    private final SpeechInputToggle inputToggle;
     private AlertDialog information;
 
-    SpeechSettingsRows(Activity activity, SpeechDiagnostics diagnostics) {
-        this.activity = activity; this.diagnostics = diagnostics;
+    SpeechSettingsRows(Activity activity) {
+        this.activity = activity;
+        inputToggle = new SpeechInputToggle(activity);
         probe = new PlaybackSettingsClient(activity);
         playback = new PlaybackSettingsDialog(activity); recognition = new RecognitionSettingsDialog(activity);
         activity.findViewById(R.id.tts_settings).setOnClickListener(view -> playback.show());
         activity.findViewById(R.id.stt_settings).setOnClickListener(view -> recognition.show());
         activity.findViewById(R.id.tts_info).setOnClickListener(view -> info(R.string.tts_language, R.string.tts_info, R.id.tts_provider_status));
         activity.findViewById(R.id.stt_info).setOnClickListener(view -> info(R.string.stt_language, R.string.stt_info, R.id.stt_provider_status));
+        inputToggle.refresh(false);
+        toggle(R.id.tts_enabled, SpeechPreferences.OUTPUT, false);
     }
     void refresh() {
-        boolean google = SpeechAvailability.googleAppEnabled(activity);
         boolean input = SpeechAvailability.input(activity);
-        toggle(R.id.stt_enabled, SpeechPreferences.INPUT, input);
+        inputToggle.refresh(input);
         toggle(R.id.tts_enabled, SpeechPreferences.OUTPUT, false);
-        providerStatus(R.id.stt_provider_status, input ? R.string.stt_ready
-                : google ? R.string.speech_unavailable : R.string.speech_provider_disabled, input);
+        providerStatus(R.id.stt_provider_status, input ? R.string.stt_ready : R.string.speech_unavailable, input);
         providerStatus(R.id.tts_provider_status, R.string.language_support_loading, false);
         probe.load(voices -> {
-            diagnostics.loaded(voices);
-            boolean available = google && voices != null && !voices.isEmpty();
+            boolean available = voices != null && !voices.isEmpty();
             toggle(R.id.tts_enabled, SpeechPreferences.OUTPUT, available);
-            providerStatus(R.id.tts_provider_status, available ? R.string.tts_ready
-                    : google ? R.string.tts_provider_unavailable : R.string.speech_provider_disabled, available);
+            providerStatus(R.id.tts_provider_status, available ? R.string.tts_ready : R.string.tts_provider_unavailable, available);
             probe.close();
         });
     }
@@ -62,9 +61,9 @@ final class SpeechSettingsRows implements AutoCloseable {
                 .setPositiveButton(R.string.close, null).show();
     }
     void permissionResult(boolean granted) { if (granted) { recognition.test(); } }
-    void stopTests() { probe.close(); recognition.stopTest(); playback.close(); }
+    void stopTests() { probe.close(); recognition.stopTest(); playback.close(); inputToggle.close(); }
     @Override public void close() {
-        probe.close(); playback.close(); recognition.close();
+        probe.close(); playback.close(); recognition.close(); inputToggle.close();
         if (information != null) { information.dismiss(); information = null; }
     }
 }

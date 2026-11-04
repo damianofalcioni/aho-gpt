@@ -14,15 +14,14 @@ import aho.gpt.android.logging.AppLogger;
 final class ChatGptSettingsDialog implements AutoCloseable {
     private final Activity activity;
     private final AssistantApplication app;
-    private final Runnable changed;
     private AlertDialog dialog;
     private AlertDialog confirmation;
     private AccountModelPicker models;
     private View content;
     private int generation;
 
-    ChatGptSettingsDialog(Activity activity, Runnable changed) {
-        this.activity = activity; this.changed = changed; app = (AssistantApplication) activity.getApplication();
+    ChatGptSettingsDialog(Activity activity) {
+        this.activity = activity; app = (AssistantApplication) activity.getApplication();
         Switch toggle = activity.findViewById(R.id.chatgpt_enabled);
         toggle.setChecked(app.chatgptEnabled());
         toggle.setOnCheckedChangeListener((button, enabled) -> app.chatgptEnabled(enabled));
@@ -31,7 +30,7 @@ final class ChatGptSettingsDialog implements AutoCloseable {
     private void show() {
         close();
         content = activity.getLayoutInflater().inflate(R.layout.dialog_chatgpt, new FrameLayout(activity), false);
-        models = new AccountModelPicker(activity, content.findViewById(R.id.account_model), changed);
+        models = new AccountModelPicker(activity, content.findViewById(R.id.account_model));
         content.findViewById(R.id.account_configure).setOnClickListener(view -> SignInActivity.open(activity, false));
         content.findViewById(R.id.account_manage).setOnClickListener(view -> SignInActivity.open(activity, true));
         content.findViewById(R.id.account_sign_out).setOnClickListener(view -> confirm());
@@ -73,7 +72,6 @@ final class ChatGptSettingsDialog implements AutoCloseable {
         });
     }
     private void signedOut(int message) {
-        changed.run();
         TextView status = content.findViewById(R.id.account_status);
         if (message != 0) { status.setText(message); status.setVisibility(View.VISIBLE); }
         refresh();

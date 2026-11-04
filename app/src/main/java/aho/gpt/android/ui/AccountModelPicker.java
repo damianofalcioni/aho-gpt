@@ -15,11 +15,10 @@ final class AccountModelPicker {
     private final Activity activity;
     private final AssistantApplication app;
     private final Spinner spinner;
-    private final Runnable changed;
     private int generation;
 
-    AccountModelPicker(Activity activity, Spinner spinner, Runnable changed) {
-        this.activity = activity; this.spinner = spinner; this.changed = changed;
+    AccountModelPicker(Activity activity, Spinner spinner) {
+        this.activity = activity; this.spinner = spinner;
         app = (AssistantApplication) activity.getApplication();
     }
     void load(boolean connected) {
@@ -56,7 +55,7 @@ final class AccountModelPicker {
         }
         spinner.setEnabled(true);
         SpinnerChoices.bind(activity, spinner, names, selected, position -> {
-            if (position > 0) { app.model(slugs.get(position)); changed.run(); }
+            if (position > 0) { app.model(slugs.get(position)); }
             else { spinner.setSelection(Math.max(0, slugs.indexOf(app.model()))); }
         });
     }

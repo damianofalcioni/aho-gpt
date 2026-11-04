@@ -1,6 +1,7 @@
 package aho.gpt.android.speech;
 
 import android.content.Context;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Build;
 import android.speech.RecognizerIntent;
@@ -15,13 +16,15 @@ final class SpeechRecognizerProvider {
         return Build.VERSION.SDK_INT >= 31 && SpeechRecognizer.isOnDeviceRecognitionAvailable(context);
     }
     static boolean available(Context context) {
-        return onDevice(context) || SpeechRecognizer.isRecognitionAvailable(context);
+        return RecognitionProviders.select(context) != null;
     }
     static SpeechRecognizer create(Context context) {
         if (Build.VERSION.SDK_INT >= 31 && onDevice(context)) {
             return SpeechRecognizer.createOnDeviceSpeechRecognizer(context);
         }
-        return SpeechRecognizer.createSpeechRecognizer(context);
+        ComponentName provider = RecognitionProviders.select(context);
+        if (provider == null) { throw new IllegalStateException("No recognition provider available"); }
+        return SpeechRecognizer.createSpeechRecognizer(context, provider);
     }
     static Intent request(Locale locale) {
         return new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)

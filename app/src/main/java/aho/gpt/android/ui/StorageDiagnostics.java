@@ -2,6 +2,7 @@ package aho.gpt.android.ui;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import aho.gpt.R;
 import aho.gpt.android.logging.storage.AndroidOutputDestination;
 import aho.gpt.android.logging.storage.AndroidOutputStorage;
@@ -19,36 +20,33 @@ final class StorageDiagnostics implements AutoCloseable {
     private final Context context;
     private final DiagnosticRow row;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
+    private final LogAccessSettings settings;
     private int generation;
 
     StorageDiagnostics(Activity activity) {
         this.activity = activity; context = activity.getApplicationContext();
-        row = new DiagnosticRow(activity, R.id.diagnostic_access, R.string.diagnostic_log_folder,
-                () -> activity.findViewById(R.id.log_settings).performClick());
+        settings = new LogAccessSettings(activity, worker);
+        row = new DiagnosticRow(activity, R.string.diagnostic_log_folder, settings::open);
     }
     void refresh() {
         int request = ++generation;
-        row.update(R.string.diagnostic_checking, R.color.diagnostic_warning, activity.getString(R.string.diagnostic_folder_check));
+        row.checking();
         worker.execute(() -> {
-            Result result = check();
+            boolean allowed = check();
             activity.runOnUiThread(() -> {
                 if (request != generation || activity.isDestroyed()) { return; }
-                row.update(result.status(), result.status() == R.string.diagnostic_writable
-                                ? R.color.diagnostic_ok : R.color.diagnostic_error,
-                        activity.getString(R.string.diagnostic_folder_help,
-                                activity.getString(result.status()), result.path()));
+                row.state(allowed);
             });
         });
     }
-    private Result check() {
-        AndroidOutputDestination target = AndroidOutputStorage.current(context);
-        if (permissionMissing()) { return new Result(target.label, R.string.diagnostic_no_permission); }
+    private boolean check() {
+        if (permissionMissing()) { return false; }
         try {
             AndroidOutputDestination requested = AndroidOutputStorage.requested(context);
             AndroidOutputStorage.verify(context, requested);
-            return new Result(requested.label, R.string.diagnostic_writable);
+            return true;
         } catch (IOException | RuntimeException exception) {
-            return new Result(target.label, R.string.diagnostic_unavailable);
+            return false;
         }
     }
     private boolean permissionMissing() {
@@ -59,7 +57,7 @@ final class StorageDiagnostics implements AutoCloseable {
                 AppOutputStorageSettings.cardId(context));
         return card != null && AndroidOutputStorageAccess.needsCardGrant(context, card);
     }
-    void stop() { generation++; row.close(); }
+    void result(int request, int result, Intent data) { settings.result(request, result, data); }
+    void stop() { generation++; }
     @Override public void close() { stop(); worker.shutdown(); }
-    private record Result(String path, int status) { }
 }

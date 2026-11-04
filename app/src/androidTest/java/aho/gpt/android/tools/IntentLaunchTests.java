@@ -9,6 +9,9 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import org.json.JSONObject;
 import aho.gpt.android.logging.storage.LogStorageTest;
+import aho.gpt.android.speech.RecognitionProvidersTest;
+import aho.gpt.android.ui.SpeechProviderNoticeTest;
+import aho.gpt.android.access.ScreenAccessTest;
 
 /** Dependency-free framework tests; run with connectedHandheldDebugAndroidTest. */
 public final class IntentLaunchTests extends Instrumentation {
@@ -19,21 +22,24 @@ public final class IntentLaunchTests extends Instrumentation {
     private boolean voiceTasks;
     private boolean logStorage;
     private boolean logPermission;
+    private boolean speechProviders;
+    private boolean screenAccess;
 
     @Override public void onCreate(Bundle arguments) {
         super.onCreate(arguments);
         targetPackage = arguments == null ? "" : arguments.getString("launch_package", "");
         shortcutLabel = arguments == null ? "" : arguments.getString("home_shortcut", "");
         screenMarker = arguments == null ? "" : arguments.getString("screen_marker", "");
-        voiceTasks = arguments != null && "true".equals(arguments.getString("voice_tasks"));
-        logStorage = arguments != null && "true".equals(arguments.getString("log_storage"));
-        logPermission = arguments != null && "true".equals(arguments.getString("log_permission"));
+        voiceTasks = requested(arguments, "voice_tasks");
+        logStorage = requested(arguments, "log_storage");
+        logPermission = requested(arguments, "log_permission");
+        speechProviders = requested(arguments, "speech_providers");
+        screenAccess = requested(arguments, "screen_access");
         start();
     }
 
     @Override public void onStart() {
-        if (loggingRequested()) { storageTests(); return; }
-        if (voiceTasks) { new VoiceTaskTest(this).run(); return; }
+        if (specialTests()) { return; }
         if (!targetPackage.isEmpty()) { new InstalledAppLaunchTest(this, targetPackage).run(); return; }
         if (!shortcutLabel.isEmpty()) { new HomeShortcutLaunchTest(this, shortcutLabel, screenMarker).run(); return; }
         Check[] checks = {() -> launcher(Intent.CATEGORY_LAUNCHER), () -> launcher(Intent.CATEGORY_LEANBACK_LAUNCHER),
@@ -72,11 +78,38 @@ public final class IntentLaunchTests extends Instrumentation {
     private void storageTests() {
         boolean passed = logPermission ? check(0, "logPermission", () -> new LogPermissionTest(this).run(), 1)
                 : check(0, "logStorage", () -> new LogStorageTest(getTargetContext()).run(), 1);
+        finishCheck(passed);
+    }
+    private boolean loggingRequested() { return logStorage || logPermission; }
+
+    private boolean requested(Bundle arguments, String name) {
+        return arguments != null && "true".equals(arguments.getString(name));
+    }
+    private boolean specialTests() {
+        if (screenAccess) { screenAccessTests(); return true; }
+        if (speechProviders) { speechTests(); return true; }
+        if (loggingRequested()) { storageTests(); return true; }
+        if (voiceTasks) { new VoiceTaskTest(this).run(); return true; }
+        return false;
+    }
+
+    private void speechTests() {
+        boolean passed = check(0, "speechProviders", () -> {
+            new RecognitionProvidersTest(getTargetContext()).run();
+            new SpeechProviderNoticeTest(this).run();
+        }, 1);
+        finishCheck(passed);
+    }
+
+    private void screenAccessTests() {
+        finishCheck(check(0, "screenAccess", () -> new ScreenAccessTest(this).run(), 1));
+    }
+
+    private void finishCheck(boolean passed) {
         Bundle results = new Bundle();
         results.putString("stream", "Tests run: 1, Failures: " + (passed ? 0 : 1) + "\n");
         finish(Activity.RESULT_OK, results);
     }
-    private boolean loggingRequested() { return logStorage || logPermission; }
 
     private interface Check { void run() throws Exception; }
 

@@ -5,82 +5,40 @@ import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.media.AudioManager;
 import android.net.Uri;
 import android.provider.Settings;
-import android.widget.Toast;
 import aho.gpt.R;
-import aho.gpt.android.access.AssistantAccessibilityService;
-import java.util.ArrayList;
-import java.util.List;
+import aho.gpt.android.access.ScreenAccessGrant;
 
-final class AccessDiagnostics implements AutoCloseable {
-    private static final String GOOGLE = "com.google.android.googlequicksearchbox";
+/** Reports grants only, independently of hardware, providers and app switches. */
+final class AccessDiagnostics {
     private final Activity activity;
-    private final List<DiagnosticRow> rows = new ArrayList<>();
+    private final DiagnosticRow microphone;
+    private final DiagnosticRow overlay;
+    private final DiagnosticRow screen;
+    private final DiagnosticRow assistant;
 
     AccessDiagnostics(Activity activity) {
         this.activity = activity;
-        add(R.string.diagnostic_microphone, () -> appSettings(activity.getPackageName()));
-        add(R.string.diagnostic_google, () -> appSettings(GOOGLE));
-        add(R.string.accessibility_name, () -> open(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)));
-        add(R.string.diagnostic_overlay, () -> open(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                Uri.parse("package:" + activity.getPackageName()))));
-        add(R.string.diagnostic_assistant, () -> open(new Intent(Settings.ACTION_VOICE_INPUT_SETTINGS)));
-    }
-    private void add(int title, Runnable action) {
-        rows.add(new DiagnosticRow(activity, R.id.diagnostic_access, title, action));
+        microphone = new DiagnosticRow(activity, R.string.diagnostic_microphone,
+                () -> PermissionSettings.app(activity));
+        overlay = new DiagnosticRow(activity, R.string.diagnostic_overlay,
+                () -> PermissionSettings.open(activity, new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:" + activity.getPackageName()))));
+        screen = new DiagnosticRow(activity, R.string.accessibility_name,
+                () -> PermissionSettings.open(activity, new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)));
+        assistant = new DiagnosticRow(activity, R.string.diagnostic_assistant,
+                () -> PermissionSettings.open(activity, new Intent(Settings.ACTION_VOICE_INPUT_SETTINGS)));
     }
     void refresh() {
-        int microphone = microphone();
-        rows.get(0).state(microphone == R.string.diagnostic_ok, R.string.diagnostic_ok, microphone,
-                activity.getString(R.string.diagnostic_microphone_help));
-        google();
-        boolean connected = AssistantAccessibilityService.connected() != null;
-        rows.get(2).state(connected, R.string.diagnostic_connected, R.string.diagnostic_not_connected,
-                activity.getString(R.string.accessibility_disclosure));
-        rows.get(3).state(Settings.canDrawOverlays(activity), R.string.diagnostic_allowed, R.string.diagnostic_not_allowed,
-                activity.getString(R.string.diagnostic_overlay_help, activity.getString(connected
-                        ? R.string.diagnostic_connected : R.string.diagnostic_not_connected)));
-        boolean assistant = isAssistant();
-        rows.get(4).update(assistant ? R.string.diagnostic_selected : R.string.diagnostic_not_selected,
-                assistant ? R.color.diagnostic_ok : R.color.diagnostic_warning,
-                activity.getString(R.string.diagnostic_assistant_help));
-    }
-    private int microphone() {
-        if (!activity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_MICROPHONE)) {
-            return R.string.diagnostic_missing;
-        }
-        if (activity.checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            return R.string.diagnostic_no_permission;
-        }
-        AudioManager audio = activity.getSystemService(AudioManager.class);
-        if (audio != null && audio.isMicrophoneMute()) { return R.string.diagnostic_muted; }
-        return R.string.diagnostic_ok;
-    }
-    private void google() {
-        try {
-            boolean enabled = activity.getPackageManager().getApplicationInfo(GOOGLE, 0).enabled;
-            rows.get(1).state(enabled, R.string.diagnostic_enabled, R.string.diagnostic_disabled,
-                    activity.getString(R.string.diagnostic_google_help));
-        } catch (PackageManager.NameNotFoundException exception) {
-            rows.get(1).update(R.string.diagnostic_not_installed, R.color.diagnostic_warning,
-                    activity.getString(R.string.diagnostic_google_help));
-        }
+        microphone.state(activity.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED);
+        overlay.state(Settings.canDrawOverlays(activity));
+        screen.state(ScreenAccessGrant.granted(activity));
+        assistant.state(isAssistant());
     }
     private boolean isAssistant() {
         String selected = Settings.Secure.getString(activity.getContentResolver(), "assistant");
         ComponentName component = selected == null ? null : ComponentName.unflattenFromString(selected);
         return component != null && activity.getPackageName().equals(component.getPackageName());
     }
-    private void appSettings(String name) {
-        open(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + name)));
-    }
-    private void open(Intent intent) {
-        try { activity.startActivity(intent); }
-        catch (android.content.ActivityNotFoundException | SecurityException exception) {
-            Toast.makeText(activity, R.string.setting_unavailable, Toast.LENGTH_SHORT).show();
-        }
-    }
-    @Override public void close() { for (DiagnosticRow row : rows) { row.close(); } }
 }

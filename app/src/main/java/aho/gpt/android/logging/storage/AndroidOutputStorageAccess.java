@@ -22,14 +22,29 @@ public final class AndroidOutputStorageAccess {
     }
 
     public static void accept(Context context, Intent data) throws IOException {
+        accept(context, data, null);
+    }
+
+    public static void acceptSelected(Context context, Intent data) throws IOException {
+        if (!AppOutputStorageSettings.useSdCard(context)) { throw new IOException("SD card is not selected"); }
+        accept(context, data, AppOutputStorageSettings.cardId(context));
+    }
+
+    private static void accept(Context context, Intent data, String selectedId) throws IOException {
+        Uri grant = grantedFolder(data);
+        AndroidOutputStorageVolumes.Card card = validate(context, grant);
+        if (selectedId != null && !selectedId.equals(card.id)) { throw new IOException("Select the current SD card"); }
+        context.getContentResolver().takePersistableUriPermission(grant, FLAGS);
+        enable(context, card, grant.toString());
+    }
+
+    private static Uri grantedFolder(Intent data) throws IOException {
         Uri grant = data.getData();
         if (grant == null || (data.getFlags() & FLAGS) != FLAGS
                 || (data.getFlags() & Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION) == 0) {
             throw new IOException("Persistent read/write folder access is required");
         }
-        AndroidOutputStorageVolumes.Card card = validate(context, grant);
-        context.getContentResolver().takePersistableUriPermission(grant, FLAGS);
-        enable(context, card, grant.toString());
+        return grant;
     }
 
     private static AndroidOutputStorageVolumes.Card validate(Context context, Uri grant) throws IOException {

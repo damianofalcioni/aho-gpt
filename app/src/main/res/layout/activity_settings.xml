@@ -74,11 +74,7 @@
             <ImageButton android:id="@+id/log_info" style="@style/SettingsInfo" android:contentDescription="@string/log_information" />
         </LinearLayout>
         <TextView style="@style/SettingsTitle" android:text="@string/diagnostic_heading" />
-        <TextView style="@style/SettingsHeading" android:text="@string/diagnostic_access_heading" />
         <LinearLayout android:id="@+id/diagnostic_access" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:layout_marginTop="4dp" android:orientation="vertical" />
-        <TextView style="@style/SettingsSectionHeading" android:text="@string/diagnostic_services_heading" />
-        <LinearLayout android:id="@+id/diagnostic_services" android:layout_width="match_parent"
             android:layout_height="wrap_content" android:layout_marginTop="4dp" android:orientation="vertical" />
     </LinearLayout>
 </ScrollView>
