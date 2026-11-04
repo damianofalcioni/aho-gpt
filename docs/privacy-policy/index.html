@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#05070b">
+  <meta name="description" content="How Aho! GPT handles voice requests, account details, screen access and logs.">
+  <title>Privacy policy · Aho! GPT</title>
+  <link rel="icon" href="../assets/icon.png">
+  <link rel="stylesheet" href="../styles.min.css">
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <div class="site-root">
+    <nav class="topbar" aria-label="Main navigation">
+      <a class="brand" href="../"><img src="../assets/icon.png" alt="" width="40" height="40"><span>Aho! GPT</span></a>
+      <div class="toplinks">
+        <a href="../">Home</a>
+        <a href="../CHANGELOG/">Changelog</a>
+        <a href="https://github.com/damianofalcioni/aho-gpt">GitHub ↗</a>
+      </div>
+    </nav>
+    <main id="content">
+      <article class="doc-card">
+        <p class="kicker">Project document</p>
+        <h1>Privacy policy</h1>
+        
+        <p class="muted">Last updated: 4 November 2026</p>
+        <p>This policy covers Aho! GPT, an Android voice assistant published by Damiano Falcioni.</p>
+        <h2>Requests and speech</h2>
+        <p>Spoken requests are handled by your Android recognition provider. The app prefers on-device recognition when available; providers may process audio online. Your playback provider receives answer text and may also use online services.</p>
+        <p>Requests, temporary conversation context and selected tool results go directly to OpenAI. Optional screen tools can send visible text, excluding password fields. App-action searches may send selected app metadata to OpenAI.</p>
+        <h2>Data on your device</h2>
+        <p>The app stores settings, your model choice, a stable installation identifier and protected sign-in details. Account information stays associated with its issued registration. Credentials and local storage grants are excluded from backups.</p>
+        <p>Conversation context stays in memory and is cleared when the session expires, fails or is destroyed. There is no persistent chat history. The installed-app catalog stays local except for selected entries returned during your requests.</p>
+        <h2>Permissions and actions</h2>
+        <p>Microphone access is used for voice requests and explicit recognition tests. Accessibility access is optional and allows screen reading, requested actions and the voice overlay. It does not retain background screen events or intercept keys. Overlay access and default-assistant selection are optional.</p>
+        <p>Android and other apps may receive actions and related data needed to carry out your request. Their permissions and policies apply.</p>
+        <h2>Logs</h2>
+        <p>Optional diagnostic logs are off by default. Crashes may still create a local log. Logs include device details and event states, but exclude credentials, account identity, authorization URLs, speech, answers, tool contents and screen text.</p>
+        <p>Logs are saved in the selected Downloads folder. They can survive uninstall. Delete them through Logs settings or your file manager.</p>
+        <h2>Sign-out and deletion</h2>
+        <p>Sign-out attempts to revoke the renewable session and clears local tokens. If remote revocation cannot be confirmed, the app tells you to disconnect it in ChatGPT settings. The account registration and installation identifier remain for later sign-in.</p>
+        <p>Clear Android app storage or uninstall to remove app-managed settings and credentials. Delete exported log files separately. Data handled by OpenAI, speech providers and other apps follows their own retention policies.</p>
+        <h2>This website and third parties</h2>
+        <p>The developer does not operate a server that receives app requests, analytics or crash reports. This static website uses no analytics, cookies or browser storage. GitHub Pages serves it and handles connection information under GitHub’s privacy policy. Sign-in and usage pages may use OpenAI cookies in the app’s WebView or your browser.</p>
+        <h2>Contact and changes</h2>
+        <p>For privacy questions, <a href="https://github.com/damianofalcioni/aho-gpt/issues/new">open an issue</a> without posting private information. Changes to this policy will appear here.</p>
+      </article>
+    </main>
+    <footer>
+      <span>© 2026 Damiano Falcioni</span>
+      <div class="footer-links"><a href="../privacy-policy/">Privacy policy</a><a href="../terms-of-service/">Terms of service</a></div>
+    </footer>
+  </div>
+</body>
+</html>
