@@ -8,10 +8,11 @@
     <string name="setting_info_with_status">%1$s\n\n%2$s</string>
     <string name="executing_tool">Running tool…</string>
     <string name="tools">Tools</string>
+    <string name="app_actions">App actions</string>
     <string name="configure_tools">Configure tools</string>
     <string name="enable_tools">Enable tools</string>
     <string name="tools_information">Choose allowed actions. Disabled tools stay hidden and blocked. The main switch turns all tools off without erasing your choices.</string>
-    <string name="tools_configuration_help">Enable actions. Tap ⋮ for details.</string>
+    <string name="tools_configuration_help">Choose tools and app actions. Use info for tool help or ⋯ for app details.</string>
     <string name="search_tools">Search tools and app actions</string>
     <string name="loading_tools">Loading tools…</string>
     <string name="tools_load_failed">Could not load tools. Close and try again.</string>
@@ -25,6 +26,10 @@
     <string name="tool_invoke_intent">Run app actions</string>
     <string name="tool_read_screen">Read screen</string>
     <string name="tool_ui_action">Screen actions</string>
+    <string name="tool_find_intents_info">Find actions available in installed apps. Selected app details may be sent to OpenAI for your request.</string>
+    <string name="tool_invoke_intent_info">Run app actions for your spoken request. Android permissions and app limits still apply.</string>
+    <string name="tool_read_screen_info">Read visible text for your request. Requires screen access. Text may be sent to OpenAI; password fields are excluded.</string>
+    <string name="tool_ui_action_info">Use visible controls for your request, such as tapping, typing or going back. Requires screen access.</string>
     <string name="tool_available">Available when enabled</string>
     <string name="tool_needs_accessibility">Requires Screen access &amp; actions in Android settings</string>
     <string name="tool_field_name">Function name</string>

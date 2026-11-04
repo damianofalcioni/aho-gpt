@@ -32,12 +32,23 @@ final class ToolDetailsDialog implements AutoCloseable {
     ToolDetailsDialog(Activity activity) { this.activity = activity; }
     void show(RecognizedTool tool) {
         close();
+        if (!tool.appAction()) { information(tool); return; }
         View content = activity.getLayoutInflater().inflate(R.layout.dialog_tool_details, new FrameLayout(activity), false);
         LinearLayout fields = content.findViewById(R.id.tool_detail_fields);
         for (Field field : FIELDS) {
             if (tool.details().has(field.key())) { field(fields, field.label(), tool.details().opt(field.key())); }
         }
         dialog = new AlertDialog.Builder(activity).setTitle(tool.name()).setView(content)
+                .setPositiveButton(R.string.close, null).show();
+    }
+    private void information(RecognizedTool tool) {
+        int message = switch (tool.key()) {
+            case "find_intents" -> R.string.tool_find_intents_info;
+            case "invoke_intent" -> R.string.tool_invoke_intent_info;
+            case "read_screen" -> R.string.tool_read_screen_info;
+            default -> R.string.tool_ui_action_info;
+        };
+        dialog = new AlertDialog.Builder(activity).setTitle(tool.name()).setMessage(message)
                 .setPositiveButton(R.string.close, null).show();
     }
     private void field(LinearLayout parent, int label, Object value) {

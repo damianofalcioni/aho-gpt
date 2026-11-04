@@ -22,6 +22,7 @@ final class ToolsSettingsDialog implements AutoCloseable {
     private final AssistantApplication app;
     private final ToolPreferences preferences;
     private final ToolDetailsDialog details;
+    private final ScreenToolControls controls;
     private AlertDialog dialog;
     private int generation;
     private TextWatcher watcher;
@@ -30,18 +31,19 @@ final class ToolsSettingsDialog implements AutoCloseable {
     ToolsSettingsDialog(Activity activity) {
         this.activity = activity; app = (AssistantApplication) activity.getApplication();
         preferences = app.catalog().preferences(); details = new ToolDetailsDialog(activity);
+        controls = new ScreenToolControls(activity, preferences);
         Switch toggle = activity.findViewById(R.id.tools_enabled);
         toggle.setChecked(preferences.enabled());
         toggle.setOnCheckedChangeListener((button, checked) -> preferences.enable(checked));
         activity.findViewById(R.id.tools_settings).setOnClickListener(view -> show());
     }
     private void show() {
-        close();
+        dismiss();
         View content = activity.getLayoutInflater().inflate(R.layout.dialog_tools, new FrameLayout(activity), false);
         dialog = new AlertDialog.Builder(activity).setTitle(R.string.tools).setView(content)
                 .setNegativeButton(R.string.refresh, null)
                 .setPositiveButton(R.string.close, null).create();
-        dialog.setOnDismissListener(ignored -> { generation++; details.close(); });
+        dialog.setOnDismissListener(ignored -> { generation++; details.close(); controls.observe(null); });
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         dialog.show();
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(view -> refresh(content));
@@ -75,27 +77,31 @@ final class ToolsSettingsDialog implements AutoCloseable {
     }
     private void loaded(View content, List<RecognizedTool> tools) {
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(true);
-        ToolListAdapter adapter = new ToolListAdapter(activity, preferences, tools, details::show);
+        ToolListAdapter adapter = new ToolListAdapter(activity, controls, tools, details::show);
+        controls.observe(adapter::notifyDataSetChanged);
         ListView list = content.findViewById(R.id.tool_list);
         list.setItemsCanFocus(true); list.setAdapter(adapter);
         TextView status = content.findViewById(R.id.tools_status);
         if (search != null && watcher != null) { search.removeTextChangedListener(watcher); }
         search = content.findViewById(R.id.tool_search);
         adapter.filter(search.getText().toString());
-        status.setText(activity.getString(R.string.tools_count, adapter.getCount()));
+        status.setText(activity.getString(R.string.tools_count, adapter.toolCount()));
         watcher = new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence text, int start, int count, int after) { }
             @Override public void onTextChanged(CharSequence text, int start, int before, int count) {
-                adapter.filter(text.toString()); status.setText(activity.getString(R.string.tools_count, adapter.getCount()));
+                adapter.filter(text.toString()); status.setText(activity.getString(R.string.tools_count, adapter.toolCount()));
             }
             @Override public void afterTextChanged(Editable text) { }
         };
         search.addTextChangedListener(watcher);
     }
-    @Override public void close() {
-        generation++; details.close();
+    void start() { controls.start(); }
+    void stop() { controls.stop(); }
+    private void dismiss() {
+        generation++; details.close(); controls.observe(null);
         if (search != null && watcher != null) { search.removeTextChangedListener(watcher); }
         search = null; watcher = null;
         if (dialog != null) { dialog.dismiss(); dialog = null; }
     }
+    @Override public void close() { dismiss(); controls.close(); }
 }

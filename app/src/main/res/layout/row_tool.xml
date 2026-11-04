@@ -10,4 +10,6 @@
     <ImageButton android:id="@+id/tool_details" style="@style/SettingsIcon"
         android:src="@drawable/ic_more" android:contentDescription="@string/tool_details" />
     <Switch android:id="@+id/tool_enabled" style="@style/SettingsSwitch" android:contentDescription="@string/enable_tools" />
+    <ImageButton android:id="@+id/tool_info" style="@style/SettingsInfo"
+        android:contentDescription="@string/setting_information" android:visibility="gone" />
 </LinearLayout>

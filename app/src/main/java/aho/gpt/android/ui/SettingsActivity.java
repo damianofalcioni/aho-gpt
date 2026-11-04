@@ -33,9 +33,9 @@ public final class SettingsActivity extends Activity {
     @Override protected void onResume() {
         super.onResume(); diagnostics.start();
         AccountSummary.load(this, diagnostics::account);
-        account.refresh(); speech.refresh(); logging.refresh();
+        account.refresh(); speech.refresh(); logging.refresh(); tools.start();
     }
-    @Override protected void onPause() { diagnostics.stop(); speech.stopTests(); super.onPause(); }
+    @Override protected void onPause() { diagnostics.stop(); speech.stopTests(); tools.stop(); super.onPause(); }
     @Override protected void onDestroy() {
         diagnostics.close(); logging.close(); speech.close(); about.close(); tools.close(); account.close(); super.onDestroy();
     }

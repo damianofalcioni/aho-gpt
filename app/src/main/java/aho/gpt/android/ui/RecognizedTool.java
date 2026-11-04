@@ -14,10 +14,11 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /** Local inventory includes disabled entries; model discovery uses the filtered catalog. */
-record RecognizedTool(String key, String name, String summary, JSONObject details, String searchable) {
-    RecognizedTool(String key, String name, String summary, JSONObject details) {
-        this(key, name, summary, details, (name + " " + summary + " " + details).toLowerCase(Locale.ROOT));
+record RecognizedTool(String key, String name, String summary, JSONObject details, boolean appAction, String searchable) {
+    RecognizedTool(String key, String name, String summary, JSONObject details, boolean appAction) {
+        this(key, name, summary, details, appAction, (name + " " + summary + " " + details).toLowerCase(Locale.ROOT));
     }
+    boolean requiresScreenAccess() { return !appAction && (key.equals("read_screen") || key.equals("ui_action")); }
     static List<RecognizedTool> load(Context context, IntentCatalog catalog) throws Exception {
         List<RecognizedTool> result = new ArrayList<>();
         JSONArray functions = ToolDefinitions.functions(true);
@@ -26,7 +27,7 @@ record RecognizedTool(String key, String name, String summary, JSONObject detail
         Collections.sort(entries, RecognizedTool::compare);
         for (IntentCapability cap : entries) {
             result.add(new RecognizedTool(cap.preferenceKey(), cap.label,
-                    context.getString(R.string.tool_app_action, cap.action), cap.describe()));
+                    context.getString(R.string.tool_app_action, cap.action), cap.describe(), true));
         }
         return result;
     }
@@ -50,6 +51,6 @@ record RecognizedTool(String key, String name, String summary, JSONObject detail
         boolean available = !key.equals("read_screen") && !key.equals("ui_action")
                 || AssistantAccessibilityService.connected() != null;
         details.put("availability", context.getString(available ? R.string.tool_available : R.string.tool_needs_accessibility));
-        return new RecognizedTool(key, context.getString(title), context.getString(R.string.tool_device_function, key), details);
+        return new RecognizedTool(key, context.getString(title), context.getString(R.string.tool_device_function, key), details, false);
     }
 }
