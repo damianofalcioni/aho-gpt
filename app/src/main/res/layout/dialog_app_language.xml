@@ -1,0 +1,8 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" style="@style/ConfigContent">
+    <LinearLayout style="@style/ConfigRow">
+        <TextView style="@style/ConfigLabel" android:text="@string/speech_language_label" />
+        <Spinner android:id="@+id/app_language_choice" style="@style/ConfigSpinner"
+            android:contentDescription="@string/app_language_title" />
+    </LinearLayout>
+    <TextView style="@style/SettingsBody" android:layout_marginTop="8dp" android:text="@string/app_language_hint" />
+</LinearLayout>

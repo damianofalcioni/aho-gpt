@@ -14,10 +14,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import aho.gpt.R;
 import aho.gpt.android.AssistantApplication;
+import aho.gpt.android.language.LocalizedActivity;
 import aho.gpt.android.logging.AppLogger;
 import java.io.IOException;
 
-public final class SignInActivity extends Activity {
+public final class SignInActivity extends LocalizedActivity {
     private static final String TAG = "Auth";
     private volatile LoopbackCallback callback;
     private WebView web;

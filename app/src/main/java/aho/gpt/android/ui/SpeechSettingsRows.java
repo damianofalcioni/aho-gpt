@@ -46,7 +46,8 @@ final class SpeechSettingsRows implements AutoCloseable {
     }
     private void providerStatus(int id, int message, boolean available) {
         TextView label = activity.findViewById(id);
-        label.setText(message); label.setVisibility(available ? View.GONE : View.VISIBLE);
+        label.setText(message);
+        label.setVisibility(available || id == R.id.stt_provider_status ? View.GONE : View.VISIBLE);
     }
     private void toggle(int id, String key, boolean available) {
         Switch control = activity.findViewById(id);

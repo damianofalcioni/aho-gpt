@@ -25,6 +25,15 @@
         <TextView style="@style/SettingsTitle" android:text="@string/settings_heading" />
         <TextView style="@style/SettingsHeading" android:text="@string/languages_heading" />
         <LinearLayout style="@style/SettingsRow">
+            <TextView style="@style/SettingsLabel" android:text="@string/use_system_language" />
+            <ImageButton android:id="@+id/app_language_settings" style="@style/SettingsIcon"
+                android:src="@drawable/ic_settings" android:contentDescription="@string/configure_app_language" />
+            <Switch android:id="@+id/use_system_language" style="@style/SettingsSwitch"
+                android:contentDescription="@string/use_system_language" />
+            <ImageButton android:id="@+id/app_language_info" style="@style/SettingsInfo"
+                android:contentDescription="@string/app_language_title" />
+        </LinearLayout>
+        <LinearLayout style="@style/SettingsRow">
             <TextView style="@style/SettingsLabel" android:text="@string/tts_short" />
             <ImageButton android:id="@+id/tts_settings" style="@style/SettingsIcon"
                 android:src="@drawable/ic_settings" android:contentDescription="@string/configure_tts" />
@@ -41,7 +50,7 @@
             <ImageButton android:id="@+id/stt_info" style="@style/SettingsInfo" android:contentDescription="@string/stt_information" />
         </LinearLayout>
         <TextView android:id="@+id/stt_provider_status" style="@style/SettingsBody" android:textSize="13sp"
-            android:accessibilityLiveRegion="polite" android:text="@string/language_support_loading" />
+            android:accessibilityLiveRegion="polite" android:visibility="gone" />
         <TextView style="@style/SettingsSectionHeading" android:text="@string/account_heading" />
         <LinearLayout style="@style/SettingsRow">
             <TextView style="@style/SettingsLabel" android:text="@string/chatgpt" />

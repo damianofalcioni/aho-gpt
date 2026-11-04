@@ -11,10 +11,10 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
 import aho.gpt.R;
-import android.app.Activity;
+import aho.gpt.android.language.LocalizedActivity;
 
 /** Hosts system file picking in its own task without creating an in-app file browser. */
-public final class AndroidOutputBrowserActivity extends Activity {
+public final class AndroidOutputBrowserActivity extends LocalizedActivity {
     static final int REQUEST_OPEN_FILE = 4013;
 
     @Override

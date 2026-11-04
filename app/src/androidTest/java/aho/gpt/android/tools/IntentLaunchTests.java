@@ -11,6 +11,7 @@ import org.json.JSONObject;
 import aho.gpt.android.logging.storage.LogStorageTest;
 import aho.gpt.android.speech.RecognitionProvidersTest;
 import aho.gpt.android.ui.SpeechProviderNoticeTest;
+import aho.gpt.android.ui.AppLanguageTest;
 import aho.gpt.android.access.ScreenAccessTest;
 
 /** Dependency-free framework tests; run with connectedHandheldDebugAndroidTest. */
@@ -24,6 +25,7 @@ public final class IntentLaunchTests extends Instrumentation {
     private boolean logPermission;
     private boolean speechProviders;
     private boolean screenAccess;
+    private boolean appLanguage;
 
     @Override public void onCreate(Bundle arguments) {
         super.onCreate(arguments);
@@ -35,6 +37,7 @@ public final class IntentLaunchTests extends Instrumentation {
         logPermission = requested(arguments, "log_permission");
         speechProviders = requested(arguments, "speech_providers");
         screenAccess = requested(arguments, "screen_access");
+        appLanguage = requested(arguments, "app_language");
         start();
     }
 
@@ -86,6 +89,7 @@ public final class IntentLaunchTests extends Instrumentation {
         return arguments != null && "true".equals(arguments.getString(name));
     }
     private boolean specialTests() {
+        if (appLanguage) { finishCheck(check(0, "appLanguage", () -> new AppLanguageTest(this).run(), 1)); return true; }
         if (screenAccess) { screenAccessTests(); return true; }
         if (speechProviders) { speechTests(); return true; }
         if (loggingRequested()) { storageTests(); return true; }

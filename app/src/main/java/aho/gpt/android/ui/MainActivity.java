@@ -1,13 +1,13 @@
 package aho.gpt.android.ui;
 
-import android.app.Activity;
+import aho.gpt.android.language.LocalizedActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TextView;
 import aho.gpt.R;
 
 /** Launcher with local setup status and the primary voice action. */
-public final class MainActivity extends Activity {
+public final class MainActivity extends LocalizedActivity {
     private boolean ready;
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);

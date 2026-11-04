@@ -1,7 +1,7 @@
 package aho.gpt.android.ui;
 
 import android.Manifest;
-import android.app.Activity;
+import aho.gpt.android.language.LocalizedActivity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -14,7 +14,7 @@ import aho.gpt.android.speech.SpeechPreferences;
 import aho.gpt.android.logging.AppLogger;
 
 /** Explicit component for TV button mappers: android.ui.VoiceActivity. */
-public final class VoiceActivity extends Activity {
+public final class VoiceActivity extends LocalizedActivity {
     private VoiceController controller;
     private final VoiceDismissal dismissal = new VoiceDismissal(this::finish);
     @Override public void onCreate(Bundle state) {

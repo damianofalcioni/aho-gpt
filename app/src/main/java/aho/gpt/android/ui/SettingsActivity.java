@@ -1,13 +1,13 @@
 package aho.gpt.android.ui;
 
-import android.app.Activity;
+import aho.gpt.android.language.LocalizedActivity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.widget.TextView;
 import aho.gpt.R;
 
-public final class SettingsActivity extends Activity {
+public final class SettingsActivity extends LocalizedActivity {
     static final String TARGET = "aho.gpt.settings_target";
     private SpeechSettingsRows speech;
     private AboutInformation about;
@@ -15,10 +15,12 @@ public final class SettingsActivity extends Activity {
     private LoggingSettingsRows logging;
     private DiagnosticSection diagnostics;
     private ChatGptSettingsDialog account;
+    private AppLanguageSettings language;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         setContentView(R.layout.activity_settings);
+        language = new AppLanguageSettings(this);
         diagnostics = new DiagnosticSection(this);
         speech = new SpeechSettingsRows(this);
         about = new AboutInformation(this);
@@ -36,7 +38,7 @@ public final class SettingsActivity extends Activity {
     }
     @Override protected void onPause() { diagnostics.stop(); speech.stopTests(); tools.stop(); super.onPause(); }
     @Override protected void onDestroy() {
-        diagnostics.close(); logging.close(); speech.close(); about.close(); tools.close(); account.close(); super.onDestroy();
+        diagnostics.close(); logging.close(); speech.close(); about.close(); tools.close(); account.close(); language.close(); super.onDestroy();
     }
     @Override protected void onSaveInstanceState(Bundle state) { logging.save(state); super.onSaveInstanceState(state); }
     @SuppressWarnings("deprecation") // Required native activity-result callback.

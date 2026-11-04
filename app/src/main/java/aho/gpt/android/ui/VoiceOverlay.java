@@ -11,6 +11,7 @@ import android.view.WindowManager;
 import aho.gpt.R;
 import aho.gpt.android.access.AssistantAccessibilityService;
 import aho.gpt.android.logging.AppLogger;
+import aho.gpt.android.language.AppLanguage;
 
 /** Mirrors the voice panel over target apps without taking their input focus. */
 final class VoiceOverlay {
@@ -31,7 +32,7 @@ final class VoiceOverlay {
     private void attach() {
         AssistantAccessibilityService access = AssistantAccessibilityService.connected();
         if (access == null && !Settings.canDrawOverlays(app)) { AppLogger.d(TAG, "Permission unavailable"); return; }
-        Context context = new ContextThemeWrapper(access == null ? app : access, R.style.AppTheme);
+        Context context = new ContextThemeWrapper(AppLanguage.wrap(access == null ? app : access), R.style.AppTheme);
         manager = context.getSystemService(WindowManager.class);
         view = new VoicePanel(context, this::speak, onClose);
         int type = access == null ? overlayType() : WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY;
