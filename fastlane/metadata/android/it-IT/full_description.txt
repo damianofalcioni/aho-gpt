@@ -1,0 +1,9 @@
+Aho! GPT è un assistente vocale leggero per telefoni, tablet, TV Android e Wear OS.
+
+Collega ChatGPT o un server compatibile con OpenAI. Fai domande, ascolta le risposte e continua con un contesto temporaneo. Apri le app e usa le azioni disponibili. L’accesso facoltativo all’accessibilità permette di leggere il testo visibile e usare i controlli accessibili per la tua richiesta.
+
+Scegli modelli, voci, lingua di riconoscimento e strumenti. L’interfaccia è in italiano e inglese. Non ci sono chat, cronologia salvata, parola di attivazione o ascolto permanente.
+
+Richieste, contesto temporaneo e risultati selezionati vanno al fornitore AI scelto. Con l’accesso allo schermo, può essere inviato anche il testo visibile, esclusi i campi password. I servizi vocali possono elaborare audio o testo online. I server HTTP ricevono i dati senza cifratura.
+
+Accesso, modelli e limiti dipendono dall’account o dal server. Le azioni dipendono dalle app, dai permessi e dai controlli accessibili. Il completamento non è garantito. Questa app non è ufficiale.

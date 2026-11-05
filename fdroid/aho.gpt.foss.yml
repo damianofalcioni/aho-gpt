@@ -1,0 +1,32 @@
+Categories:
+  - System
+License: MIT
+AuthorName: Damiano Falcioni
+WebSite: https://damianofalcioni.github.io/aho-gpt/
+SourceCode: https://github.com/damianofalcioni/aho-gpt
+IssueTracker: https://github.com/damianofalcioni/aho-gpt/issues
+
+AutoName: Aho! GPT
+
+RepoType: git
+Repo: https://github.com/damianofalcioni/aho-gpt.git
+Binaries: https://github.com/damianofalcioni/aho-gpt/releases/download/v%v/app-fdroid-handheld-release.apk
+
+Builds:
+  - versionName: "0.1.0"
+    versionCode: 1000
+    commit: v0.1.0
+    subdir: app
+    gradle:
+      - fdroidHandheld
+    rm:
+      - docs-tools
+      - local.properties
+
+AllowedAPKSigningKeys: REPLACE_WITH_APKSIGNER_SHA256_FINGERPRINT
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags ^v[0-9]+\.[0-9]+\.[0-9]+$
+UpdateCheckData: 'app/build.gradle|versionCode\s*=\s*(\d+)|.|versionName\s*=\s*"([^"]+)"'
+CurrentVersion: "0.1.0"
+CurrentVersionCode: 1000

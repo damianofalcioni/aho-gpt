@@ -1,0 +1,228 @@
+name: F-Droid Readiness
+
+on:
+  workflow_dispatch:
+    inputs:
+      device:
+        description: Device build
+        required: true
+        type: choice
+        options: [handheld, wear]
+        default: handheld
+      release_ref:
+        description: "Optional release tag or commit to verify, for example v0.1.0"
+        required: false
+        default: ""
+  workflow_call:
+    inputs:
+      device:
+        description: "Device build: handheld or wear"
+        required: false
+        type: string
+        default: handheld
+      release_ref:
+        description: "Optional release tag or commit to verify, for example v0.1.0"
+        required: false
+        type: string
+        default: ""
+      verify_published_apk:
+        description: "Require the signed APK at the versioned GitHub Release URL before submission"
+        required: false
+        type: boolean
+        default: false
+      release_artifact:
+        description: "Signed APK artifact from the calling release build; empty builds from source"
+        required: false
+        type: string
+        default: ""
+    outputs:
+      apk_signing_key:
+        description: "SHA-256 signing certificate fingerprint of the verified F-Droid APK"
+        value: ${{ jobs.verify.outputs.apk_signing_key }}
+    secrets:
+      ANDROID_KEYSTORE_BASE64:
+        required: true
+      ANDROID_KEYSTORE_PASSWORD:
+        required: true
+      ANDROID_KEY_ALIAS:
+        required: true
+      ANDROID_KEY_PASSWORD:
+        required: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    outputs:
+      apk_signing_key: ${{ steps.verify_apk.outputs.apk_signing_key }}
+    env:
+      DEVICE: ${{ inputs.device }}
+      APP_ID: ${{ inputs.device == 'wear' && 'aho.gpt.foss.wear' || 'aho.gpt.foss' }}
+      READINESS_REF: ${{ inputs.release_ref || github.ref }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.release_ref || github.ref }}
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          # APK verification also runs when a caller provides prebuilt artifacts.
+          packages: "platform-tools build-tools;37.0.0"
+
+      - name: Set up Gradle
+        if: inputs.release_artifact == ''
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Ensure gradlew executable
+        if: inputs.release_artifact == ''
+        run: chmod +x ./gradlew
+
+      - name: Verify F-Droid metadata and tag version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          [[ "$DEVICE" == handheld || "$DEVICE" == wear ]] || { echo "Invalid device"; exit 1; }
+
+          version_name="$(sed -n 's/.*versionName = "\(.*\)"/\1/p' app/build.gradle | head -n1)"
+          version_code="$(sed -n 's/.*versionCode = \(.*\)/\1/p' app/build.gradle | head -n1)"
+
+          test -n "$version_name"
+          test -n "$version_code"
+
+          required_files=(
+            fastlane/metadata/android/en-US/title.txt
+            fastlane/metadata/android/en-US/short_description.txt
+            fastlane/metadata/android/en-US/full_description.txt
+            "fastlane/metadata/android/en-US/changelogs/${version_code}.txt"
+          )
+
+          for path in "${required_files[@]}"; do
+            test -f "$path" || { echo "Missing required file: $path"; exit 1; }
+          done
+
+          screenshot_count="$(find fastlane/metadata/android/en-US/images/phoneScreenshots -maxdepth 1 -type f | wc -l)"
+          if [ "$screenshot_count" -lt 2 ]; then
+            echo "Expected at least 2 phone screenshots for store metadata"
+            exit 1
+          fi
+
+          tag_name=""
+          tag_candidate="${READINESS_REF#refs/tags/}"
+          if git rev-parse --verify --quiet "refs/tags/${tag_candidate}^{commit}" >/dev/null; then
+            tag_name="${tag_candidate}"
+          elif [[ "${GITHUB_REF_TYPE:-}" == "tag" ]]; then
+            tag_name="${GITHUB_REF_NAME}"
+          fi
+
+          if [[ -n "${tag_name}" ]]; then
+            if [[ "${tag_name}" != "v${version_name}" && "${tag_name}" != "${version_name}" ]]; then
+              echo "Tag ${tag_name} does not match versionName ${version_name}"
+              exit 1
+            fi
+          fi
+
+      - name: Run lint, maintainability checks, and tests
+        if: inputs.release_artifact == ''
+        run: ./gradlew lintFdroidHandheldDebug lintFdroidWearDebug lintGplayHandheldDebug lintGplayWearDebug complexityCheck testFdroidHandheldDebugUnitTest testFdroidWearDebugUnitTest testGplayHandheldDebugUnitTest testGplayWearDebugUnitTest verifyReleaseVersionCode
+
+      - name: Decode keystore
+        if: inputs.release_artifact == ''
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          test -n "$KEYSTORE_BASE64" || { echo 'Missing ANDROID_KEYSTORE_BASE64' >&2; exit 1; }
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release-keystore.jks"
+
+      - name: Build signed F-Droid release APK
+        if: inputs.release_artifact == ''
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/release-keystore.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: ./gradlew assembleFdroid${DEVICE^}Release
+
+      - name: Download signed APKs from the release build
+        if: inputs.release_artifact != ''
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ inputs.release_artifact }}
+          path: app/build/outputs/apk
+
+      - name: Verify signed F-Droid release artifact
+        id: verify_apk
+        shell: bash
+        env:
+          VERIFY_PUBLISHED_APK: ${{ inputs.verify_published_apk || false }}
+        run: |
+          set -euo pipefail
+
+          python <<'PY'
+          import json
+          import os
+          import re
+          import subprocess
+          import urllib.request
+          from pathlib import Path
+
+          device = os.environ["DEVICE"]
+          apk_name = f"app-fdroid-{device}-release.apk"
+          apk_dir = Path(f"app/build/outputs/apk/fdroid{device.capitalize()}/release")
+          metadata = json.loads((apk_dir / "output-metadata.json").read_text())
+          if metadata["applicationId"] != os.environ["APP_ID"]:
+              raise SystemExit("F-Droid release APK must use the FOSS application ID")
+          version = metadata["elements"][0]
+          tools = Path(os.environ["ANDROID_HOME"]) / "build-tools" / "37.0.0"
+
+          def signing_key(apk):
+              result = subprocess.check_output(
+                  [str(tools / "apksigner"), "verify", "--print-certs", str(apk)], text=True
+              )
+              # Build-tools 37 names signers by scheme; earlier versions number them.
+              keys = set(key.lower() for key in re.findall(
+                  r"^(?:Signer #\d+|(?:V[1-4](?:\.\d+)? )?Signer(?: #\d+)?:) certificate SHA-256 digest: ([0-9a-fA-F]{64})$",
+                  result, re.MULTILINE
+              ))
+              if len(keys) != 1:
+                  raise SystemExit("Expected exactly one verified APK signer")
+              return keys.pop()
+
+          key = signing_key(apk_dir / apk_name)
+          if os.environ["VERIFY_PUBLISHED_APK"] == "true":
+              version_name = version["versionName"]
+              release_ref = os.environ["READINESS_REF"].removeprefix("refs/tags/")
+              if release_ref != f"v{version_name}":
+                  raise SystemExit("Signed upstream APK submission requires the matching v<versionName> tag")
+              url = f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/download/v{version_name}/{apk_name}"
+              published = Path(os.environ["RUNNER_TEMP"]) / "published-fdroid.apk"
+              urllib.request.urlretrieve(url, published)
+              if signing_key(published) != key:
+                  raise SystemExit("Published F-Droid APK uses a different signing certificate")
+              badging = subprocess.check_output([str(tools / "aapt2"), "dump", "badging", str(published)], text=True)
+              package = re.search(r"^package: name='([^']+)' versionCode='([^']+)' versionName='([^']+)'", badging, re.MULTILINE)
+              expected = (os.environ["APP_ID"], str(version["versionCode"]), version_name)
+              if not package or package.groups() != expected:
+                  raise SystemExit("Published APK package/version does not match the release source")
+              print(f"Verified public upstream APK: {url}")
+
+          with Path(os.environ["GITHUB_OUTPUT"]).open("a") as output:
+              output.write(f"apk_signing_key={key}\n")
+          print(f"Verified F-Droid signing certificate SHA-256: {key}")
+          PY
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: fdroid-${{ inputs.device }}-release-apk
+          if-no-files-found: error
+          path: app/build/outputs/apk/fdroid*/release/app-fdroid-${{ inputs.device }}-release.apk

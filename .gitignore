@@ -5,4 +5,7 @@ local.properties
 *.iml
 *.jks
 *.keystore
+play-service-account*.json
+fastlane/report.xml
+fastlane/Preview.html
 build-verification.log

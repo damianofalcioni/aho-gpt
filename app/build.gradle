@@ -13,20 +13,36 @@ android {
         applicationId = "aho.gpt"
         minSdk = 23
         targetSdk = 37
-        versionCode = 1
+        versionCode = 1000
         versionName = "0.1.0"
         testInstrumentationRunner = "aho.gpt.android.tools.IntentLaunchTests"
     }
-    flavorDimensions += "device"
+    flavorDimensions += ["distribution", "device"]
     // Keep both display languages available for the in-app language switch.
     bundle { language { enableSplit = false } }
     productFlavors {
+        gplay { dimension = "distribution" }
+        fdroid { dimension = "distribution"; applicationIdSuffix = ".foss" }
         handheld { dimension = "device" }
         wear { dimension = "device"; applicationIdSuffix = ".wear"; minSdk = 26 }
+    }
+    signingConfigs {
+        release {
+            def keystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
+            if (keystorePath) {
+                storeFile = rootProject.file(keystorePath)
+                storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+            }
+        }
     }
     buildTypes {
         debug { applicationIdSuffix = ".debug" }
         release {
+            if (System.getenv("ANDROID_KEYSTORE_PATH")) {
+                signingConfig = signingConfigs.release
+            }
             minifyEnabled = true
             shrinkResources = true
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt")
@@ -63,3 +79,10 @@ tasks.register("complexityCheck", Pmd) {
     reports { xml.required = true; html.required = true }
 }
 tasks.named("check").configure { dependsOn("complexityCheck") }
+
+// Store tooling is opt-in and never becomes an Android runtime dependency.
+apply from: "$rootDir/gradle/play-listing.gradle"
+if (providers.gradleProperty("playPublishing").map { it.isEmpty() || it.toBoolean() }.getOrElse(false)) {
+    apply plugin: "com.github.triplet.play"
+    apply from: "$rootDir/gradle/play-publish.gradle"
+}

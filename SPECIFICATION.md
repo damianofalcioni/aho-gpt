@@ -2,7 +2,7 @@
 
 ## Product
 
-The visible app name is `Aho! GPT`, inspired by the Italian “Aho!” exclamation. The repository and assumed GitHub Pages path are `aho-gpt`. The base application ID and Java namespace are `aho.gpt`; retain the `.wear` flavor and `.debug` build suffixes. Keep Android adapters under `aho.gpt.android` and protocol/session code independently JVM-testable.
+The visible app name is `Aho! GPT`, inspired by the Italian “Aho!” exclamation. The repository and assumed GitHub Pages path are `aho-gpt`. The base application ID and Java namespace are `aho.gpt`; retain the `.wear` device suffix and `.debug` build suffix. The `fdroid` distribution adds `.foss` before the device suffix. Keep Android adapters under `aho.gpt.android` and protocol/session code independently JVM-testable.
 
 Use the approved native Android XML vector trace of the supplied Aho!/GPT calling-person artwork, without bundling the PNG or adding runtime tracing libraries. The tappable home-screen logo has white artwork on the same dark surface as its button; enclosed details follow the button's normal and focused surface colors. Keep native path compatibility with Android 6. Launcher artwork and the TV banner retain their black-on-white treatment. Provide a legacy launcher icon for Android 6–7 and an adaptive icon with a white background and safely inset artwork on Android 8 and later. Give the home logo greater prominence alongside a compact circular, icon-only microphone button distinct from the app logo, retaining its spoken accessibility label.
 
@@ -108,7 +108,7 @@ Treat PWAs packaged as visible Android applications like other discovered applic
 
 ## Form factors
 
-One Android application module with shared sources and `handheld` (phone/TV) and `wear` flavors. Native layouts must work with touch, D-pad and round screens. Expose `aho.gpt.android.ui.VoiceActivity` and voice-command intents for a separate TV button mapper. Support default-assistant selection through the exported `ACTION_ASSIST` activity on devices exposing the system picker. The system assistant shortcut opens the voice panel and starts listening after setup and microphone permission. Use the selected speech route; do not register a voice interaction or recognition service that replaces it. No wake word, lock-screen assistant integration or built-in global key mapper. Voice overlays can use an enabled accessibility service or a separately granted overlay permission; voice works without either.
+One Android application module with shared sources, `gplay`/`fdroid` distribution flavors and `handheld` (phone/TV)/`wear` device flavors. Distribution does not change runtime features or dependencies. Native layouts must work with touch, D-pad and round screens. Expose `aho.gpt.android.ui.VoiceActivity` and voice-command intents for a separate TV button mapper. Support default-assistant selection through the exported `ACTION_ASSIST` activity on devices exposing the system picker. The system assistant shortcut opens the voice panel and starts listening after setup and microphone permission. Use the selected speech route; do not register a voice interaction or recognition service that replaces it. No wake word, lock-screen assistant integration or built-in global key mapper. Voice overlays can use an enabled accessibility service or a separately granted overlay permission; voice works without either.
 
 ## Logging
 
@@ -126,15 +126,31 @@ Keep a static GitHub Pages site in docs, following vibe-navigator’s shared dar
 
 The docs-tools folder follows the reference’s authored/generated CSS workflow with CSS lint, deterministic minification and local-link checks. Development dependencies are separate from the Android runtime. Run npm ci, npm run build and npm run check there after site edits. Commit generated CSS and the lockfile. The Docs site workflow verifies changes and deploys docs from master through GitHub Pages Actions; repository Pages must use GitHub Actions. Preparing this workflow does not establish that deployment occurred.
 
+## Release distribution
+
+Match vibe-navigator's release flow with shared Fastlane Supply metadata, opt-in Gradle Play Publisher 4.1.1 and GitHub Actions. No publishing dependency enters the app runtime. Keep the device flavors and their existing Play IDs: gplayHandheld uses aho.gpt; gplayWear uses aho.gpt.wear. F-Droid uses fdroidHandheld (aho.gpt.foss) and fdroidWear (aho.gpt.foss.wear), with identical runtime features. Each package retains its own signing identity and app data.
+
+prepareRelease --release-version=MAJOR.MINOR.PATCH updates app/build.gradle, both F-Droid recipes, the website changelog and English Fastlane notes. versionCode is major * 1000000 + minor * 1000 + patch; minor and patch are limited to 0–999 and the code to 1–2100000000. Version 0.1.0 uses 1000. Review generated notes and keep Play release notes within 500 characters. This task creates no commit or tag and opts out of configuration caching while changing the working tree.
+
+Build and Publish Release replaces the old Android checks workflow. Pushes, pull requests and manual builds run checks and build all debug/release APKs; they do not publish. Without signing secrets these builds remain unsigned. A published GitHub Release checks out its tag, requires signing, builds Play AABs, attaches both signed F-Droid APKs and starts the store jobs. Stable v<version> tags upload completed releases to Play production and submit both F-Droid recipes independently. v<version>-beta and -beta.N tags upload to alpha (or PLAY_PRERELEASE_TRACK) and skip F-Droid. Numeric stable tags cannot be GitHub prereleases. Play rejects reused version codes; promote an existing beta in Play Console or prepare a new version for another upload.
+
+Required repository secrets are ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD, PLAY_SERVICE_ACCOUNT_JSON, GITLAB_NAMESPACE and GITLAB_TOKEN. Signing secrets belong to this app, not the reference project. The Play secret contains JSON credentials with access to both Play packages. Local Gradle instead accepts PLAY_SERVICE_ACCOUNT_JSON as a file path, or ANDROID_PUBLISHER_CREDENTIALS as JSON contents. Local signing uses ANDROID_KEYSTORE_PATH and the three signing password/alias variables; build-signed-release.bat provides the reference's interactive helper. Store apps, permissions, initial uploads, listing/policy setup and the public GitLab fdroiddata fork remain external prerequisites.
+
+The Google Play Listing workflow defaults to local validation and a review artifact. Its publish option uploads both Play listings and permits Google review submission. Local equivalents are :app:preparePlayListing and -PplayPublishing -PplaySubmitForReview=true :app:publishPlayListing. Binary uploads and listing publication are separate, using the same Play concurrency group. The optional Gradle binary tasks publishGplayHandheldReleaseBundle and publishGplayWearReleaseBundle default to internal-track drafts.
+
+Shared Fastlane metadata contains English and Italian descriptions and English versioned notes. A 512×512 store icon must be exported from artwork/Aho-GPT.png; real phone screenshots and a 1024×500 opaque feature graphic must be added before publication; validators reject missing assets. No Vibro graphics, signing keys or publisher credentials are copied.
+
+F-Droid readiness verifies the selected device APK's package, version and signer against the public release attachment. Submission renders the release commit and signer into one app recipe per merge request, lints metadata, pushes to the configured GitLab fork, waits for successful fork CI and creates or reuses its merge request. Closed requests are not duplicated. Manual dispatch can retry one device without a Play upload. Repository recipes keep a signer placeholder until verified rendering. F-Droid acceptance, anti-feature classification and reproducible APK publication remain subject to its review and build process; preparing these workflows does not establish a store upload or acceptance.
+
 ## Validation
 
-Use PMD with the inherited reference limits, plain JVM unit tests for protocol/session safety, lint for both variants, and debug/release builds with release shrinking. Explicitly distinguish static/build verification from physical-device integration testing. Maintain zero runtime dependencies.
+Use PMD with the inherited reference limits, plain JVM unit tests for protocol/session safety, lint for all four distribution/device variants, and debug/release builds with release shrinking. Explicitly distinguish static/build verification from physical-device integration testing. Maintain zero runtime dependencies.
 
 Build with JDK 21, Android SDK 37 and the supplied Gradle 9.8.1 wrapper (AGP 9.4.1, Java 17 sources). Configure the SDK in untracked `local.properties` or `ANDROID_HOME`. Release distribution requires a signing configuration.
 
 ```powershell
 $env:JAVA_HOME = 'C:\Program Files\Android\Android Studio\jbr'
-.\gradlew.bat complexityCheck testHandheldDebugUnitTest testWearDebugUnitTest lintHandheldDebug lintWearDebug assembleHandheldDebug assembleWearDebug assembleHandheldRelease assembleWearRelease
+.\gradlew.bat complexityCheck verifyReleaseVersionCode testGplayHandheldDebugUnitTest testGplayWearDebugUnitTest testFdroidHandheldDebugUnitTest testFdroidWearDebugUnitTest lintFdroidHandheldDebug lintFdroidWearDebug lintGplayHandheldDebug lintGplayWearDebug assembleDebug assembleRelease bundleGplayHandheldRelease bundleGplayWearRelease
 ```
 
 These checks do not verify live OAuth, spoken requests, provider behavior or physical phone/TV/watch layouts.

@@ -1,0 +1,73 @@
+play {
+    enabled.set(false)
+    defaultToAppBundles.set(true)
+    track.set("internal")
+    releaseStatus.set("DRAFT")
+
+    // Alternatively, GPP reads JSON from ANDROID_PUBLISHER_CREDENTIALS.
+    def credentialsPath = providers.environmentVariable("PLAY_SERVICE_ACCOUNT_JSON")
+    if (credentialsPath.isPresent()) {
+        serviceAccountCredentials.set(rootProject.file(credentialsPath.get()))
+    }
+}
+
+android {
+    playConfigs {
+        gplayHandheldRelease { enabled.set(true) }
+        gplayWearRelease { enabled.set(true) }
+    }
+}
+
+def validatePlaySigning = tasks.register("validatePlaySigning") {
+    group = "publishing"
+    description = "Checks the signing environment before publishing a Google Play release."
+    doLast {
+        def required = ["ANDROID_KEYSTORE_PATH", "ANDROID_KEYSTORE_PASSWORD",
+                        "ANDROID_KEY_ALIAS", "ANDROID_KEY_PASSWORD"]
+        def missing = required.findAll { !System.getenv(it)?.trim() }
+        if (missing) {
+            throw new GradleException("Missing signing environment variables: ${missing.join(', ')}. See gradle/PLAY_STORE.md.")
+        }
+    }
+}
+
+tasks.matching { it.name in ["publishGplayHandheldReleaseBundle", "publishGplayHandheldReleaseApk", "publishGplayWearReleaseBundle", "publishGplayWearReleaseApk"] }.configureEach {
+    dependsOn(validatePlaySigning)
+}
+
+def listingReviewAllowed = providers.gradleProperty('playSubmitForReview').map { it == 'true' }.orElse(false)
+def validateListingPublication = tasks.register('validatePlayListingPublication') {
+    group = 'publishing'
+    description = 'Requires explicit consent to submit listing changes for Google review.'
+    inputs.property('submitForReview', listingReviewAllowed)
+    doLast {
+        if (!inputs.properties.submitForReview) {
+            throw new GradleException('Listing publication can submit changes for Google review. Review preparePlayListing output, then pass -PplaySubmitForReview=true to publish. No listing was uploaded.')
+        }
+    }
+}
+
+tasks.matching { it.name in ['publishGplayHandheldReleaseListing', 'publishGplayWearReleaseListing'] }.configureEach {
+    dependsOn(validateListingPublication)
+    // Reconcile remote metadata on every explicit publishing invocation.
+    outputs.upToDateWhen { false }
+}
+
+tasks.register('publishPlayListing') {
+    group = 'publishing'
+    description = 'Uploads shared listing text and images through GPP, allowing Google review submission; builds no APK/AAB.'
+    dependsOn('publishGplayHandheldReleaseListing', 'publishGplayWearReleaseListing')
+}
+
+// GPP assigns its source directories while registering Android variants.
+// Append the generated shared listing after that configuration, so it is not overwritten.
+def sharedListingResources = layout.buildDirectory.dir('generated/store-listing/play')
+afterEvaluate {
+    ['Handheld', 'Wear'].each { device ->
+        tasks.named("generateGplay${device}ReleasePlayResources").configure {
+            dependsOn(tasks.named('preparePlayListing'))
+            resSrcDirs.add(sharedListingResources)
+            resSrcTree.from(sharedListingResources.map { it.asFileTree })
+        }
+    }
+}

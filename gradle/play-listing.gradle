@@ -1,0 +1,119 @@
+import java.nio.ByteBuffer
+import java.nio.charset.CodingErrorAction
+import java.nio.charset.CharacterCodingException
+import java.nio.charset.StandardCharsets
+import javax.imageio.ImageIO
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.TaskAction
+
+abstract class VerifyPlayListingMetadata extends DefaultTask {
+    @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
+    abstract DirectoryProperty getMetadataDirectory()
+
+    @TaskAction
+    void verifyMetadata() {
+        File root = metadataDirectory.get().asFile
+        File[] locales = root.listFiles({ File entry -> entry.directory && !entry.name.startsWith('.') } as FileFilter)
+        if (!new File(root, 'en-US').directory) fail('The en-US fallback listing is required.')
+        locales.each { File locale ->
+            ['title.txt': 30, 'short_description.txt': 80, 'full_description.txt': 4000].each { String name, int limit ->
+                File source = new File(locale, name)
+                if (!source.file) fail("Missing listing text: ${source}")
+                String text = readListingText(source)
+                int length = text.codePointCount(0, text.length())
+                if (text.startsWith('\uFEFF') || length < 1 || length > limit) {
+                    fail("${source} must contain 1-${limit} UTF-8 characters without a BOM; found ${length}.")
+                }
+            }
+            File images = new File(locale, 'images')
+            File icon = new File(images, 'icon.png')
+            if (icon.file) {
+                def size = imageSize(icon, false)
+                if (size != [512, 512] || icon.length() > 1024 * 1024) fail("${icon} must be 512x512 and at most 1024 KB.")
+            } else if (locale.name == 'en-US') {
+                fail('The shared images/icon.png is required.')
+            }
+            List<File> banners = ['png', 'jpg', 'jpeg'].collect { new File(images, "featureGraphic.${it}") }.findAll { it.file }
+            if (banners.size() > 1 || (locale.name == 'en-US' && banners.size() != 1)) {
+                fail("${locale.name} must have a single shared feature graphic or one localized override.")
+            }
+            banners.each { File banner ->
+                if (imageSize(banner, true) != [1024, 500]) fail("${banner} must be exactly 1024x500.")
+            }
+            File screenshots = new File(images, 'phoneScreenshots')
+            List<File> shots = screenshots.directory ? screenshots.listFiles().findAll { it.file && it.name ==~ /(?i).+\.(png|jpe?g)/ } : []
+            if ((locale.name == 'en-US' || screenshots.directory) && (shots.size() < 2 || shots.size() > 8)) {
+                fail("${locale.name} must have 2-8 phone screenshots when that image set is provided.")
+            }
+            shots.each { File shot ->
+                def size = imageSize(shot, true)
+                if (size.min() < 320 || size.max() > 3840 || size.max() > 2 * size.min()) {
+                    fail("${shot} must be 320-3840 pixels per side, with the longer side at most twice the shorter.")
+                }
+            }
+        }
+        logger.lifecycle("Verified ${locales.length} listing locales and store images; no Google API calls made.")
+    }
+
+    static String readListingText(File source) {
+        try {
+            return StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
+                    .decode(ByteBuffer.wrap(source.bytes)).toString().strip()
+        } catch (CharacterCodingException error) {
+            throw new GradleException("${source} must be valid UTF-8.", error)
+        }
+    }
+
+    static List<Integer> imageSize(File source, boolean requireOpaque) {
+        def reader = ImageIO.read(source)
+        if (reader == null) fail("Unreadable store image: ${source}")
+        try {
+            if (requireOpaque && reader.colorModel.hasAlpha()) fail("${source} must be JPEG or PNG without an alpha channel.")
+            return [reader.width, reader.height]
+        } finally {
+            reader.flush()
+        }
+    }
+
+    static void fail(String message) {
+        throw new GradleException(message)
+    }
+}
+
+def sharedMetadataDirectory = rootProject.layout.projectDirectory.dir('fastlane/metadata/android')
+def generatedListingDirectory = layout.buildDirectory.dir('generated/store-listing/play')
+
+def verifyListing = tasks.register('verifyPlayListingMetadata', VerifyPlayListingMetadata) {
+    group = 'publishing'
+    description = 'Validates shared store listing text and images locally, without credentials or network calls.'
+    metadataDirectory.set(sharedMetadataDirectory)
+}
+
+tasks.register('preparePlayListing', Sync) {
+    group = 'publishing'
+    description = 'Converts shared Fastlane-format metadata into generated Gradle Play Publisher resources.'
+    dependsOn(verifyListing)
+    into(generatedListingDirectory)
+    includeEmptyDirs = false
+    from(sharedMetadataDirectory) {
+        include '*/title.txt', '*/short_description.txt', '*/full_description.txt'
+        include '*/images/icon.png', '*/images/featureGraphic.png', '*/images/featureGraphic.jpg', '*/images/featureGraphic.jpeg'
+        include '*/images/phoneScreenshots/*.png', '*/images/phoneScreenshots/*.jpg', '*/images/phoneScreenshots/*.jpeg'
+        eachFile { details ->
+            def parts = details.path.split('/')
+            def locale = parts[0]
+            if (parts.length == 2) {
+                details.path = "listings/${locale}/${parts[1].replace('_', '-')}"
+            } else {
+                def kind = parts[2] == 'phoneScreenshots' ? 'phone-screenshots' :
+                        (parts[2].startsWith('featureGraphic.') ? 'feature-graphic' : 'icon')
+                details.path = "listings/${locale}/graphics/${kind}/${parts[-1]}"
+            }
+        }
+    }
+}
+

@@ -1,0 +1,358 @@
+name: Submit F-Droid Metadata
+
+on:
+  workflow_dispatch:
+    inputs:
+      device:
+        description: Device build
+        required: true
+        type: choice
+        options: [handheld, wear]
+        default: handheld
+      release_ref:
+        description: Published stable tag with the signed device APK attached
+        required: true
+        default: "v0.1.0"
+      fdroiddata_branch:
+        description: "Branch name in your GitLab fdroiddata fork"
+        required: true
+        default: "aho.gpt.foss"
+  workflow_call:
+    inputs:
+      device:
+        description: "Device build: handheld or wear"
+        required: false
+        type: string
+        default: handheld
+      release_ref:
+        description: "Published v<versionName> release tag with signed APK attached"
+        required: true
+        type: string
+      fdroiddata_branch:
+        description: "Branch name in your GitLab fdroiddata fork"
+        required: false
+        type: string
+        default: "aho.gpt.foss"
+      release_artifact:
+        description: "Signed APK artifact from the calling release build"
+        required: false
+        type: string
+        default: ""
+    secrets:
+      ANDROID_KEYSTORE_BASE64:
+        required: true
+      ANDROID_KEYSTORE_PASSWORD:
+        required: true
+      ANDROID_KEY_ALIAS:
+        required: true
+      ANDROID_KEY_PASSWORD:
+        required: true
+      GITLAB_NAMESPACE:
+        required: true
+      GITLAB_TOKEN:
+        required: true
+
+jobs:
+  readiness:
+    uses: ./.github/workflows/fdroid-ready.yml
+    permissions:
+      contents: read
+    with:
+      device: ${{ inputs.device }}
+      release_ref: ${{ inputs.release_ref }}
+      verify_published_apk: true
+      release_artifact: ${{ inputs.release_artifact || '' }}
+    secrets: inherit
+
+  submit:
+    needs: readiness
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    concurrency:
+      group: fdroiddata-${{ inputs.fdroiddata_branch }}-${{ inputs.device }}
+      cancel-in-progress: false
+
+    env:
+      DEVICE: ${{ inputs.device }}
+      APP_ID: ${{ inputs.device == 'wear' && 'aho.gpt.foss.wear' || 'aho.gpt.foss' }}
+      TARGET_PROJECT: fdroid/fdroiddata
+      TARGET_BRANCH: master
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.release_ref }}
+
+      - name: Validate required secrets
+        shell: bash
+        env:
+          GITLAB_NAMESPACE: ${{ secrets.GITLAB_NAMESPACE }}
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "${GITLAB_NAMESPACE}" || { echo "Missing secret: GITLAB_NAMESPACE"; exit 1; }
+          test -n "${GITLAB_TOKEN}" || { echo "Missing secret: GITLAB_TOKEN"; exit 1; }
+
+      - name: Validate requested release ref
+        shell: bash
+        env:
+          RELEASE_REF: ${{ inputs.release_ref }}
+        run: |
+          set -euo pipefail
+          git rev-parse --verify "${RELEASE_REF}^{commit}" >/dev/null
+
+      - name: Install F-Droid metadata tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv "${RUNNER_TEMP}/fdroid-tools"
+          "${RUNNER_TEMP}/fdroid-tools/bin/pip" install --disable-pip-version-check \
+            'fdroidserver @ https://gitlab.com/fdroid/fdroidserver/-/archive/5806784d0d43bed7b938fd4b327162da68927060/fdroidserver-5806784d0d43bed7b938fd4b327162da68927060.tar.gz' \
+            ruamel.yaml==0.18.10
+
+      - name: Render fdroiddata metadata
+        id: render
+        shell: bash
+        env:
+          RELEASE_REF: ${{ inputs.release_ref }}
+          APK_SIGNING_KEY: ${{ needs.readiness.outputs.apk_signing_key }}
+        run: |
+          set -euo pipefail
+
+          python <<'PY'
+          import os
+          import re
+          import subprocess
+          from pathlib import Path
+
+          release_ref = os.environ["RELEASE_REF"]
+          release_commit = subprocess.check_output(["git", "rev-parse", "--verify", f"{release_ref}^{{commit}}"], text=True).strip()
+          build_gradle = subprocess.check_output(["git", "show", f"{release_commit}:app/build.gradle"], text=True)
+          version_name_match = re.search(r'versionName = "([^"]+)"', build_gradle)
+          version_code_match = re.search(r'versionCode = (\d+)', build_gradle)
+          if not version_name_match or not version_code_match:
+              raise SystemExit("Unable to parse versionName/versionCode from app/build.gradle")
+
+          version_name = version_name_match.group(1)
+          version_code = version_code_match.group(1)
+          repo = os.environ["GITHUB_REPOSITORY"]
+          repo_url = f"https://github.com/{repo}"
+          signing_key = os.environ["APK_SIGNING_KEY"].lower()
+          if not re.fullmatch(r"[0-9a-f]{64}", signing_key):
+              raise SystemExit("Missing or invalid verified APK signing certificate fingerprint")
+          if release_ref != f"v{version_name}":
+              raise SystemExit("Release tag must match v<versionName> for the upstream APK URL")
+
+          text = Path(f"fdroid/{os.environ['APP_ID']}.yml").read_text(encoding="utf-8")
+          replacements = {
+              r"^WebSite: .*$": f"WebSite: https://{repo.split('/')[0]}.github.io/{repo.split('/')[1]}/",
+              r"^SourceCode: .*$": f"SourceCode: {repo_url}",
+              r"^IssueTracker: .*$": f"IssueTracker: {repo_url}/issues",
+              r"^Repo: .*$": f"Repo: {repo_url}.git",
+              r"^Binaries: .*$": f"Binaries: {repo_url}/releases/download/v%v/app-fdroid-{os.environ['DEVICE']}-release.apk",
+              r"^AllowedAPKSigningKeys: .*$": f"AllowedAPKSigningKeys: {signing_key}",
+              r'^  - versionName: ".*"$': f'  - versionName: "{version_name}"',
+              r"^    versionCode: \d+$": f"    versionCode: {version_code}",
+              r"^    commit: .*$": f"    commit: {release_commit}",
+              r'^CurrentVersion: ".*"$': f'CurrentVersion: "{version_name}"',
+              r"^CurrentVersionCode: \d+$": f"CurrentVersionCode: {version_code}",
+          }
+          for pattern, replacement in replacements.items():
+              text, count = re.subn(pattern, replacement, text, flags=re.MULTILINE)
+              if count != 1:
+                  raise SystemExit(f"Expected exactly one match for pattern: {pattern}")
+
+          if "REPLACE_WITH_" in text:
+              raise SystemExit("Rendered metadata still contains placeholder values")
+
+          output_path = Path(os.environ["RUNNER_TEMP"]) / f"{os.environ['APP_ID']}.yml"
+          output_path.write_text(text, encoding="utf-8")
+
+          github_output = Path(os.environ["GITHUB_OUTPUT"])
+          with github_output.open("a", encoding="utf-8") as fh:
+              fh.write(f"version_name={version_name}\n")
+              fh.write(f"version_code={version_code}\n")
+              fh.write(f"metadata_path={output_path}\n")
+          PY
+
+      - name: Push metadata to fdroiddata fork
+        id: push
+        shell: bash
+        env:
+          GITLAB_NAMESPACE: ${{ secrets.GITLAB_NAMESPACE }}
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+          FDROIDDATA_BRANCH: ${{ format('{0}-{1}', inputs.fdroiddata_branch, inputs.device) }}
+          METADATA_PATH: ${{ steps.render.outputs.metadata_path }}
+          VERSION_NAME: ${{ steps.render.outputs.version_name }}
+          VERSION_CODE: ${{ steps.render.outputs.version_code }}
+          # fdroiddata's public config references this environment variable.
+          serverwebroot: ${{ runner.temp }}
+        run: |
+          set -euo pipefail
+
+          repo_url="https://oauth2:${GITLAB_TOKEN}@gitlab.com/${GITLAB_NAMESPACE}/fdroiddata.git"
+          workdir="${RUNNER_TEMP}/fdroiddata"
+
+          git clone "${repo_url}" "${workdir}"
+          cd "${workdir}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git ls-remote --exit-code --heads origin "${FDROIDDATA_BRANCH}" >/dev/null 2>&1; then
+            git fetch origin "${FDROIDDATA_BRANCH}"
+            git checkout -B "${FDROIDDATA_BRANCH}" "origin/${FDROIDDATA_BRANCH}"
+          else
+            git fetch origin "${TARGET_BRANCH}"
+            git checkout -B "${FDROIDDATA_BRANCH}" "origin/${TARGET_BRANCH}"
+          fi
+
+          cp "${METADATA_PATH}" "metadata/${APP_ID}.yml"
+          "${RUNNER_TEMP}/fdroid-tools/bin/fdroid" rewritemeta "${APP_ID}"
+          "${RUNNER_TEMP}/fdroid-tools/bin/fdroid" lint "${APP_ID}"
+
+          # Stage first: git diff alone ignores a new app's untracked metadata.
+          git add "metadata/${APP_ID}.yml"
+          if git diff --cached --quiet -- "metadata/${APP_ID}.yml"; then
+            echo "changed=false" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          git commit -m "Update ${APP_ID} to ${VERSION_NAME} (${VERSION_CODE})"
+          git push origin "${FDROIDDATA_BRANCH}"
+
+          echo "changed=true" >> "${GITHUB_OUTPUT}"
+
+      - name: Create or reuse merge request
+        if: success()
+        shell: bash
+        env:
+          GITLAB_NAMESPACE: ${{ secrets.GITLAB_NAMESPACE }}
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+          FDROIDDATA_BRANCH: ${{ inputs.fdroiddata_branch }}
+          RELEASE_REF: ${{ inputs.release_ref }}
+          VERSION_NAME: ${{ steps.render.outputs.version_name }}
+          VERSION_CODE: ${{ steps.render.outputs.version_code }}
+          CHANGED: ${{ steps.push.outputs.changed }}
+        run: |
+          set -euo pipefail
+
+          python <<'PY'
+          import json
+          import os
+          import sys
+          import time
+          import urllib.parse
+          import urllib.request
+          from pathlib import Path
+          from urllib.error import HTTPError
+
+          token = os.environ["GITLAB_TOKEN"]
+          namespace = os.environ["GITLAB_NAMESPACE"]
+          branch = os.environ["FDROIDDATA_BRANCH"]
+          target_project = os.environ["TARGET_PROJECT"]
+          target_branch = os.environ["TARGET_BRANCH"]
+          app_id = os.environ["APP_ID"]
+          version_name = os.environ["VERSION_NAME"]
+          version_code = os.environ["VERSION_CODE"]
+          changed = os.environ.get("CHANGED", "")
+
+          def api(method, path, data=None, allowed_statuses=()):
+              url = "https://gitlab.com/api/v4" + path
+              headers = {"PRIVATE-TOKEN": token}
+              body = None
+              if data is not None:
+                  body = urllib.parse.urlencode(data).encode("utf-8")
+                  headers["Content-Type"] = "application/x-www-form-urlencoded"
+              req = urllib.request.Request(url, data=body, method=method, headers=headers)
+              try:
+                  with urllib.request.urlopen(req) as response:
+                      return json.loads(response.read().decode("utf-8"))
+              except HTTPError as error:
+                  if error.code in allowed_statuses:
+                      return None
+                  detail = error.read().decode("utf-8", errors="replace")
+                  raise SystemExit(f"GitLab API {method} {path.split('?')[0]} failed (HTTP {error.code}): {detail}") from None
+
+          source_project_path = urllib.parse.quote(f"{namespace}/fdroiddata", safe="")
+          target_project_path = urllib.parse.quote(target_project, safe="")
+
+          source_project = api("GET", f"/projects/{source_project_path}")
+          target_project_info = api("GET", f"/projects/{target_project_path}")
+
+          # F-Droid requires successful fork CI before a submission is opened.
+          source_branch = api("GET", f"/projects/{source_project['id']}/repository/branches/{urllib.parse.quote(branch, safe='')}")
+          pipeline_query = urllib.parse.urlencode({"ref": branch, "sha": source_branch["commit"]["id"], "per_page": 10})
+          for attempt in range(120):
+              pipelines = api("GET", f"/projects/{source_project['id']}/pipelines?{pipeline_query}")
+              if pipelines:
+                  pipeline = pipelines[0]
+                  status = pipeline["status"]
+                  if status == "success":
+                      break
+                  if status in ("failed", "canceled", "skipped", "manual"):
+                      raise SystemExit(f"F-Droid fork CI is {status}: {pipeline['web_url']}. Fix it before submitting; no merge request was opened.")
+              if attempt % 4 == 0:
+                  print("Waiting for F-Droid fork CI to pass...", flush=True)
+              time.sleep(30)
+          else:
+              raise SystemExit("Timed out waiting for F-Droid fork CI; no merge request was opened.")
+
+          existing = api(
+              "GET",
+              "/projects/{}/merge_requests?{}".format(
+                  source_project["id"],
+                  urllib.parse.urlencode(
+                      {
+                          "state": "all",
+                          "source_branch": branch,
+                          "target_branch": target_branch,
+                          "target_project_id": target_project_info["id"],
+                      }
+                  ),
+              ),
+          )
+          existing = [mr for mr in existing if mr["state"] in ("opened", "closed")]
+
+          if existing:
+              if existing[0]["state"] == "closed":
+                  raise SystemExit(f"A reviewer closed this merge request: {existing[0]['web_url']}. Address the review and reopen that request manually; no duplicate was created.")
+              print(f"Existing merge request: {existing[0]['web_url']}")
+              sys.exit(0)
+
+          metadata_file = urllib.parse.quote(f"metadata/{app_id}.yml", safe="")
+          target_metadata = api("GET", f"/projects/{target_project_info['id']}/repository/files/{metadata_file}?ref={urllib.parse.quote(target_branch, safe='')}", allowed_statuses=(404,))
+          new_app = target_metadata is None
+          app_name = "Aho! GPT Wear FOSS" if os.environ["DEVICE"] == "wear" else "Aho! GPT FOSS"
+          title = f"New app: {app_name}" if new_app else f"{app_name}: update to {version_name} ({version_code})"
+          template = "fdroid/APP_INCLUSION.md" if new_app else "fdroid/APP_UPDATE.md"
+          description = Path(template).read_text(encoding="utf-8")
+          for key, value in {
+              "APP_ID": app_id,
+              "DEVICE": os.environ["DEVICE"],
+              "RELEASE_REF": os.environ["RELEASE_REF"],
+              "VERSION_NAME": version_name,
+              "VERSION_CODE": version_code,
+              "PIPELINE_URL": pipeline["web_url"],
+          }.items():
+              description = description.replace("{{" + key + "}}", value)
+          if "{{" in description or "}}" in description:
+              raise SystemExit("Unresolved placeholders in the F-Droid merge-request template")
+
+          created = api(
+              "POST",
+              f"/projects/{source_project['id']}/merge_requests",
+              {
+                  "source_branch": branch,
+                  "target_branch": target_branch,
+                  "target_project_id": target_project_info["id"],
+                  "title": title,
+                  "description": description,
+                  "remove_source_branch": "false",
+              },
+          )
+          print(f"Created merge request: {created['web_url']}")
+          PY
