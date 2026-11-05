@@ -12,6 +12,7 @@ import aho.gpt.custom.live.LiveStage;
 import aho.gpt.custom.realtime.RealtimeProtocol;
 import aho.gpt.custom.realtime.RealtimeSocket;
 import aho.gpt.openai.AgentLoop;
+import aho.gpt.logging.LiveLogEvent;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -72,6 +73,8 @@ public final class LiveTurnTest {
     private void trace(JSONObject event) {
         LiveStage stage = LiveStage.of(event);
         if (seen.add(stage)) { report(stage.name()); }
+        String failure = LiveLogEvent.failure(event);
+        if (!failure.isEmpty()) { report(failure); }
     }
     private void report(String stage) {
         Bundle status = new Bundle(); status.putString("live_stage", stage);

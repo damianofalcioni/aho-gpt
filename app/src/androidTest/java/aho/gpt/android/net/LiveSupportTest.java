@@ -11,7 +11,7 @@ import aho.gpt.custom.realtime.RealtimeProtocol;
 import aho.gpt.custom.realtime.RealtimeSocket;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import java.util.Arrays;
+import aho.gpt.logging.LiveLogEvent;
 import java.io.IOException;
 
 /** Opt-in configuration check with saved credentials; never records audio or changes settings. */
@@ -71,16 +71,9 @@ public final class LiveSupportTest {
         report(STAGE, "saved");
     }
     private void inspect(JSONObject event) {
-        if ("error".equals(event.optString("type"))) {
-            JSONObject error = event.optJSONObject("error");
-            if (error != null) {
-                report("error_code", allowed(error.optString("code"), "invalid_api_key", "model_not_found", "invalid_value", "invalid_request_error", "unsupported_model", "insufficient_quota", "rate_limit_exceeded"));
-                report("error_type", allowed(error.optString("type"), "invalid_request_error", "server_error", "authentication_error", "permission_error"));
-                report("error_param", allowed(error.optString("param"), "model", "session.model", "delegation.responses.model", "session.delegation.responses.model", "session", "audio", "session.audio"));
-            }
-        }
+        String failure = LiveLogEvent.failure(event);
+        if (!failure.isEmpty()) { report("live_error", failure); }
     }
-    private String allowed(String value, String... choices) { return Arrays.asList(choices).contains(value) ? value : "other"; }
     private void report(String name, String value) {
         Bundle status = new Bundle(); status.putString(name, value); instrumentation.sendStatus(0, status);
     }

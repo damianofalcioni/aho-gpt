@@ -8,6 +8,7 @@ import org.json.JSONObject;
 public enum LiveStage {
     STARTED, INPUT_TRANSCRIBED, VOICE_AUDIO, VOICE_TRANSCRIPT, DELEGATED, BACKEND_STARTED, BACKEND_COMPLETED, FAILED, CLOSED, OTHER;
     private static final Map<String, LiveStage> EVENTS = events();
+    private static final Map<String, LiveStage> BACKEND = backendEvents();
     private static Map<String, LiveStage> events() {
         Map<String, LiveStage> events = new HashMap<>();
         events.put("session.started", STARTED); events.put("session.input_transcript.delta", INPUT_TRANSCRIBED);
@@ -18,15 +19,20 @@ public enum LiveStage {
     public static LiveStage of(JSONObject event) {
         String type = event.optString("type");
         if ("response.event".equals(type)) { return backend(event.optJSONObject("event")); }
-        LiveStage stage = EVENTS.get(type); return stage == null ? OTHER : stage;
+        return lookup(EVENTS, type);
     }
     private static LiveStage backend(JSONObject event) {
         if (event == null) { return OTHER; }
-        return switch (event.optString("type")) {
-            case "response.created" -> BACKEND_STARTED;
-            case "response.completed" -> BACKEND_COMPLETED;
-            case "response.failed", "response.incomplete" -> FAILED;
-            default -> OTHER;
-        };
+        return lookup(BACKEND, event.optString("type"));
+    }
+    private static Map<String, LiveStage> backendEvents() {
+        Map<String, LiveStage> events = new HashMap<>();
+        events.put("response.created", BACKEND_STARTED); events.put("response.completed", BACKEND_COMPLETED);
+        events.put("response.failed", FAILED); events.put("response.incomplete", FAILED);
+        events.put("response.cancelled", FAILED); events.put("error", FAILED);
+        return events;
+    }
+    private static LiveStage lookup(Map<String, LiveStage> events, String type) {
+        LiveStage stage = events.get(type); return stage == null ? OTHER : stage;
     }
 }

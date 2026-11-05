@@ -82,6 +82,8 @@ Use the completed backend answer for visible text and temporary history when wor
 
 Startup history uses `input_text` for user messages and `output_text` for assistant replies, as required by the Live schema. It excludes captured audio and tool receipts.
 
+Live diagnostics include a process-local connection sequence, elapsed time, fixed outgoing command names and incoming stages. Log only the first audio append per connection, without its payload or size. Record allowlisted error types, codes and parameter paths for session and nested backend failures, backend status and incomplete reason, and session close reason. Missing values use `none`; unknown or malformed values use `other`. Transport failures identify send or receive and use the normal message-free exception logging. Support and synthetic-turn fixtures use the same metadata filter. Never log provider messages or remote event, response, delegation or session IDs.
+
 JVM fixtures cover startup validation, independent models, complete backend/tool exchanges, malformed and incomplete calls, cancellation, bounded audio, text-only output, saved mode precedence and the Live endpoint path. The optional server-speech instrumentation fixture also covers separate GPT-Live spinners and nested OK/Cancel. Static/build checks do not establish live GPT-Live access, provider behavior, voice timing or physical-device playback.
 
 ## Device capabilities

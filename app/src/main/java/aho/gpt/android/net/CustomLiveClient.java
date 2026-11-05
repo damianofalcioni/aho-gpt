@@ -18,6 +18,7 @@ public final class CustomLiveClient {
     private RealtimeSocket active;
     private RequestScope owner;
     private LiveProtocol protocol;
+    private CustomLiveEvents events;
     private String model;
     private SpeechApiConfig config;
     private boolean started;
@@ -25,7 +26,8 @@ public final class CustomLiveClient {
         RealtimeSocket socket = new RealtimeSocket(); activate(socket, scope);
         model = selected.isEmpty() ? ServerModels.first(models.json(base + "/models", token, null, scope)) : selected;
         this.config = config; started = false;
-        socket.connectLive(base, token, scope); socket.readTimeout(15_000); protocol = new LiveProtocol(new CustomLiveEvents(socket));
+        socket.connectLive(base, token, scope); socket.readTimeout(15_000);
+        events = new CustomLiveEvents(socket); protocol = new LiveProtocol(events);
     }
     public void check(RequestScope scope) throws Exception {
         JSONObject request = new JSONObject().put("instructions", "Check session configuration.")
@@ -37,8 +39,7 @@ public final class CustomLiveClient {
             protocol.initialize(model, config, request, scope);
             active.readTimeout(60_000);
             RealtimeSocket socket = active;
-            pump.start(socket, RealtimeAudio.pcm(wav), scope, socket::close); started = true;
-            AppLogger.i("Live", "stage=INPUT_SENT");
+            pump.start(events, RealtimeAudio.pcm(wav), scope, socket::close); started = true;
         }
         return protocol.respond(request, scope);
     }
