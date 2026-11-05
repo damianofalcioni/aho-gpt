@@ -119,14 +119,18 @@ p {
 
 .hero-screenshot {
   display: block;
-  width: 180px;
+  width: 268px;
   max-width: 100%;
   justify-self: center;
+  padding: 6px;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: 24px;
 }
 
 .hero-screenshot img {
   display: block;
-  border: 1px solid var(--line);
+  width: 100%;
   border-radius: 16px;
 }
 
@@ -232,7 +236,6 @@ footer {
   }
 
   .hero-screenshot {
-    width: 100px;
     grid-row: 1;
   }
 
