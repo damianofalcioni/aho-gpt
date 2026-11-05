@@ -1,6 +1,7 @@
 package aho.gpt.custom.realtime;
 
 import java.io.DataOutputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.security.SecureRandom;
@@ -9,7 +10,7 @@ import java.security.SecureRandom;
 final class WebSocketFrameWriter {
     private final DataOutputStream output;
     private final SecureRandom random = new SecureRandom();
-    WebSocketFrameWriter(OutputStream output) { this.output = new DataOutputStream(output); }
+    WebSocketFrameWriter(OutputStream output) { this.output = new DataOutputStream(new BufferedOutputStream(output)); }
     synchronized void send(int opcode, byte[] body) throws IOException {
         if (body.length > 8_000_000) { throw new IOException("Realtime message too large"); }
         output.writeByte(128 | opcode);

@@ -10,8 +10,9 @@ public class LiveResponsesTest {
     private static final String DONE = "response.output_item.done";
     private static final String ADDED = "response.output_item.added";
     private static final String RESPONSE_ID = "response_id";
+    private static final String COMPLETED = "completed";
     @Test public void partialArgumentsAreIgnoredUntilCompletedBackendResponse() throws Exception {
-        LiveFixture fixture = new LiveFixture(); fixture.response("completed", call()); LiveResponses responses = new LiveResponses();
+        LiveFixture fixture = new LiveFixture(); fixture.response(COMPLETED, call()); LiveResponses responses = new LiveResponses();
         assertNull(responses.consume(fixture.queue.remove()));
         assertNull(responses.consume(nested(event("response.function_call_arguments.delta").put("delta", "{"))));
         assertNull(responses.consume(fixture.queue.remove())); assertNull(responses.consume(fixture.queue.remove()));
@@ -23,8 +24,22 @@ public class LiveResponsesTest {
         assertThrows(IOException.class, () -> responses.consume(nested(item(DONE, 0, call()).put(RESPONSE_ID, "foreign"))));
         assertThrows(IOException.class, () -> responses.consume(nested(item(DONE, 0, call())).put("delegation_id", "foreign")));
     }
+    @Test public void optionalResponseIdsMustStillMatchWhenProvided() throws Exception {
+        LiveFixture fixture = new LiveFixture(); fixture.response(COMPLETED, call()); LiveResponses responses = new LiveResponses();
+        responses.consume(fixture.queue.remove());
+        responses.consume(fixture.queue.remove().put("event", item(ADDED, 0, call()).put(RESPONSE_ID, "r1")));
+        responses.consume(fixture.queue.remove().put("event", item(DONE, 0, call()).put(RESPONSE_ID, "r1")));
+        assertEquals(1, responses.consume(fixture.queue.remove()).getJSONArray("output").length());
+    }
+    @Test public void unownedItemsAndMismatchedTerminalResponsesAreRejected() throws Exception {
+        assertThrows(IOException.class, () -> new LiveResponses().consume(nested(item(ADDED, 0, call()))));
+        LiveResponses responses = started();
+        responses.consume(nested(item(ADDED, 0, call()))); responses.consume(nested(item(DONE, 0, call())));
+        JSONObject completed = event("response.completed").put("response", new JSONObject().put("id", "foreign").put("status", COMPLETED));
+        assertThrows(IOException.class, () -> responses.consume(nested(completed)));
+    }
     @Test public void missingOrDuplicateItemsCannotLookComplete() throws Exception {
-        LiveFixture fixture = new LiveFixture(); fixture.response("completed", call()); LiveResponses responses = new LiveResponses();
+        LiveFixture fixture = new LiveFixture(); fixture.response(COMPLETED, call()); LiveResponses responses = new LiveResponses();
         responses.consume(fixture.queue.remove()); responses.consume(fixture.queue.remove());
         fixture.queue.remove();
         assertThrows(IOException.class, () -> responses.consume(fixture.queue.remove()));

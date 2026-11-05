@@ -54,11 +54,14 @@ public final class LiveSession {
             size += text.length();
             if (size > 20_000) { return new JSONArray(); }
             if (!text.isEmpty()) {
-                JSONObject part = new JSONObject().put(TYPE, "input_text").put("text", text);
-                result.put(new JSONObject().put("role", role).put("content", new JSONArray().put(part)));
+                result.put(historyMessage(role, text));
             }
         }
         return result;
+    }
+    private static JSONObject historyMessage(String role, String text) throws Exception {
+        JSONObject part = new JSONObject().put(TYPE, "assistant".equals(role) ? "output_text" : "input_text").put("text", text);
+        return new JSONObject().put(TYPE, "message").put("role", role).put("content", new JSONArray().put(part));
     }
     private static String text(JSONObject item) throws Exception {
         Object content = item.opt("content");

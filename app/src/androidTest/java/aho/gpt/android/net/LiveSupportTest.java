@@ -20,8 +20,9 @@ public final class LiveSupportTest {
     private final Instrumentation instrumentation;
     private final String model;
     private final boolean save;
-    public LiveSupportTest(Instrumentation instrumentation, String model, boolean save) {
-        this.instrumentation = instrumentation; this.model = model; this.save = save;
+    private final boolean history;
+    public LiveSupportTest(Instrumentation instrumentation, String model, boolean save, boolean history) {
+        this.instrumentation = instrumentation; this.model = model; this.save = save; this.history = history;
     }
     public static boolean runRequested(Instrumentation instrumentation, Bundle arguments) {
         if (LiveTurnTest.runRequested(instrumentation, arguments)) { return true; }
@@ -29,7 +30,8 @@ public final class LiveSupportTest {
         if (model.isEmpty()) { return false; }
         Bundle results = new Bundle();
         try {
-            new LiveSupportTest(instrumentation, model, "true".equals(arguments.getString("live_probe_save"))).run();
+            new LiveSupportTest(instrumentation, model, "true".equals(arguments.getString("live_probe_save")),
+                    "true".equals(arguments.getString("live_probe_history"))).run();
             results.putString("stream", "Tests run: 1, Failures: 0\n");
         } catch (AssertionError failure) { results.putString("stream", "Tests run: 1, Failures: 1\n"); }
         instrumentation.finish(Activity.RESULT_OK, results); return true;
@@ -47,13 +49,18 @@ public final class LiveSupportTest {
                     JSONObject event = socket.receive(request); inspect(event); return event;
                 }
             });
-            JSONObject request = new JSONObject().put("instructions", "Check configuration.").put("input", new JSONArray()).put("tools", new JSONArray());
+            JSONObject request = new JSONObject().put("instructions", "Check configuration.").put("input", input()).put("tools", new JSONArray());
             protocol.initialize("saved".equals(model) ? settings.customModel() : model, config.speech(), request, scope);
             report(STAGE, "started"); protocol.close(scope); report(STAGE, "closed");
             if (save) { save(settings, config); }
         } catch (Exception exception) {
             throw new AssertionError("Live check failed: " + exception.getClass().getSimpleName(), exception);
         } finally { scope.cancel(); }
+    }
+    private JSONArray input() throws Exception {
+        if (!history) { return new JSONArray(); }
+        return new JSONArray().put(new JSONObject().put("role", "user").put("content", "What is two plus two?"))
+                .put(new JSONObject().put("role", "assistant").put("content", "Four."));
     }
     private void save(ProviderSettings settings, ProviderSettings.CustomConfig config) throws Exception {
         if (!settings.revision().equals(config.revision())) { throw new IllegalStateException("Configuration changed"); }

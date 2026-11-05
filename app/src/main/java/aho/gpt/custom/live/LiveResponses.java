@@ -32,7 +32,8 @@ public final class LiveResponses {
         if (response.isEmpty() || !delegation.equals(envelope.getString("delegation_id"))) { throw new IOException("Foreign Live response"); }
     }
     private void requireResponse(JSONObject event) throws Exception {
-        if (!response.equals(event.getString("response_id"))) { throw new IOException("Foreign Live item"); }
+        // Standard Responses item events use the active stream, not a response_id field.
+        if (event.has("response_id") && !response.equals(event.getString("response_id"))) { throw new IOException("Foreign Live item"); }
     }
     private JSONObject completed(JSONObject value) throws Exception {
         requireCompleted(value);

@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Random;
@@ -47,6 +48,14 @@ public class WebSocketWireTest {
             assertEquals(text, new String(body, StandardCharsets.UTF_8));
         }
     }
+    @Test public void audioFramesFlushAsOneSocketWrite() throws Exception {
+        CountingOutput output = new CountingOutput();
+        WebSocketFrameWriter writer = new WebSocketFrameWriter(output);
+        writer.send(1, new byte[6500]);
+        assertEquals(1, output.writes); assertEquals(6508, output.bytes); assertEquals(1, output.flushes);
+        writer.send(10, new byte[4]);
+        assertEquals(2, output.writes); assertEquals(6518, output.bytes); assertEquals(2, output.flushes);
+    }
     @Test public void fragmentedTextSurvivesInterleavedPing() throws Exception {
         ByteArrayOutputStream server = new ByteArrayOutputStream();
         server.write(frame(1, "hel")); server.write(frame(137, "ping")); server.write(frame(128, "lo"));
@@ -75,5 +84,13 @@ public class WebSocketWireTest {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream(); DataOutputStream output = new DataOutputStream(bytes);
         byte[] body = text.getBytes(StandardCharsets.UTF_8); output.writeByte(first); output.writeByte(body.length); output.write(body);
         return bytes.toByteArray();
+    }
+    private static final class CountingOutput extends OutputStream {
+        int writes;
+        int bytes;
+        int flushes;
+        @Override public void write(int value) { writes++; bytes++; }
+        @Override public void write(byte[] data, int offset, int count) { writes++; bytes += count; }
+        @Override public void flush() { flushes++; }
     }
 }

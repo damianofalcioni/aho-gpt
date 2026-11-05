@@ -29,7 +29,7 @@ final class LiveFixture implements RealtimeProtocol.Events {
         queue.add(nested(event("response.completed").put("response", new JSONObject().put("id", "r1").put("status", status).put("output", new JSONArray()))));
     }
     static JSONObject item(String type, int index, JSONObject item) throws Exception {
-        return event(type).put("response_id", "r1").put("output_index", index).put("item", item);
+        return event(type).put("output_index", index).put("item", item);
     }
     static JSONObject nested(JSONObject event) throws Exception { return event("response.event").put("delegation_id", "d1").put("event", event); }
     static JSONObject event(String type) throws Exception { return new JSONObject().put(TYPE, type); }
