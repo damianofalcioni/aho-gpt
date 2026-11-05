@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
@@ -13,6 +15,9 @@ import org.json.JSONObject;
 
 /** One configured host; TLS verifies its hostname. Closing interrupts pending reads. */
 public final class RealtimeSocket implements RealtimeProtocol.Events, AutoCloseable {
+    private static final Executor CLOSER = Executors.newCachedThreadPool(task -> {
+        Thread thread = new Thread(task, "Voice socket close"); thread.setDaemon(true); return thread;
+    });
     private Socket active;
     private WebSocketFrames frames;
     public void connect(String base, String model, String token, RequestScope scope) throws Exception {
@@ -49,10 +54,15 @@ public final class RealtimeSocket implements RealtimeProtocol.Events, AutoClosea
     @Override public JSONObject receive(RequestScope scope) throws Exception { return new JSONObject(frames.text(scope)); }
     public synchronized void readTimeout(int milliseconds) throws IOException { if (active != null) { active.setSoTimeout(milliseconds); } }
     @Override public synchronized void close() {
-        if (active != null) {
-            try { active.close(); }
-            catch (IOException ignored) { /* Cancellation is best effort; the scope remains revoked. */ }
-            active = null;
+        Socket socket = active;
+        active = null;
+        if (socket != null) {
+            // TLS close can write to the network. Cancellation may originate on Android's UI thread.
+            CLOSER.execute(() -> close(socket));
         }
+    }
+    private static void close(Socket socket) {
+        try { socket.close(); }
+        catch (IOException ignored) { /* Cancellation is best effort; the scope remains revoked. */ }
     }
 }
