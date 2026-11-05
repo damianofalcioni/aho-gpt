@@ -31,18 +31,34 @@ final class VoiceOverlay {
 
     private void attach() {
         AssistantAccessibilityService access = AssistantAccessibilityService.connected();
-        if (access == null && !Settings.canDrawOverlays(app)) { AppLogger.d(TAG, "Permission unavailable"); return; }
-        Context context = new ContextThemeWrapper(AppLanguage.wrap(access == null ? app : access), AppTheme.style(app));
-        manager = context.getSystemService(WindowManager.class);
-        view = new VoicePanel(context, this::speak, onClose);
-        int type = access == null ? overlayType() : WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY;
+        if (access != null && attach(access, WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY)) { return; }
+        if (!Settings.canDrawOverlays(app)) { AppLogger.d(TAG, "Permission unavailable"); return; }
+        attach(app, overlayType());
+    }
+
+    boolean attach(Context owner, int type) {
+        try {
+            // The service's manager holds its accessibility token; a configuration context loses it.
+            WindowManager windows = owner.getSystemService(WindowManager.class);
+            Context context = new ContextThemeWrapper(AppLanguage.wrap(owner), AppTheme.style(app));
+            VoicePanel candidate = new VoicePanel(context, this::speak, onClose);
+            windows.addView(candidate, parameters(context, type));
+            manager = windows; view = candidate;
+            AppLogger.d(TAG, "Attached accessibility=" + (type == WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY));
+            return true;
+        } catch (RuntimeException exception) {
+            AppLogger.w(TAG, "Attach failed", exception);
+            return false;
+        }
+    }
+
+    private WindowManager.LayoutParams parameters(Context context, int type) {
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 VoicePanelSize.width(context), VoicePanelSize.height(context), type,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, PixelFormat.TRANSLUCENT);
         params.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
         params.y = context.getResources().getDimensionPixelSize(R.dimen.voice_panel_margin);
-        try { manager.addView(view, params); AppLogger.d(TAG, "Attached accessibility=" + (access != null)); }
-        catch (RuntimeException exception) { AppLogger.w(TAG, "Attach failed", exception); view = null; }
+        return params;
     }
 
     @android.annotation.SuppressLint("WearRecents") // Returning from an overlay requires NEW_TASK.

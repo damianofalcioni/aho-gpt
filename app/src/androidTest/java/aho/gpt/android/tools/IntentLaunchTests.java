@@ -13,6 +13,7 @@ import aho.gpt.android.speech.RecognitionProvidersTest;
 import aho.gpt.android.ui.SpeechProviderNoticeTest;
 import aho.gpt.android.ui.AppLanguageTest;
 import aho.gpt.android.ui.ServerSpeechSettingsTest;
+import aho.gpt.android.ui.VoiceOverlayTest;
 import aho.gpt.android.access.ScreenAccessTest;
 import aho.gpt.android.net.LiveSupportTest;
 
@@ -54,9 +55,10 @@ public final class IntentLaunchTests extends Instrumentation {
         if (!shortcutLabel.isEmpty()) { new HomeShortcutLaunchTest(this, shortcutLabel, screenMarker).run(); return; }
         Check[] checks = {() -> launcher(Intent.CATEGORY_LAUNCHER), () -> launcher(Intent.CATEGORY_LEANBACK_LAUNCHER),
                 this::nonLauncher, this::deepLink, this::invalidData, this::rejectedLaunch,
-                this::mimeMetadata, this::discovery, () -> new AssistantEntryTest(getTargetContext()).run()};
+                this::mimeMetadata, this::discovery, () -> new AssistantEntryTest(getTargetContext()).run(),
+                () -> new VoiceOverlayTest(this).run()};
         String[] names = {"phoneLauncher", "tvLauncher", "nonLauncher", "deepLink", "invalidData", "rejectedLaunch",
-                "mimeMetadata", "discovery", "assistantEntry"};
+                "mimeMetadata", "discovery", "assistantEntry", "voiceOverlay"};
         int failures = 0;
         for (int i = 0; i < checks.length; i++) {
             if (!check(i, names[i], checks[i], checks.length)) { failures++; }

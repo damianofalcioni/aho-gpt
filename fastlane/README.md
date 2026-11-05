@@ -2,7 +2,7 @@
 
 metadata/android/ is the shared Fastlane Supply listing for Google Play and F-Droid. It contains English and Italian descriptions and English release notes. No Ruby or Fastlane executable is needed.
 
-Images are in metadata/android/en-US/images/: logo.png holds the original artwork, icon.png is the 512×512 store icon, and phoneScreenshots/ is ready for real phone screenshots (2–8). Before publishing, add those screenshots and an opaque 1024×500 featureGraphic.jpg or featureGraphic.png. Do not copy Vibro artwork. The local verifier and F-Droid readiness job refuse incomplete listings.
+Images are in metadata/android/en-US/images/: logo.png holds the original artwork, icon.png is the 512×512 store icon, and phoneScreenshots/ contains one phone screenshot. Before publishing, add at least one more screenshot (2–8 total) and an opaque 1024×500 featureGraphic.jpg or featureGraphic.png. Do not copy Vibro artwork. The local verifier and F-Droid readiness job refuse incomplete listings.
 
 logo-readme.png is the 160×160 rounded README variant, with transparent corners for light and dark backgrounds.
 
