@@ -12,7 +12,7 @@ final class CustomSpeechInput implements AutoCloseable {
     private final boolean realtime;
     CustomSpeechInput(Context context, SpeechInput.Listener listener) {
         work = new CustomSpeechWork(context); capture = new PcmCapture(context); this.listener = listener;
-        realtime = new ProviderSettings(context).customRealtime();
+        realtime = !new ProviderSettings(context).customSpeech();
     }
     void start(Locale language) {
         cancel();

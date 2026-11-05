@@ -15,17 +15,18 @@ import aho.gpt.core.RequestScope;
 import aho.gpt.custom.AudioMode;
 import aho.gpt.custom.ServerEndpoint;
 import aho.gpt.custom.SpeechApiConfig;
+import aho.gpt.custom.live.LiveSetupException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.EnumMap;
+import java.util.Map;
 
 /** Mutually exclusive draft speech routes; only successful checks can enable them. */
 final class CustomSpeechToggle implements AutoCloseable {
     private final Activity activity;
-    private final Switch speech;
-    private final TextView speechLabel;
-    private final TextView realtimeLabel;
-    private final Switch realtime;
+    private record Row(Switch control, TextView label, int title, int checking, int unavailable) { }
+    private final Map<AudioMode, Row> rows = new EnumMap<>(AudioMode.class);
     private final EditText endpoint;
     private final EditText token;
     private final CustomAudioProbe probe = new CustomAudioProbe();
@@ -44,13 +45,16 @@ final class CustomSpeechToggle implements AutoCloseable {
     private SpeechApiConfig configuration;
     CustomSpeechToggle(Activity activity, View content) {
         this.activity = activity;
-        speech = content.findViewById(R.id.custom_speech_apis); realtime = content.findViewById(R.id.custom_realtime_api);
-        speechLabel = content.findViewById(R.id.custom_speech_label);
-        realtimeLabel = content.findViewById(R.id.custom_realtime_label);
+        rows.put(AudioMode.SPEECH, new Row(content.findViewById(R.id.custom_speech_apis), content.findViewById(R.id.custom_speech_label),
+                R.string.custom_speech_apis, R.string.custom_speech_checking, R.string.custom_speech_unavailable));
+        rows.put(AudioMode.REALTIME, new Row(content.findViewById(R.id.custom_realtime_api), content.findViewById(R.id.custom_realtime_label),
+                R.string.custom_realtime_api, R.string.custom_realtime_checking, R.string.custom_realtime_unavailable));
+        rows.put(AudioMode.LIVE, new Row(content.findViewById(R.id.custom_live_api), content.findViewById(R.id.custom_live_label),
+                R.string.custom_live_api, R.string.custom_live_checking, R.string.custom_live_unavailable));
         endpoint = content.findViewById(R.id.custom_endpoint); token = content.findViewById(R.id.custom_token);
         model = new ProviderSettings(activity).customModel();
         configuration = new ProviderSettings(activity).speechConfig();
-        speech.setEnabled(false); realtime.setEnabled(false);
+        for (Row row : rows.values()) { row.control().setEnabled(false); }
     }
     void start() {
         mode = new ProviderSettings(activity).audioMode(); render();
@@ -67,8 +71,9 @@ final class CustomSpeechToggle implements AutoCloseable {
     void modelChanged(String value) {
         if (value.equals(model)) { return; }
         model = value;
-        if (mode == AudioMode.REALTIME || pending == AudioMode.REALTIME) { invalidate(); }
+        if (usesModel(mode) || usesModel(pending)) { invalidate(); }
     }
+    private boolean usesModel(AudioMode value) { return value == AudioMode.REALTIME || value == AudioMode.LIVE; }
     private void select(AudioMode requested, boolean checked) {
         if (!checked) { mode = AudioMode.PLATFORM; render(); return; }
         stop(); mode = AudioMode.PLATFORM; render();
@@ -81,30 +86,33 @@ final class CustomSpeechToggle implements AutoCloseable {
         work = worker.submit(() -> check(scope, requested, base, secret, selected, config));
     }
     private void check(RequestScope scope, AudioMode requested, String base, String secret, String selected, SpeechApiConfig config) {
-        boolean supported;
-        try { probe.check(requested, base, secret, selected, config, scope); scope.check(); supported = true; }
-        catch (Exception exception) { supported = false; }
-        boolean result = supported;
+        int outcome;
+        try { probe.check(requested, base, secret, selected, config, scope); scope.check(); outcome = 0; }
+        catch (Exception exception) { outcome = exception instanceof LiveSetupException ? R.string.custom_live_setup_rejected : -1; }
+        int result = outcome;
         activity.runOnUiThread(() -> finish(scope, requested, result));
     }
-    private void finish(RequestScope scope, AudioMode requested, boolean supported) {
+    private void finish(RequestScope scope, AudioMode requested, int result) {
         if (active != scope) { return; }
         active = null; work = null; pending = AudioMode.PLATFORM;
-        mode = supported ? requested : AudioMode.PLATFORM; render();
-        if (!supported) { unavailable(requested); }
+        mode = result == 0 ? requested : AudioMode.PLATFORM; render();
+        if (result != 0) { unavailable(requested, result); }
     }
     private void render() {
-        speech.setOnCheckedChangeListener(null); realtime.setOnCheckedChangeListener(null);
-        speech.setChecked(mode == AudioMode.SPEECH); realtime.setChecked(mode == AudioMode.REALTIME);
-        speech.setEnabled(!checking()); realtime.setEnabled(!checking());
-        speechLabel.setText(pending == AudioMode.SPEECH ? R.string.custom_speech_checking : R.string.custom_speech_apis);
-        realtimeLabel.setText(pending == AudioMode.REALTIME ? R.string.custom_realtime_checking : R.string.custom_realtime_api);
-        speech.setOnCheckedChangeListener((button, checked) -> select(AudioMode.SPEECH, checked));
-        realtime.setOnCheckedChangeListener((button, checked) -> select(AudioMode.REALTIME, checked));
+        for (var entry : rows.entrySet()) {
+            AudioMode value = entry.getKey(); Row row = entry.getValue();
+            row.control().setOnCheckedChangeListener(null);
+            row.control().setChecked(mode == value); row.control().setEnabled(!checking());
+            row.label().setText(pending == value ? row.checking() : row.title());
+            row.control().setOnCheckedChangeListener((button, checked) -> select(value, checked));
+        }
     }
     private void unavailable(AudioMode requested) {
+        unavailable(requested, -1);
+    }
+    private void unavailable(AudioMode requested, int reason) {
         if (toast != null) { toast.cancel(); }
-        int message = requested == AudioMode.REALTIME ? R.string.custom_realtime_unavailable : R.string.custom_speech_unavailable;
+        int message = reason > 0 ? reason : rows.get(requested).unavailable();
         toast = Toast.makeText(activity, message, Toast.LENGTH_SHORT); toast.show();
     }
     private void invalidate() { stop(); mode = AudioMode.PLATFORM; render(); }
@@ -117,6 +125,6 @@ final class CustomSpeechToggle implements AutoCloseable {
     @Override public void close() {
         stop(); worker.shutdownNow();
         endpoint.removeTextChangedListener(watcher); token.removeTextChangedListener(watcher);
-        speech.setOnCheckedChangeListener(null); realtime.setOnCheckedChangeListener(null);
+        for (Row row : rows.values()) { row.control().setOnCheckedChangeListener(null); }
     }
 }

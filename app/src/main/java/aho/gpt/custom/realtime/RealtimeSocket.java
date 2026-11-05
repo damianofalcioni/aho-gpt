@@ -16,13 +16,20 @@ public final class RealtimeSocket implements RealtimeProtocol.Events, AutoClosea
     private Socket active;
     private WebSocketFrames frames;
     public void connect(String base, String model, String token, RequestScope scope) throws Exception {
+        connect(base, model, token, false, scope);
+    }
+    public void connectLive(String base, String token, RequestScope scope) throws Exception {
+        connect(base, "", token, true, scope);
+    }
+    private void connect(String base, String model, String token, boolean live, RequestScope scope) throws Exception {
         URI uri = URI.create(ServerEndpoint.normalize(base));
         boolean tls = "https".equals(uri.getScheme());
         int port = uri.getPort() < 0 ? (tls ? 443 : 80) : uri.getPort();
         Socket socket = new Socket(); activate(socket, scope);
         socket.connect(new InetSocketAddress(uri.getHost(), port), 15_000); socket.setSoTimeout(60_000);
         Socket connected = tls ? secure(socket, uri.getHost(), port, scope) : socket;
-        WebSocketHandshake.upgrade(uri, model, token, connected.getInputStream(), connected.getOutputStream());
+        if (live) { WebSocketHandshake.upgradePath(uri, uri.getRawPath() + "/live/sessions", token, connected.getInputStream(), connected.getOutputStream()); }
+        else { WebSocketHandshake.upgrade(uri, model, token, connected.getInputStream(), connected.getOutputStream()); }
         scope.check(); frames = new WebSocketFrames(connected.getInputStream(), connected.getOutputStream());
     }
     private synchronized void activate(Socket socket, RequestScope scope) throws Exception {
@@ -40,6 +47,7 @@ public final class RealtimeSocket implements RealtimeProtocol.Events, AutoClosea
     }
     @Override public void send(JSONObject event, RequestScope scope) throws Exception { scope.check(); frames.text(event.toString()); }
     @Override public JSONObject receive(RequestScope scope) throws Exception { return new JSONObject(frames.text(scope)); }
+    public synchronized void readTimeout(int milliseconds) throws IOException { if (active != null) { active.setSoTimeout(milliseconds); } }
     @Override public synchronized void close() {
         if (active != null) {
             try { active.close(); }

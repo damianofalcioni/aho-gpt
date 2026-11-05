@@ -46,5 +46,15 @@
             <ImageButton android:id="@+id/custom_realtime_info" style="@style/SettingsInfo"
                 android:contentDescription="@string/setting_information" />
         </LinearLayout>
+        <LinearLayout style="@style/ConfigRow">
+            <TextView android:id="@+id/custom_live_label" style="@style/SettingsLabel"
+                android:labelFor="@id/custom_live_api" android:text="@string/custom_live_api" />
+            <ImageButton android:id="@+id/custom_live_settings" style="@style/SettingsIcon"
+                android:src="@drawable/ic_settings" android:contentDescription="@string/server_live_settings" />
+            <Switch android:id="@+id/custom_live_api" style="@style/SettingsSwitch"
+                android:contentDescription="@string/custom_live_api" android:saveEnabled="false" />
+            <ImageButton android:id="@+id/custom_live_info" style="@style/SettingsInfo"
+                android:contentDescription="@string/setting_information" />
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>

@@ -11,8 +11,6 @@ import android.widget.TextView;
 import aho.gpt.R;
 import aho.gpt.android.net.CustomSpeechCatalog;
 import aho.gpt.custom.ServerEndpoint;
-import aho.gpt.custom.SpeechApiConfig;
-import aho.gpt.custom.SpeechCatalog;
 import aho.gpt.custom.AudioMode;
 
 /** Nested drafts commit only to the parent Custom dialog; discovery has no speech side effects. */
@@ -31,43 +29,26 @@ final class ServerSpeechSettingsDialog implements AutoCloseable {
     };
     private AlertDialog dialog;
     private View content;
-    private ServerValueSpinner transcription;
-    private ServerValueSpinner playback;
-    private ServerValueSpinner voice;
-    private ServerValueSpinner realtimeVoice;
-    private CustomSpeechCatalog.Choices available;
+    private ServerSpeechChoices pickers;
     private int generation;
     ServerSpeechSettingsDialog(Activity activity, View parent, CustomSpeechToggle speech, AudioMode mode) {
         this.activity = activity; this.speech = speech; this.mode = mode;
         endpoint = parent.findViewById(R.id.custom_endpoint); token = parent.findViewById(R.id.custom_token);
-        button = parent.findViewById(mode == AudioMode.SPEECH ? R.id.custom_speech_settings : R.id.custom_realtime_settings); button.setEnabled(false);
+        button = parent.findViewById(ServerAudioOptions.of(mode).button()); button.setEnabled(false);
         button.setOnClickListener(view -> show());
         endpoint.addTextChangedListener(watcher); token.addTextChangedListener(watcher);
     }
     void ready() { button.setEnabled(true); }
     AlertDialog show() {
         dismiss();
-        int layout = mode == AudioMode.SPEECH ? R.layout.dialog_server_speech : R.layout.dialog_server_realtime;
-        content = activity.getLayoutInflater().inflate(layout, new FrameLayout(activity), false);
-        pickers();
-        int title = mode == AudioMode.SPEECH ? R.string.server_speech_settings : R.string.server_realtime_settings;
-        dialog = new AlertDialog.Builder(activity).setTitle(title).setView(content)
-                .setNegativeButton(android.R.string.cancel, null).setPositiveButton(android.R.string.ok, (window, which) -> apply()).create();
+        ServerAudioOptions options = ServerAudioOptions.of(mode);
+        content = activity.getLayoutInflater().inflate(options.layout(), new FrameLayout(activity), false);
+        pickers = new ServerSpeechChoices(activity, content, speech, mode);
+        dialog = new AlertDialog.Builder(activity).setTitle(options.title()).setView(content)
+                .setNegativeButton(android.R.string.cancel, null).setPositiveButton(android.R.string.ok, (window, which) -> pickers.apply()).create();
         dialog.setOnDismissListener(ignored -> stop());
         content.findViewById(R.id.server_speech_refresh).setOnClickListener(view -> refresh());
         dialog.show(); refresh(); return dialog;
-    }
-    private void pickers() {
-        SpeechApiConfig config = speech.configuration();
-        if (mode == AudioMode.REALTIME) {
-            realtimeVoice = picker(R.id.server_realtime_voice, R.string.server_realtime_voice, config.realtimeVoice(), () -> { }); return;
-        }
-        transcription = picker(R.id.server_transcription_model, R.string.server_transcription_model, config.transcriptionModel(), () -> { });
-        playback = picker(R.id.server_speech_model, R.string.server_speech_model, config.speechModel(), this::voices);
-        voice = picker(R.id.server_speech_voice, R.string.server_speech_voice, config.voice(), () -> { });
-    }
-    private ServerValueSpinner picker(int id, int title, String value, Runnable changed) {
-        return new ServerValueSpinner(activity, content.findViewById(id), title, value, changed);
     }
     private void refresh() {
         int request = ++generation;
@@ -75,25 +56,10 @@ final class ServerSpeechSettingsDialog implements AutoCloseable {
         try { base = ServerEndpoint.normalize(endpoint.getText().toString()); }
         catch (IllegalArgumentException exception) { status(R.string.custom_endpoint_invalid); return; }
         status(R.string.server_speech_loading);
-        catalog.load(base, token.getText().toString(), mode == AudioMode.SPEECH, choices -> activity.runOnUiThread(() -> {
+        catalog.load(base, token.getText().toString(), mode != AudioMode.REALTIME, choices -> activity.runOnUiThread(() -> {
             if (request != generation || dialog == null || !dialog.isShowing()) { return; }
-            available = choices;
-            if (mode == AudioMode.SPEECH) { transcription.choices(choices.models()); playback.choices(choices.models()); }
-            voices();
-            status(choices);
+            pickers.loaded(choices); status(choices);
         }));
-    }
-    private void voices() {
-        if (available == null) { return; }
-        if (mode == AudioMode.REALTIME) { realtimeVoice.choices(available.openAi() ? SpeechCatalog.realtimeVoices() : available.voices()); }
-        else { voice.choices(available.openAi() ? SpeechCatalog.speechVoices(playback.value()) : available.voices()); }
-    }
-    private void apply() {
-        SpeechApiConfig current = speech.configuration();
-        SpeechApiConfig config = mode == AudioMode.SPEECH
-                ? new SpeechApiConfig(transcription.value(), playback.value(), voice.value(), current.realtimeVoice())
-                : new SpeechApiConfig(current.transcriptionModel(), current.speechModel(), current.voice(), realtimeVoice.value());
-        speech.configure(config);
     }
     private void status(int message) { ((TextView) content.findViewById(R.id.server_speech_status)).setText(message); }
     private void status(CustomSpeechCatalog.Choices choices) {
@@ -109,9 +75,8 @@ final class ServerSpeechSettingsDialog implements AutoCloseable {
         if (dialog != null && dialog.isShowing()) { status(R.string.server_speech_refresh_hint); }
     }
     private void stop() {
-        generation++; catalog.cancel(); available = null;
-        if (transcription != null) { transcription.close(); playback.close(); voice.close(); }
-        if (realtimeVoice != null) { realtimeVoice.close(); }
+        generation++; catalog.cancel();
+        if (pickers != null) { pickers.close(); }
     }
     private void dismiss() { if (dialog != null) { dialog.dismiss(); dialog = null; } }
     @Override public void close() {

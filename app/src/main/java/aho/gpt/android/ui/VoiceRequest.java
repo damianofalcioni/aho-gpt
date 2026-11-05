@@ -23,16 +23,16 @@ final class VoiceRequest {
     private final AssistantApplication app;
     private final Conversation conversation;
     private final Handler main = new Handler(Looper.getMainLooper());
-    private final RealtimeRequest realtime;
+    private final ServerAudioRequest realtime;
     private RequestScope active;
     private Future<?> work;
 
     VoiceRequest(Activity activity, Conversation conversation) {
         this.activity = activity; this.conversation = conversation;
         app = (AssistantApplication) activity.getApplication();
-        realtime = new RealtimeRequest(activity, conversation);
+        realtime = new ServerAudioRequest(activity, conversation);
     }
-    void startAudio(byte[] wav, long time, AgentLoop.Progress progress, RealtimeRequest.Answer answer, Callback failure) {
+    void startAudio(byte[] wav, long time, AgentLoop.Progress progress, ServerAudioRequest.Answer answer, Callback failure) {
         cancel(); realtime.start(wav, time, progress, answer, failure);
     }
     void start(String text, long speechTime, AgentLoop.Progress progress, Callback answer, Callback failure) {

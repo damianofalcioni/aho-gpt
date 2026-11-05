@@ -18,11 +18,13 @@ import aho.gpt.custom.SpeechApiConfig;
 public final class ServerSpeechSettingsTest {
     private static final String REALTIME_SAVED = "realtime-saved";
     private static final String TTS_SERVER = "tts-server";
+    private static final String VOICE_SERVER = "voice-server";
     private final Instrumentation instrumentation;
     private Activity activity;
     private CustomSpeechToggle speech;
     private ServerSpeechSettingsDialog playback;
     private ServerSpeechSettingsDialog realtime;
+    private ServerSpeechSettingsDialog live;
     private AlertDialog window;
     public ServerSpeechSettingsTest(Instrumentation instrumentation) { this.instrumentation = instrumentation; }
     public void run() throws Exception {
@@ -31,7 +33,7 @@ public final class ServerSpeechSettingsTest {
         activity = instrumentation.startActivitySync(new Intent(context, SettingsActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
         try (SpeechCatalogFixture fixture = new SpeechCatalogFixture()) {
             main(() -> prepare(fixture.base()));
-            speechChoices(); realtimeChoices(); manualValue();
+            speechChoices(); realtimeChoices(); liveChoices(); manualValue();
             require(saved.equals(new ProviderSettings(context).speechConfig()), "Draft dialogs must not change saved provider settings");
         } finally {
             main(() -> { close(); activity.finish(); }); instrumentation.waitForIdleSync();
@@ -44,7 +46,8 @@ public final class ServerSpeechSettingsTest {
         speech.configure(new SpeechApiConfig("stt-saved", "tts-saved", "voice-saved", REALTIME_SAVED));
         playback = new ServerSpeechSettingsDialog(activity, parent, speech, AudioMode.SPEECH);
         realtime = new ServerSpeechSettingsDialog(activity, parent, speech, AudioMode.REALTIME);
-        playback.ready(); realtime.ready();
+        live = new ServerSpeechSettingsDialog(activity, parent, speech, AudioMode.LIVE);
+        playback.ready(); realtime.ready(); live.ready();
     }
     private void speechChoices() throws Exception {
         main(() -> {
@@ -52,7 +55,7 @@ public final class ServerSpeechSettingsTest {
             require(window.findViewById(R.id.server_realtime_voice) == null, "Speech settings must not contain Realtime voice");
         });
         choose(R.id.server_transcription_model, "stt-server"); choose(R.id.server_speech_model, TTS_SERVER);
-        choose(R.id.server_speech_voice, "voice-server");
+        choose(R.id.server_speech_voice, VOICE_SERVER);
         click(AlertDialog.BUTTON_POSITIVE);
         main(() -> {
             require(TTS_SERVER.equals(speech.configuration().speechModel()), "OK must update the parent speech draft");
@@ -89,6 +92,21 @@ public final class ServerSpeechSettingsTest {
             }
         });
     }
+    private void liveChoices() throws Exception {
+        SpeechApiConfig[] before = {null};
+        main(() -> { before[0] = speech.configuration(); window = live.show(); });
+        choose(R.id.server_live_model, TTS_SERVER); choose(R.id.server_live_voice, VOICE_SERVER);
+        click(AlertDialog.BUTTON_NEGATIVE);
+        main(() -> { require(before[0].equals(speech.configuration()), "Cancel must discard Live changes"); window = live.show(); });
+        choose(R.id.server_live_model, TTS_SERVER); choose(R.id.server_live_voice, VOICE_SERVER);
+        click(AlertDialog.BUTTON_POSITIVE);
+        main(() -> {
+            require(TTS_SERVER.equals(speech.configuration().liveModel()), "Live model must be saved in the parent draft");
+            require(VOICE_SERVER.equals(speech.configuration().liveVoice()), "Live voice must be saved in the parent draft");
+            require(before[0].sameSpeech(speech.configuration()), "Live edits must preserve speech settings");
+            require(before[0].realtimeVoice().equals(speech.configuration().realtimeVoice()), "Live edits must preserve Realtime voice");
+        });
+    }
     private void choose(int id, String value) throws Exception {
         long deadline = SystemClock.elapsedRealtime() + 5000; boolean[] found = {false};
         while (!found[0] && SystemClock.elapsedRealtime() < deadline) {
@@ -105,7 +123,7 @@ public final class ServerSpeechSettingsTest {
         return false;
     }
     private void close() {
-        if (playback != null) { playback.close(); realtime.close(); speech.close(); }
+        if (playback != null) { playback.close(); realtime.close(); live.close(); speech.close(); }
     }
     private void click(int button) {
         main(() -> window.getButton(button).performClick()); instrumentation.waitForIdleSync();

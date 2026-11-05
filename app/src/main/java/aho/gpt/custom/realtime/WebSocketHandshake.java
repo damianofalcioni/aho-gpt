@@ -18,10 +18,13 @@ import java.util.Arrays;
 final class WebSocketHandshake {
     private WebSocketHandshake() { }
     static void upgrade(URI base, String model, String token, InputStream input, OutputStream output) throws Exception {
+        String path = base.getRawPath() + "/realtime?model=" + URLEncoder.encode(model, StandardCharsets.UTF_8.name());
+        upgradePath(base, path, token, input, output);
+    }
+    static void upgradePath(URI base, String path, String token, InputStream input, OutputStream output) throws Exception {
         if (token.indexOf('\r') >= 0 || token.indexOf('\n') >= 0) { throw new IOException("Invalid server token"); }
         byte[] nonce = new byte[16]; new SecureRandom().nextBytes(nonce);
         String key = WireBase64.encode(nonce);
-        String path = base.getRawPath() + "/realtime?model=" + URLEncoder.encode(model, StandardCharsets.UTF_8.name());
         String host = base.getRawAuthority();
         String request = "GET " + path + " HTTP/1.1\r\nHost: " + host + "\r\nUpgrade: websocket\r\n"
                 + "Connection: Upgrade\r\nSec-WebSocket-Key: " + key + "\r\nSec-WebSocket-Version: 13\r\n";

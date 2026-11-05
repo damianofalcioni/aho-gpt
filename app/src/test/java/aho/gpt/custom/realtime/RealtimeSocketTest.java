@@ -17,6 +17,16 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class RealtimeSocketTest {
+    @Test public void liveUsesItsOwnPathWithoutARealtimeModelQuery() throws Exception {
+        ExecutorService worker = Executors.newSingleThreadExecutor();
+        try (ServerSocket server = new ServerSocket(0, 1, InetAddress.getByName("127.0.0.1")); RealtimeSocket client = new RealtimeSocket()) {
+            var fixture = worker.submit(() -> serve(server)); RequestScope scope = new RequestScope();
+            client.connectLive("http://127.0.0.1:" + server.getLocalPort() + "/v1", "fixture-token", scope);
+            assertEquals("session.created", client.receive(scope).getString("type")); client.close();
+            String request = fixture.get(2, TimeUnit.SECONDS);
+            assertTrue(request.startsWith("GET /v1/live/sessions HTTP/1.1\r\n")); assertFalse(request.contains("?model="));
+        } finally { worker.shutdownNow(); }
+    }
     @Test public void authenticatesOnlyToConfiguredHostAndCloseInterruptsReads() throws Exception {
         ExecutorService worker = Executors.newFixedThreadPool(2);
         try (ServerSocket server = new ServerSocket(0, 1, InetAddress.getByName("127.0.0.1")); RealtimeSocket client = new RealtimeSocket()) {

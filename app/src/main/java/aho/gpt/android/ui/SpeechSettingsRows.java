@@ -65,6 +65,7 @@ final class SpeechSettingsRows implements AutoCloseable {
         ProviderSettings provider = new ProviderSettings(activity);
         int details = provider.serverAudio() ? R.string.custom_speech_help : message;
         if (provider.customRealtime()) { details = R.string.custom_realtime_help; }
+        if (provider.customLive()) { details = R.string.custom_live_help; }
         information = new AlertDialog.Builder(activity).setTitle(title)
                 .setMessage(activity.getString(R.string.setting_info_with_status, status.getText(), activity.getString(details)))
                 .setPositiveButton(R.string.close, null).show();

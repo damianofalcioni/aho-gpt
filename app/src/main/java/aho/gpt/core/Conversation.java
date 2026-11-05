@@ -32,6 +32,13 @@ public final class Conversation {
     }
 
     public JSONArray input() throws JSONException { return new JSONArray(history.toString()); }
+    public void transcribeLatest(String text) throws JSONException {
+        if (text.isEmpty()) { return; }
+        for (int index = history.length() - 1; index >= 0; index--) {
+            JSONObject item = history.getJSONObject(index);
+            if ("user".equals(item.optString("role"))) { item.put("content", text); return; }
+        }
+    }
     public void configureTools(long version) {
         if (toolVersion == version) { return; }
         toolVersion = version;

@@ -222,7 +222,16 @@
     <string name="custom_realtime_api">Usa API Realtime</string>
     <string name="custom_realtime_checking">Verifica API Realtime…</string>
     <string name="custom_realtime_unavailable">API Realtime non disponibile per questo modello. Interruttore disattivato.</string>
-    <string name="custom_realtime_help">Invia la voce al modello del server selezionato e ricevi risposte vocali. Richiede Realtime. Scegli la voce dall’ingranaggio Realtime. Scegli questa opzione o le API vocali. I test vocali Android restano locali.</string>
+    <string name="custom_realtime_help">Invia la voce al modello del server selezionato e ricevi risposte vocali. Richiede Realtime. Scegli la voce dall’ingranaggio. Seleziona una modalità vocale. STT abilita l’ascolto; TTS abilita le risposte vocali. I test vocali Android restano locali.</string>
+    <string name="custom_live_api">Usa API GPT-Live</string>
+    <string name="custom_live_checking">Verifica API GPT-Live…</string>
+    <string name="custom_live_unavailable">GPT-Live non disponibile. Controlla server e modelli. Interruttore disattivato.</string>
+    <string name="custom_live_setup_rejected">Configurazione GPT-Live rifiutata. Scegli un modello di ragionamento in Modello e controlla le impostazioni vocali.</string>
+    <string name="custom_live_help">Usa un modello vocale con il modello principale per ragionamento e strumenti. Scegli modello vocale e voce dall’ingranaggio. Richiede GPT-Live. Seleziona una modalità vocale. STT abilita l’ascolto; TTS abilita le risposte vocali. Voce e ragionamento possono avere costi separati. Le risposte sono riprodotte dopo la ricezione; non puoi interromperle parlando.</string>
+    <string name="custom_live_failed">Richiesta GPT-Live non riuscita. Controlla server e modelli.</string>
+    <string name="server_live_settings">Impostazioni GPT-Live</string>
+    <string name="server_live_model">Modello vocale</string>
+    <string name="server_live_voice">Voce</string>
     <string name="custom_realtime_failed">Richiesta Realtime non riuscita. Controlla server e modello.</string>
     <string name="server_speech_settings">Impostazioni vocali del server</string>
     <string name="server_realtime_settings">Impostazioni Realtime</string>

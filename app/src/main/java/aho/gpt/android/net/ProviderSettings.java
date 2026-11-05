@@ -25,18 +25,21 @@ public final class ProviderSettings {
     public String endpoint() { return settings.getString("custom_endpoint", ServerEndpoint.DEFAULT); }
     public String customModel() { return settings.getString("custom_model", ""); }
     public AudioMode audioMode() {
-        return AudioMode.saved(settings.getBoolean("custom_speech_apis", false), settings.getBoolean("custom_realtime_api", false));
+        return AudioMode.saved(settings.getBoolean("custom_speech_apis", false), settings.getBoolean("custom_realtime_api", false),
+                settings.getBoolean("custom_live_api", false));
     }
     public boolean speechApis() { return audioMode() == AudioMode.SPEECH; }
     public boolean customSpeech() { return customEnabled() && speechApis(); }
     public boolean customRealtime() { return customEnabled() && audioMode() == AudioMode.REALTIME; }
+    public boolean customLive() { return customEnabled() && audioMode() == AudioMode.LIVE; }
     public boolean serverAudio() { return customEnabled() && audioMode() != AudioMode.PLATFORM; }
     public String token() throws Exception { return credentials.load().optString("token"); }
     public SpeechApiConfig speechConfig() {
         SpeechApiConfig defaults = SpeechApiConfig.DEFAULT;
         return new SpeechApiConfig(settings.getString("custom_transcription_model", defaults.transcriptionModel()),
                 settings.getString("custom_speech_model", defaults.speechModel()), settings.getString("custom_speech_voice", defaults.voice()),
-                settings.getString("custom_realtime_voice", defaults.realtimeVoice()));
+                settings.getString("custom_realtime_voice", defaults.realtimeVoice()), settings.getString("custom_live_model", defaults.liveModel()),
+                settings.getString("custom_live_voice", defaults.liveVoice()));
     }
     public CustomConfig customConfig() throws Exception {
         synchronized (CUSTOM_LOCK) { return new CustomConfig(endpoint(), token(), revision(), speechConfig()); }
@@ -52,8 +55,10 @@ public final class ProviderSettings {
             credentials.save(new JSONObject().put("token", token));
             settings.edit().putString("custom_endpoint", base).putString("custom_model", model)
                     .putBoolean("custom_speech_apis", mode == AudioMode.SPEECH).putBoolean("custom_realtime_api", mode == AudioMode.REALTIME)
+                    .putBoolean("custom_live_api", mode == AudioMode.LIVE)
                     .putString("custom_transcription_model", speech.transcriptionModel()).putString("custom_speech_model", speech.speechModel())
                     .putString("custom_speech_voice", speech.voice()).putString("custom_realtime_voice", speech.realtimeVoice())
+                    .putString("custom_live_model", speech.liveModel()).putString("custom_live_voice", speech.liveVoice())
                     .putString("provider_revision", UUID.randomUUID().toString()).apply();
         }
     }

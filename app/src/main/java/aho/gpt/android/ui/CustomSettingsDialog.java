@@ -23,6 +23,7 @@ final class CustomSettingsDialog implements AutoCloseable {
     private CustomSpeechToggle speech;
     private ServerSpeechSettingsDialog speechSettings;
     private ServerSpeechSettingsDialog realtimeSettings;
+    private ServerSpeechSettingsDialog liveSettings;
     private final Runnable changed;
     private int generation;
     CustomSettingsDialog(Activity activity, Runnable changed) {
@@ -41,13 +42,15 @@ final class CustomSettingsDialog implements AutoCloseable {
         speech = new CustomSpeechToggle(activity, content);
         speechSettings = new ServerSpeechSettingsDialog(activity, content, speech, AudioMode.SPEECH);
         realtimeSettings = new ServerSpeechSettingsDialog(activity, content, speech, AudioMode.REALTIME);
+        liveSettings = new ServerSpeechSettingsDialog(activity, content, speech, AudioMode.LIVE);
         models = new CustomModelPicker(activity, content, speech::modelChanged);
         information(content, R.id.custom_endpoint_info, R.string.custom_endpoint, R.string.custom_config_help);
         information(content, R.id.custom_speech_info, R.string.custom_speech_apis, R.string.custom_speech_help);
         information(content, R.id.custom_realtime_info, R.string.custom_realtime_api, R.string.custom_realtime_help);
+        information(content, R.id.custom_live_info, R.string.custom_live_api, R.string.custom_live_help);
         dialog = new AlertDialog.Builder(activity).setTitle(R.string.custom).setView(content)
                 .setNegativeButton(android.R.string.cancel, null).setPositiveButton(android.R.string.ok, null).create();
-        dialog.setOnDismissListener(ignored -> { generation++; closeInformation(); models.close(); speechSettings.close(); realtimeSettings.close(); speech.close(); token.setText(""); });
+        dialog.setOnDismissListener(ignored -> { generation++; closeInformation(); models.close(); speechSettings.close(); realtimeSettings.close(); liveSettings.close(); speech.close(); token.setText(""); });
         dialog.show(); dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(ignored -> save(endpoint, token, status));
         load(token, status);
@@ -73,7 +76,7 @@ final class CustomSettingsDialog implements AutoCloseable {
         });
     }
     private void loaded(EditText token, String value) {
-        token.setText(value); token.setEnabled(true); models.start(); speech.start(); speechSettings.ready(); realtimeSettings.ready();
+        token.setText(value); token.setEnabled(true); models.start(); speech.start(); speechSettings.ready(); realtimeSettings.ready(); liveSettings.ready();
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
     }
     private void save(EditText endpoint, EditText token, TextView status) {
@@ -105,6 +108,6 @@ final class CustomSettingsDialog implements AutoCloseable {
     }
     private void status(TextView status, int message) { status.setText(message); status.setVisibility(View.VISIBLE); }
     private boolean current(int request) { return request == generation && dialog != null && dialog.isShowing(); }
-    void pause() { if (speech != null) { speech.stop(); speechSettings.pause(); realtimeSettings.pause(); } }
+    void pause() { if (speech != null) { speech.stop(); speechSettings.pause(); realtimeSettings.pause(); liveSettings.pause(); } }
     @Override public void close() { generation++; if (dialog != null) { dialog.dismiss(); dialog = null; } }
 }

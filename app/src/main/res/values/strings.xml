@@ -222,7 +222,16 @@
     <string name="custom_realtime_api">Use Realtime API</string>
     <string name="custom_realtime_checking">Checking Realtime API…</string>
     <string name="custom_realtime_unavailable">Realtime API unavailable for this model. Switch kept off.</string>
-    <string name="custom_realtime_help">Send voice directly to the selected server model and receive spoken answers. Needs Realtime support. Choose its voice with the Realtime gear. Choose this or speech APIs. Android speech tests stay local.</string>
+    <string name="custom_realtime_help">Send voice directly to the selected server model and receive spoken answers. Needs Realtime support. Choose its voice with the gear. Select one speech mode. STT allows listening; TTS allows spoken replies. Android speech tests stay local.</string>
+    <string name="custom_live_api">Use GPT-Live API</string>
+    <string name="custom_live_checking">Checking GPT-Live API…</string>
+    <string name="custom_live_unavailable">GPT-Live unavailable. Check the server and models. Switch kept off.</string>
+    <string name="custom_live_setup_rejected">GPT-Live rejected this setup. Choose a reasoning model in Model and check the voice settings.</string>
+    <string name="custom_live_help">Use a voice model with the main model for reasoning and tools. Choose the voice model and voice with the gear. Needs GPT-Live support. Select one speech mode. STT allows listening; TTS allows spoken replies. Voice sessions and reasoning may both cost money. Replies are buffered; live interruption is unavailable.</string>
+    <string name="custom_live_failed">GPT-Live request failed. Check the server and models.</string>
+    <string name="server_live_settings">GPT-Live settings</string>
+    <string name="server_live_model">Voice model</string>
+    <string name="server_live_voice">Voice</string>
     <string name="custom_realtime_failed">Realtime request failed. Check the server and model.</string>
     <string name="server_speech_settings">Server speech settings</string>
     <string name="server_realtime_settings">Realtime settings</string>

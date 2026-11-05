@@ -8,10 +8,16 @@ import aho.gpt.custom.SpeechApiConfig;
 public final class CustomAudioProbe {
     private final CustomSpeechApi speech = new CustomSpeechApi();
     private final CustomRealtimeClient realtime = new CustomRealtimeClient();
+    private final CustomLiveClient live = new CustomLiveClient();
     public void check(AudioMode mode, String base, String token, String model, SpeechApiConfig config, RequestScope scope) throws Exception {
         if (mode == AudioMode.SPEECH) { speech.check(base, token, config, scope); return; }
+        if (mode == AudioMode.LIVE) {
+            try { live.open(base, token, model, config, scope); live.check(scope); }
+            finally { live.cancel(scope); }
+            return;
+        }
         try { realtime.open(base, token, model, true, config.realtimeVoice(), scope); }
         finally { realtime.cancel(scope); }
     }
-    public void cancel(RequestScope scope) { speech.cancel(scope); realtime.cancel(scope); }
+    public void cancel(RequestScope scope) { speech.cancel(scope); realtime.cancel(scope); live.cancel(scope); }
 }

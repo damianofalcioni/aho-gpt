@@ -14,6 +14,7 @@ import aho.gpt.android.ui.SpeechProviderNoticeTest;
 import aho.gpt.android.ui.AppLanguageTest;
 import aho.gpt.android.ui.ServerSpeechSettingsTest;
 import aho.gpt.android.access.ScreenAccessTest;
+import aho.gpt.android.net.LiveSupportTest;
 
 /** Dependency-free framework tests; run with connectedHandheldDebugAndroidTest. */
 public final class IntentLaunchTests extends Instrumentation {
@@ -28,12 +29,14 @@ public final class IntentLaunchTests extends Instrumentation {
     private boolean screenAccess;
     private boolean appLanguage;
     private boolean serverSpeech;
+    private Bundle arguments;
 
     @Override public void onCreate(Bundle arguments) {
         super.onCreate(arguments);
-        targetPackage = arguments == null ? "" : arguments.getString("launch_package", "");
-        shortcutLabel = arguments == null ? "" : arguments.getString("home_shortcut", "");
-        screenMarker = arguments == null ? "" : arguments.getString("screen_marker", "");
+        this.arguments = arguments;
+        targetPackage = argument(arguments, "launch_package");
+        shortcutLabel = argument(arguments, "home_shortcut");
+        screenMarker = argument(arguments, "screen_marker");
         voiceTasks = requested(arguments, "voice_tasks");
         logStorage = requested(arguments, "log_storage");
         logPermission = requested(arguments, "log_permission");
@@ -45,6 +48,7 @@ public final class IntentLaunchTests extends Instrumentation {
     }
 
     @Override public void onStart() {
+        if (LiveSupportTest.runRequested(this, arguments)) { return; }
         if (specialTests()) { return; }
         if (!targetPackage.isEmpty()) { new InstalledAppLaunchTest(this, targetPackage).run(); return; }
         if (!shortcutLabel.isEmpty()) { new HomeShortcutLaunchTest(this, shortcutLabel, screenMarker).run(); return; }
@@ -89,8 +93,9 @@ public final class IntentLaunchTests extends Instrumentation {
     private boolean loggingRequested() { return logStorage || logPermission; }
 
     private boolean requested(Bundle arguments, String name) {
-        return arguments != null && "true".equals(arguments.getString(name));
+        return "true".equals(argument(arguments, name));
     }
+    private String argument(Bundle arguments, String name) { return arguments == null ? "" : arguments.getString(name, ""); }
     private boolean specialTests() {
         if (serverSpeech) { finishCheck(check(0, "serverSpeech", () -> new ServerSpeechSettingsTest(this).run(), 1)); return true; }
         if (appLanguage) { finishCheck(check(0, "appLanguage", () -> new AppLanguageTest(this).run(), 1)); return true; }

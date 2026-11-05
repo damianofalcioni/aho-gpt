@@ -41,4 +41,10 @@ public final class SpeechCatalog {
     public static List<String> realtimeVoices() {
         return Arrays.asList("alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar");
     }
+    public static List<String> liveVoices() {
+        List<String> voices = new ArrayList<>(realtimeVoices());
+        voices.addAll(Arrays.asList("beacon", "bossa", "brise", "cinder", "delta", "flitz", "gleam", "harema", "juni", "meridian",
+                "nira", "noeul", "nuri", "quartz", "ripple", "shida", "sillage", "stone", "tempo", "vesper", "willow"));
+        return voices;
+    }
 }
