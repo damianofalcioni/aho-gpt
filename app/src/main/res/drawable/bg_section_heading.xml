@@ -1,5 +1,5 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:height="1dp" android:gravity="top">
-        <shape><solid android:color="@color/app_outline" /></shape>
+        <shape><solid android:color="?attr/appOutlineColor" /></shape>
     </item>
 </layer-list>

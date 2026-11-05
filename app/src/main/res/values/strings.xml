@@ -72,7 +72,10 @@
     <string name="tool_yes">Yes</string>
     <string name="tool_no">No</string>
     <string name="tool_none">None declared</string>
-    <string name="languages_heading">Languages</string>
+    <string name="display_heading">Display</string>
+    <string name="light_theme">Light theme</string>
+    <string name="light_theme_info">Switch from the default dark look to a light look.</string>
+    <string name="speech_interactions_heading">Speech Interactions</string>
     <string name="use_system_language">Use System Language</string>
     <string name="configure_app_language">Configure app language</string>
     <string name="app_language_title">App language</string>
@@ -96,9 +99,9 @@
     <string name="stt_ready">Speech recognition provider available</string>
     <string name="tts_provider_unavailable">No voices available. Use the gear to check Android speech settings.</string>
     <string name="speech_google_disabled_notice">Google app is disabled. Enable it or install another speech provider.</string>
-    <string name="tts_disabled">Voice playback is off. Enable TTS in Languages to hear answers.</string>
-    <string name="stt_disabled">Enable STT in Languages to speak.</string>
-    <string name="tts_voice_unavailable">Voice unavailable. Choose another voice in Languages.</string>
+    <string name="tts_disabled">Voice playback is off. Enable TTS in Speech Interactions to hear answers.</string>
+    <string name="stt_disabled">Enable STT in Speech Interactions to speak.</string>
+    <string name="tts_voice_unavailable">Voice unavailable. Choose another voice in Speech Interactions.</string>
     <string name="device_language_short">Device language</string>
     <string name="choose_speech_language">Choose speech language</string>
     <string name="choose_voice">Choose playback voice</string>

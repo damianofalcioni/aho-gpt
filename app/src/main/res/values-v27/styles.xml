@@ -1,0 +1,6 @@
+<resources>
+    <style name="AppThemeLight" parent="AppThemeLightBase">
+        <item name="android:navigationBarColor">?attr/appBackgroundColor</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+</resources>

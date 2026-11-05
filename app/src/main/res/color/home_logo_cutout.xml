@@ -1,4 +1,4 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_focused="true" android:color="@color/app_outline" />
-    <item android:color="@color/app_surface" />
+    <item android:state_focused="true" android:color="?attr/appOutlineColor" />
+    <item android:color="?attr/appSurfaceColor" />
 </selector>

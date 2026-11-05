@@ -15,12 +15,12 @@ public final class SettingsActivity extends LocalizedActivity {
     private LoggingSettingsRows logging;
     private DiagnosticSection diagnostics;
     private AiProviderRows account;
-    private AppLanguageSettings language;
+    private DisplaySettings display;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         setContentView(R.layout.activity_settings);
-        language = new AppLanguageSettings(this);
+        display = new DisplaySettings(this);
         diagnostics = new DiagnosticSection(this);
         speech = new SpeechSettingsRows(this);
         about = new AboutInformation(this);
@@ -38,7 +38,7 @@ public final class SettingsActivity extends LocalizedActivity {
     }
     @Override protected void onPause() { diagnostics.stop(); speech.stopTests(); account.pause(); tools.stop(); super.onPause(); }
     @Override protected void onDestroy() {
-        diagnostics.close(); logging.close(); speech.close(); about.close(); tools.close(); account.close(); language.close(); super.onDestroy();
+        diagnostics.close(); logging.close(); speech.close(); about.close(); tools.close(); account.close(); display.close(); super.onDestroy();
     }
     @Override protected void onSaveInstanceState(Bundle state) { logging.save(state); super.onSaveInstanceState(state); }
     @SuppressWarnings("deprecation") // Required native activity-result callback.

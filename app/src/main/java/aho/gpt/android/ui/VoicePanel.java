@@ -28,7 +28,7 @@ public final class VoicePanel extends LinearLayout {
         setElevation(dp(12));
         LinearLayout text = new LinearLayout(context); text.setOrientation(VERTICAL);
         status = text(12);
-        status.setTextColor(context.getColor(R.color.app_text_secondary)); text.addView(status);
+        status.setTextColor(AppTheme.color(context, R.attr.appTextSecondaryColor)); text.addView(status);
         answer = text(18); text.addView(answer);
         addText(text);
         addView(controls(onSpeak, onClose));

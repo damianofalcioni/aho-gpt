@@ -19,7 +19,7 @@ final class AppLanguageSettings implements AutoCloseable {
         Switch control = activity.findViewById(R.id.use_system_language);
         control.setChecked(AppLanguage.useSystem(activity));
         control.setOnCheckedChangeListener((button, checked) -> {
-            AppLanguage.useSystem(activity, checked); activity.refreshLanguage();
+            AppLanguage.useSystem(activity, checked); activity.refreshDisplay();
         });
         activity.findViewById(R.id.app_language_settings).setOnClickListener(view -> configure());
         activity.findViewById(R.id.app_language_info).setOnClickListener(view -> info());
@@ -34,7 +34,7 @@ final class AppLanguageSettings implements AutoCloseable {
                 .setNegativeButton(android.R.string.cancel, null)
                 .setPositiveButton(android.R.string.ok, (window, which) -> {
                     AppLanguage.select(activity, spinner.getSelectedItemPosition() == 1 ? "it" : "en");
-                    activity.refreshLanguage();
+                    activity.refreshDisplay();
                 }).show();
     }
     private void info() {

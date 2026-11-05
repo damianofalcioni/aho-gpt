@@ -72,7 +72,10 @@
     <string name="tool_yes">Sì</string>
     <string name="tool_no">No</string>
     <string name="tool_none">Nessuno dichiarato</string>
-    <string name="languages_heading">Lingue</string>
+    <string name="display_heading">Schermo</string>
+    <string name="light_theme">Tema chiaro</string>
+    <string name="light_theme_info">Passa dall’aspetto scuro predefinito a un aspetto chiaro.</string>
+    <string name="speech_interactions_heading">Interazioni vocali</string>
     <string name="use_system_language">Usa la lingua di sistema</string>
     <string name="configure_app_language">Configura la lingua dell’app</string>
     <string name="app_language_title">Lingua dell’app</string>
@@ -96,9 +99,9 @@
     <string name="stt_ready">Servizio di riconoscimento vocale disponibile</string>
     <string name="tts_provider_unavailable">Nessuna voce disponibile. Usa l’ingranaggio per controllare le impostazioni vocali Android.</string>
     <string name="speech_google_disabled_notice">L’app Google è disabilitata. Abilitala o installa un altro servizio vocale.</string>
-    <string name="tts_disabled">Sintesi vocale disattivata. Abilita TTS in Lingue per ascoltare le risposte.</string>
-    <string name="stt_disabled">Abilita STT in Lingue per parlare.</string>
-    <string name="tts_voice_unavailable">Voce non disponibile. Scegli un’altra voce in Lingue.</string>
+    <string name="tts_disabled">Sintesi vocale disattivata. Abilita TTS in Interazioni vocali per ascoltare le risposte.</string>
+    <string name="stt_disabled">Abilita STT in Interazioni vocali per parlare.</string>
+    <string name="tts_voice_unavailable">Voce non disponibile. Scegli un’altra voce in Interazioni vocali.</string>
     <string name="device_language_short">Lingua del dispositivo</string>
     <string name="choose_speech_language">Scegli la lingua vocale</string>
     <string name="choose_voice">Scegli la voce</string>

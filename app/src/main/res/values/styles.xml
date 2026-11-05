@@ -1,32 +1,83 @@
 <resources>
     <style name="AppTheme" parent="android:style/Theme.Material.NoActionBar">
+        <item name="appLightTheme">@style/AppThemeLight</item>
+        <item name="appBackgroundColor">@color/app_background</item>
+        <item name="appSurfaceColor">@color/app_surface</item>
+        <item name="appOutlineColor">@color/app_outline</item>
+        <item name="appTextColor">@color/app_text</item>
+        <item name="appTextSecondaryColor">@color/app_text_secondary</item>
+        <item name="settingsTextSecondaryColor">@color/settings_text_secondary</item>
+        <item name="appRippleColor">@color/app_ripple</item>
         <item name="android:fontFamily">sans-serif</item>
-        <item name="android:textColor">@color/app_text</item>
-        <item name="android:textColorPrimary">@color/app_text</item>
-        <item name="android:textColorSecondary">@color/app_text_secondary</item>
-        <item name="android:textColorHint">@color/app_text_secondary</item>
-        <item name="android:statusBarColor">@color/app_background</item>
-        <item name="android:navigationBarColor">@color/app_background</item>
+        <item name="android:textColor">?attr/appTextColor</item>
+        <item name="android:textColorPrimary">?attr/appTextColor</item>
+        <item name="android:textColorSecondary">?attr/appTextSecondaryColor</item>
+        <item name="android:textColorHint">?attr/appTextSecondaryColor</item>
+        <item name="android:statusBarColor">?attr/appBackgroundColor</item>
+        <item name="android:navigationBarColor">?attr/appBackgroundColor</item>
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowBackground">@color/app_background</item>
-        <item name="android:colorEdgeEffect">@color/app_ripple</item>
+        <item name="android:windowBackground">?attr/appBackgroundColor</item>
+        <item name="android:colorEdgeEffect">?attr/appRippleColor</item>
         <item name="android:buttonStyle">@style/AssistantButton</item>
         <item name="android:alertDialogTheme">@style/AssistantDialog</item>
     </style>
+    <style name="AppThemeLightBase" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="appBackgroundColor">@color/light_background</item>
+        <item name="appSurfaceColor">@color/light_surface</item>
+        <item name="appOutlineColor">@color/light_outline</item>
+        <item name="appTextColor">@color/light_text</item>
+        <item name="appTextSecondaryColor">@color/light_text_secondary</item>
+        <item name="settingsTextSecondaryColor">@color/light_text_secondary</item>
+        <item name="appRippleColor">@color/light_ripple</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textColor">?attr/appTextColor</item>
+        <item name="android:textColorPrimary">?attr/appTextColor</item>
+        <item name="android:textColorSecondary">?attr/appTextSecondaryColor</item>
+        <item name="android:textColorHint">?attr/appTextSecondaryColor</item>
+        <item name="android:statusBarColor">?attr/appBackgroundColor</item>
+        <item name="android:navigationBarColor">@color/app_background</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowBackground">?attr/appBackgroundColor</item>
+        <item name="android:colorEdgeEffect">?attr/appRippleColor</item>
+        <item name="android:buttonStyle">@style/AssistantButton</item>
+        <item name="android:alertDialogTheme">@style/AssistantDialogLight</item>
+    </style>
+    <style name="AppThemeLight" parent="AppThemeLightBase" />
     <style name="AssistantDialog" parent="android:style/Theme.Material.Dialog.Alert">
-        <item name="android:textColorPrimary">@color/app_text</item>
-        <item name="android:textColorSecondary">@color/app_text_secondary</item>
-        <item name="android:colorBackground">@color/app_surface</item>
-        <item name="android:colorBackgroundFloating">@color/app_surface</item>
+        <item name="android:textColorPrimary">?attr/appTextColor</item>
+        <item name="android:textColorSecondary">?attr/appTextSecondaryColor</item>
+        <item name="android:colorBackground">?attr/appSurfaceColor</item>
+        <item name="android:colorBackgroundFloating">?attr/appSurfaceColor</item>
+        <item name="android:windowBackground">@drawable/bg_panel</item>
+    </style>
+    <style name="AssistantDialogLight" parent="android:style/Theme.Material.Light.Dialog.Alert">
+        <item name="android:textColorPrimary">?attr/appTextColor</item>
+        <item name="android:textColorSecondary">?attr/appTextSecondaryColor</item>
+        <item name="android:colorBackground">?attr/appSurfaceColor</item>
+        <item name="android:colorBackgroundFloating">?attr/appSurfaceColor</item>
         <item name="android:windowBackground">@drawable/bg_panel</item>
     </style>
     <style name="LogBrowserTheme" parent="AppTheme">
+        <item name="appLightTheme">@style/LogBrowserThemeLight</item>
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:backgroundDimEnabled">false</item>
         <item name="android:windowDisablePreview">true</item>
     </style>
     <style name="VoiceTheme" parent="AppTheme">
+        <item name="appLightTheme">@style/VoiceThemeLight</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.12</item>
+    </style>
+    <style name="LogBrowserThemeLight" parent="AppThemeLight">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowDisablePreview">true</item>
+    </style>
+    <style name="VoiceThemeLight" parent="AppThemeLight">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:backgroundDimEnabled">true</item>
@@ -45,7 +96,7 @@
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:textSize">15sp</item>
-        <item name="android:textColor">@color/app_text</item>
+        <item name="android:textColor">?attr/appTextColor</item>
         <item name="android:elevation">0dp</item>
         <item name="android:stateListAnimator">@null</item>
     </style>
@@ -110,7 +161,7 @@
     </style>
     <style name="HomeStatus" parent="AboutLink">
         <item name="android:minHeight">48dp</item>
-        <item name="android:textColor">@color/app_text</item>
+        <item name="android:textColor">?attr/appTextColor</item>
         <item name="android:gravity">center</item>
         <item name="android:padding">8dp</item>
     </style>
@@ -127,7 +178,7 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textSize">14sp</item>
-        <item name="android:textColor">@color/settings_text_secondary</item>
+        <item name="android:textColor">?attr/settingsTextSecondaryColor</item>
     </style>
     <style name="ConfigContent">
         <item name="android:layout_width">match_parent</item>

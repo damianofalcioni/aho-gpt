@@ -7,7 +7,7 @@
             android:text="@string/app_name" android:textSize="22sp" />
         <TextView android:id="@+id/app_version" style="@style/SettingsBody" android:layout_marginTop="8dp" />
         <TextView style="@style/SettingsBody" android:layout_marginTop="16dp"
-            android:textColor="@color/app_text" android:textSize="16sp" android:text="@string/about_description" />
+            android:textColor="?attr/appTextColor" android:textSize="16sp" android:text="@string/about_description" />
         <TextView android:id="@+id/about_homepage" style="@style/AboutLink"
             android:drawableStart="@drawable/ic_home" android:text="@string/about_homepage" />
         <TextView android:id="@+id/about_source" style="@style/AboutLink"
@@ -23,7 +23,14 @@
         <TextView style="@style/SettingsBody" android:layout_marginTop="16dp" android:text="@string/about_legal" />
         <TextView style="@style/SettingsBody" android:layout_marginTop="12dp" android:text="@string/about_credits" />
         <TextView style="@style/SettingsTitle" android:text="@string/settings_heading" />
-        <TextView style="@style/SettingsHeading" android:text="@string/languages_heading" />
+        <TextView style="@style/SettingsHeading" android:text="@string/display_heading" />
+        <LinearLayout style="@style/SettingsRow">
+            <TextView style="@style/SettingsLabel" android:text="@string/light_theme" />
+            <Switch android:id="@+id/light_theme" style="@style/SettingsSwitch"
+                android:contentDescription="@string/light_theme" />
+            <ImageButton android:id="@+id/light_theme_info" style="@style/SettingsInfo"
+                android:contentDescription="@string/light_theme" />
+        </LinearLayout>
         <LinearLayout style="@style/SettingsRow">
             <TextView style="@style/SettingsLabel" android:text="@string/use_system_language" />
             <ImageButton android:id="@+id/app_language_settings" style="@style/SettingsIcon"
@@ -33,6 +40,7 @@
             <ImageButton android:id="@+id/app_language_info" style="@style/SettingsInfo"
                 android:contentDescription="@string/app_language_title" />
         </LinearLayout>
+        <TextView style="@style/SettingsSectionHeading" android:text="@string/speech_interactions_heading" />
         <LinearLayout style="@style/SettingsRow">
             <TextView style="@style/SettingsLabel" android:text="@string/tts_short" />
             <ImageButton android:id="@+id/tts_settings" style="@style/SettingsIcon"

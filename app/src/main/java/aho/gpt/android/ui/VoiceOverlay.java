@@ -32,7 +32,7 @@ final class VoiceOverlay {
     private void attach() {
         AssistantAccessibilityService access = AssistantAccessibilityService.connected();
         if (access == null && !Settings.canDrawOverlays(app)) { AppLogger.d(TAG, "Permission unavailable"); return; }
-        Context context = new ContextThemeWrapper(AppLanguage.wrap(access == null ? app : access), R.style.AppTheme);
+        Context context = new ContextThemeWrapper(AppLanguage.wrap(access == null ? app : access), AppTheme.style(app));
         manager = context.getSystemService(WindowManager.class);
         view = new VoicePanel(context, this::speak, onClose);
         int type = access == null ? overlayType() : WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY;

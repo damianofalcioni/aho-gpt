@@ -9,14 +9,14 @@
         android:fillColor="@android:color/transparent"
         android:pathData="M12,22A10,10 0,1 1,12,2A10,10 0,0 1,12,22Z"
         android:strokeWidth="2"
-        android:strokeColor="@color/app_text" />
+        android:strokeColor="?attr/appTextColor" />
     <path
         android:fillColor="@android:color/transparent"
         android:pathData="M12,10V17"
         android:strokeWidth="2"
-        android:strokeColor="@color/app_text"
+        android:strokeColor="?attr/appTextColor"
         android:strokeLineCap="round" />
     <path
-        android:fillColor="@color/app_text"
+        android:fillColor="?attr/appTextColor"
         android:pathData="M12,7.5m-1.2,0a1.2,1.2 0,1 1,2.4 0a1.2,1.2 0,1 1,-2.4 0" />
 </vector>

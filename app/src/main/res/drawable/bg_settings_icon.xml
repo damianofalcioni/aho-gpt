@@ -2,17 +2,17 @@
     <item android:state_focused="true">
         <shape>
             <corners android:radius="22dp" />
-            <solid android:color="@color/app_outline" />
-            <stroke android:width="2dp" android:color="@color/app_text" />
+            <solid android:color="?attr/appOutlineColor" />
+            <stroke android:width="2dp" android:color="?attr/appTextColor" />
         </shape>
     </item>
     <item>
-        <ripple android:color="@color/app_ripple">
+        <ripple android:color="?attr/appRippleColor">
             <item>
                 <shape>
                     <corners android:radius="22dp" />
-                    <solid android:color="@color/app_surface" />
-                    <stroke android:width="1dp" android:color="@color/app_outline" />
+                    <solid android:color="?attr/appSurfaceColor" />
+                    <stroke android:width="1dp" android:color="?attr/appOutlineColor" />
                 </shape>
             </item>
         </ripple>

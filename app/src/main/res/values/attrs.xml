@@ -1,0 +1,10 @@
+<resources>
+    <attr name="appRippleColor" format="color" />
+    <attr name="settingsTextSecondaryColor" format="color" />
+    <attr name="appSurfaceColor" format="color" />
+    <attr name="appTextColor" format="color" />
+    <attr name="appTextSecondaryColor" format="color" />
+    <attr name="appOutlineColor" format="color" />
+    <attr name="appBackgroundColor" format="color" />
+    <attr name="appLightTheme" format="reference" />
+</resources>

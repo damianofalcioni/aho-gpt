@@ -9,6 +9,12 @@
     <color name="settings_text_secondary">#616161</color>
     <color name="issue_icon">#E14646</color>
     <color name="app_ripple">#33FFFFFF</color>
+    <color name="light_background">#F8FAFC</color>
+    <color name="light_surface">#FFFFFF</color>
+    <color name="light_outline">#CCD4DF</color>
+    <color name="light_text">#1C2430</color>
+    <color name="light_text_secondary">#5D6775</color>
+    <color name="light_ripple">#22000000</color>
     <color name="log_danger">#EF5350</color>
     <color name="diagnostic_ok">#2ECC71</color>
     <color name="diagnostic_error">#FF5252</color>
