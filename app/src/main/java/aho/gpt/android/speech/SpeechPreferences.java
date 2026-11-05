@@ -2,6 +2,7 @@ package aho.gpt.android.speech;
 
 import android.content.Context;
 import aho.gpt.R;
+import aho.gpt.android.net.ProviderSettings;
 import aho.gpt.core.SpeechLanguageOptions;
 import java.util.Locale;
 
@@ -15,6 +16,9 @@ public final class SpeechPreferences {
 
     public static boolean enabled(Context context, String key) {
         return context.getSharedPreferences(SETTINGS, Context.MODE_PRIVATE).getBoolean(key + "_enabled", true);
+    }
+    public static boolean voiceEnabled(Context context, String key) {
+        return new ProviderSettings(context).voiceAudioMode().speechEnabled(enabled(context, key));
     }
     public static void enable(Context context, String key, boolean enabled) {
         context.getSharedPreferences(SETTINGS, Context.MODE_PRIVATE).edit().putBoolean(key + "_enabled", enabled).apply();

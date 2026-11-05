@@ -32,7 +32,8 @@ public final class ProviderSettings {
     public boolean customSpeech() { return customEnabled() && speechApis(); }
     public boolean customRealtime() { return customEnabled() && audioMode() == AudioMode.REALTIME; }
     public boolean customLive() { return customEnabled() && audioMode() == AudioMode.LIVE; }
-    public boolean serverAudio() { return customEnabled() && audioMode() != AudioMode.PLATFORM; }
+    public AudioMode voiceAudioMode() { return customEnabled() ? audioMode() : AudioMode.PLATFORM; }
+    public boolean serverAudio() { return voiceAudioMode() != AudioMode.PLATFORM; }
     public String token() throws Exception { return credentials.load().optString("token"); }
     public SpeechApiConfig speechConfig() {
         SpeechApiConfig defaults = SpeechApiConfig.DEFAULT;

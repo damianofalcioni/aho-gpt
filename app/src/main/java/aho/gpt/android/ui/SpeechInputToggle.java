@@ -15,22 +15,25 @@ final class SpeechInputToggle implements AutoCloseable {
     private final SpeechProviderNotice notice;
 
     SpeechInputToggle(Activity activity) {
-        this(activity, activity.findViewById(R.id.stt_enabled), () -> SpeechAvailability.voiceInput(activity),
+        this(activity, activity.findViewById(R.id.stt_enabled), () -> SpeechAvailability.input(activity),
                 new SpeechProviderNotice(activity));
     }
     SpeechInputToggle(Activity activity, Switch control, Availability availability, SpeechProviderNotice notice) {
         this.activity = activity; this.control = control; this.availability = availability; this.notice = notice;
     }
-    void refresh(boolean available) {
+    void refresh(boolean available, boolean platform) {
         notice.close();
         control.setOnCheckedChangeListener(null);
-        control.setEnabled(true); control.setAlpha(available ? 1f : 0.5f);
-        control.setChecked(available && SpeechPreferences.enabled(activity, SpeechPreferences.INPUT));
-        control.setOnCheckedChangeListener((button, checked) -> select(checked));
+        control.setEnabled(true); control.setAlpha(platform && available ? 1f : 0.5f);
+        control.setChecked(platform && available && SpeechPreferences.enabled(activity, SpeechPreferences.INPUT));
+        control.setOnCheckedChangeListener((button, checked) -> select(checked, platform));
     }
-    private void select(boolean checked) {
+    private void select(boolean checked, boolean platform) {
+        if (!platform) {
+            refresh(false, false); notice.show(R.string.server_speech_notice); return;
+        }
         if (checked && !availability.available()) {
-            refresh(false); notice.showIfNeeded(false); return;
+            refresh(false, true); notice.showIfNeeded(false); return;
         }
         SpeechPreferences.enable(activity, SpeechPreferences.INPUT, checked);
     }

@@ -34,6 +34,7 @@ public final class ServerSpeechSettingsTest {
         try (SpeechCatalogFixture fixture = new SpeechCatalogFixture()) {
             main(() -> prepare(fixture.base()));
             speechChoices(); realtimeChoices(); liveChoices(); manualValue();
+            main(() -> new SpeechRoutingTest(activity).run());
             require(saved.equals(new ProviderSettings(context).speechConfig()), "Draft dialogs must not change saved provider settings");
         } finally {
             main(() -> { close(); activity.finish(); }); instrumentation.waitForIdleSync();

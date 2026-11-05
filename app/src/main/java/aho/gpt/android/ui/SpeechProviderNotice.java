@@ -5,7 +5,7 @@ import android.widget.Toast;
 import aho.gpt.R;
 import aho.gpt.android.speech.SpeechAvailability;
 
-/** A toast for a refused STT enable attempt, never for settings refresh. */
+/** Explains refused speech enable attempts, never settings refresh. */
 final class SpeechProviderNotice implements AutoCloseable {
     interface GoogleState { boolean disabled(); }
     private final Activity activity;
@@ -20,10 +20,13 @@ final class SpeechProviderNotice implements AutoCloseable {
     }
     boolean showIfNeeded(boolean available) {
         if (available || !googleState.disabled()) { return false; }
-        close();
-        toast = Toast.makeText(activity, R.string.speech_google_disabled_notice, Toast.LENGTH_SHORT);
-        toast.show();
+        show(R.string.speech_google_disabled_notice);
         return true;
+    }
+    void show(int message) {
+        close();
+        toast = Toast.makeText(activity, message, Toast.LENGTH_SHORT);
+        toast.show();
     }
     @Override public void close() {
         if (toast != null) { toast.cancel(); toast = null; }

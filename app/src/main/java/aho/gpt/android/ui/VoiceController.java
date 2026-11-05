@@ -108,7 +108,7 @@ public final class VoiceController implements SpeechInput.Listener {
     private void answered(String answer, byte[] pcm) {
         if (!lifecycle.answered()) { return; }
         String message = presentation.answered(answer);
-        if (!SpeechPreferences.enabled(activity, SpeechPreferences.OUTPUT)) {
+        if (!SpeechPreferences.voiceEnabled(activity, SpeechPreferences.OUTPUT)) {
             AppLogger.d(SPEECH_TAG, "Playback disabled");
             playbackCompleted();
             return;

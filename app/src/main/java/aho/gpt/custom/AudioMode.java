@@ -3,6 +3,8 @@ package aho.gpt.custom;
 /** One custom speech route at a time; neither means platform speech. */
 public enum AudioMode {
     PLATFORM, SPEECH, REALTIME, LIVE;
+    public boolean speechEnabled(boolean platformEnabled) { return this != PLATFORM || platformEnabled; }
+    public boolean usesRecognitionLanguage() { return this == PLATFORM || this == SPEECH; }
     public static AudioMode saved(boolean speech, boolean realtime) {
         return saved(speech, realtime, false);
     }

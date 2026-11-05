@@ -22,7 +22,7 @@ public final class SpeechAvailability {
     }
     public static boolean voiceInput(Context context) { return new ProviderSettings(context).serverAudio() || input(context); }
     public static int inputIssue(Context context, boolean available) {
-        if (!SpeechPreferences.enabled(context, SpeechPreferences.INPUT)) { return R.string.stt_disabled; }
+        if (!SpeechPreferences.voiceEnabled(context, SpeechPreferences.INPUT)) { return R.string.stt_disabled; }
         if (context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             return R.string.microphone_permission_required;
         }

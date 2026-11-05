@@ -33,7 +33,7 @@ public final class VoiceActivity extends LocalizedActivity {
     }
     private void speak() {
         dismissal.cancel();
-        if (!SpeechPreferences.enabled(this, SpeechPreferences.INPUT)) { controller.listen(); return; }
+        if (!SpeechPreferences.voiceEnabled(this, SpeechPreferences.INPUT)) { controller.listen(); return; }
         if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             AppLogger.i("Speech", "Microphone permission requested");
             requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 1);

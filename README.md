@@ -22,7 +22,7 @@ The app uses a simple native interface, with no chat screen, wake word or persis
 
 Requests, temporary context and selected tool results go to your selected AI provider. With screen access enabled, visible text may also be sent, excluding password fields. HTTP custom servers receive data without encryption. Speech providers may process audio or answer text online.
 
-Models and usage limits depend on your provider. Custom servers need model listing and the selected API; tools need a compatible model. Realtime and GPT-Live use buffered turns without live interruption. Device actions depend on available apps, permissions and accessible controls; completion is not guaranteed. This is an unofficial app.
+Models and usage limits depend on your provider. Custom servers need model listing and the selected API; tools need a compatible model. Server speech works without Android speech providers. Realtime and GPT-Live use buffered turns without live interruption. Device actions depend on available apps, permissions and accessible controls; completion is not guaranteed. This is an unofficial app.
 
 [Homepage](https://damianofalcioni.github.io/aho-gpt/) · [Changelog](docs/CHANGELOG/index.html) · [Privacy policy](docs/privacy-policy/index.html) · [Terms of service](docs/terms-of-service/index.html)
 

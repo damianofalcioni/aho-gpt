@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.view.KeyEvent;
+import java.util.Map;
 import aho.gpt.android.speech.SpeechPreferences;
 import aho.gpt.android.ui.MainActivity;
 import aho.gpt.android.ui.VoiceActivity;
@@ -27,12 +28,11 @@ final class VoiceTaskTest {
     void run() {
         SharedPreferences settings = context.getSharedPreferences("settings", Context.MODE_PRIVATE);
         String key = SpeechPreferences.INPUT + "_enabled";
-        boolean existed = settings.contains(key);
-        boolean enabled = settings.getBoolean(key, true);
+        Map<String, ?> saved = settings.getAll();
         Bundle result = new Bundle();
         int status = Activity.RESULT_OK;
         try {
-            require(settings.edit().putBoolean(key, false).commit(), "Could not disable STT for the test");
+            require(settings.edit().putBoolean(key, false).putBoolean("custom_enabled", false).commit(), "Could not disable speech for the test");
             checks();
             result.putString("stream", "Voice task tests run: 6, Failures: 0\n");
         } catch (Exception | AssertionError failure) {
@@ -40,8 +40,10 @@ final class VoiceTaskTest {
             result.putString("stream", failure.toString());
         } finally {
             SharedPreferences.Editor restore = settings.edit();
-            if (existed) { restore.putBoolean(key, enabled); }
-            else { restore.remove(key); }
+            for (String name : new String[]{key, "custom_enabled"}) {
+                if (saved.containsKey(name)) { restore.putBoolean(name, (Boolean) saved.get(name)); }
+                else { restore.remove(name); }
+            }
             restore.commit();
         }
         instrumentation.finish(status, result);

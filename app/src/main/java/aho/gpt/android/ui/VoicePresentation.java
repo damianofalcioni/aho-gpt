@@ -3,6 +3,7 @@ package aho.gpt.android.ui;
 import android.app.Activity;
 import android.content.Context;
 import aho.gpt.R;
+import aho.gpt.android.net.ProviderSettings;
 import aho.gpt.android.speech.SpeechPreferences;
 import java.util.Locale;
 
@@ -28,8 +29,10 @@ final class VoicePresentation {
     }
     Locale listening(boolean followUp) {
         Locale language = SpeechPreferences.locale(context, SpeechPreferences.INPUT);
-        show(context.getString(R.string.listening_language, SpeechPreferences.label(context, language)),
-                followUp ? lastAnswer : "");
+        String state = new ProviderSettings(context).voiceAudioMode().usesRecognitionLanguage()
+                ? context.getString(R.string.listening_language, SpeechPreferences.label(context, language))
+                : context.getString(R.string.listening);
+        show(state, followUp ? lastAnswer : "");
         panel.listening(true);
         return language;
     }

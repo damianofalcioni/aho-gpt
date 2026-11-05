@@ -5,6 +5,7 @@ import android.app.Instrumentation;
 import android.content.Intent;
 import android.widget.Switch;
 import aho.gpt.R;
+import aho.gpt.android.net.ProviderSettings;
 import aho.gpt.android.speech.SpeechAvailability;
 import aho.gpt.android.speech.SpeechPreferences;
 
@@ -41,20 +42,21 @@ public final class SpeechProviderNoticeTest {
         boolean saved = SpeechPreferences.enabled(activity, SpeechPreferences.INPUT);
         Switch control = new Switch(activity);
         SpeechInputToggle input = new SpeechInputToggle(activity, control, () -> false, notice);
-        input.refresh(false);
+        input.refresh(false, true);
         require(googleChecks[0] == 0, "Opening or refreshing settings must not request a toast");
         require(control.isEnabled() && !control.isChecked(), "Unavailable STT must remain off but accept an attempt");
         control.performClick();
         require(googleChecks[0] == 1 && !control.isChecked(), "Only an enable attempt may request the warning");
         require(SpeechPreferences.enabled(activity, SpeechPreferences.INPUT) == saved, "Refusal must preserve the saved choice");
-        input.refresh(false);
+        input.refresh(false, true);
         require(googleChecks[0] == 1, "Resuming settings must not repeat the warning");
         input.close();
     }
     private void switchState(Activity activity) {
         Switch toggle = activity.findViewById(R.id.stt_enabled);
-        boolean available = SpeechAvailability.voiceInput(activity);
-        require(toggle.isEnabled(), "Live STT switch must accept attempts for provider feedback");
+        boolean platform = !new ProviderSettings(activity).serverAudio();
+        boolean available = platform && SpeechAvailability.input(activity);
+        require(toggle.isEnabled(), "STT must accept enable attempts for feedback");
         require(toggle.getAlpha() == (available ? 1f : 0.5f), "Unavailable STT must appear muted");
         require(toggle.isChecked() == (available && SpeechPreferences.enabled(activity, SpeechPreferences.INPUT)),
                 "Provider checks must preserve the saved STT choice");

@@ -44,7 +44,7 @@ final class ServerAudioRequest {
             check(scope, revision);
             ProviderSettings.CustomConfig config = settings.customConfig(); check(scope, revision);
             conversation.beginAudio(RealtimeAudio.message(wav), time);
-            boolean playback = SpeechPreferences.enabled(activity, SpeechPreferences.OUTPUT);
+            boolean playback = SpeechPreferences.voiceEnabled(activity, SpeechPreferences.OUTPUT);
             client.open(settings.audioMode(), config, settings.customModel(), playback, scope);
             DeviceTools tools = new DeviceTools(app.catalog(), new IntentExecutor(activity), scope);
             AgentLoop agent = new AgentLoop(request -> {
