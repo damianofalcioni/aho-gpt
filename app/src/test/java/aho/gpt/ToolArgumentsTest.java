@@ -1,6 +1,7 @@
 package aho.gpt;
 
 import aho.gpt.openai.ToolArguments;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -13,6 +14,7 @@ public class ToolArgumentsTest {
     private static final String CAPABILITY = "capability_id";
     private static final String ACTION = "action";
     private static final String TEXT = "text";
+    private static final String APPS = "apps";
     @Test public void acceptsOptionalSearchAndDocumentedInvocation() throws Exception {
         ToolArguments.validate(FIND, new JSONObject(), false);
         ToolArguments.validate(FIND, new JSONObject().put(OFFSET, Integer.MAX_VALUE).put("mode", "overview"), false);
@@ -30,6 +32,20 @@ public class ToolArgumentsTest {
         invalid(FIND, new JSONObject().put("category", "invented"));
         invalid("read_screen", new JSONObject());
         invalid("invented", new JSONObject());
+    }
+
+    @Test public void validatesAlternativeAppNamesAndArrayBounds() throws Exception {
+        JSONArray apps = new JSONArray().put("whatsapp").put("messenger");
+        ToolArguments.validate(FIND, new JSONObject().put(APPS, apps), false);
+        invalid(FIND, new JSONObject().put(APPS, "whatsapp|messenger"));
+        invalid(FIND, new JSONObject().put(APPS, JSONObject.NULL));
+        invalid(FIND, new JSONObject().put(APPS, new JSONArray()));
+        for (Object item : new Object[]{42, JSONObject.NULL, new JSONObject(), new JSONArray(), "", "  ", "x".repeat(513)}) {
+            invalid(FIND, new JSONObject().put(APPS, new JSONArray().put(item)));
+        }
+        while (apps.length() < 16) { apps.put("app"); }
+        ToolArguments.validate(FIND, new JSONObject().put(APPS, apps), false);
+        invalid(FIND, new JSONObject().put(APPS, apps.put("overflow")));
     }
     @Test public void validatesNestedExtrasAndTextBounds() throws Exception {
         JSONObject args = new JSONObject().put(CAPABILITY, "known");

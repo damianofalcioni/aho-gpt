@@ -1,17 +1,21 @@
 package aho.gpt.core;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Locale;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
-/** Structured constraints are combined with AND; an empty field leaves that constraint open. */
+/** Constraints use AND; names within apps use OR. Empty scalar fields leave constraints open. */
 public final class CapabilityQuery {
     private final JSONObject arguments;
     private final String query;
     private final String app;
+    private final List<String> alternatives;
 
     public CapabilityQuery(JSONObject arguments) {
         this.arguments = arguments; query = value("query"); app = value("app");
+        alternatives = alternatives(arguments.optJSONArray("apps"));
         CapabilityCategory.validate(value("category"));
     }
 
@@ -25,7 +29,28 @@ public final class CapabilityQuery {
     }
 
     private boolean app(CapabilityMetadata metadata) {
-        return app.isEmpty() || lower(metadata.app()).contains(app) || lower(metadata.packageName()).contains(app);
+        return (app.isEmpty() || named(metadata, app)) && alternative(metadata);
+    }
+
+    private boolean alternative(CapabilityMetadata metadata) {
+        if (alternatives.isEmpty()) { return true; }
+        for (String name : alternatives) { if (named(metadata, name)) { return true; } }
+        return false;
+    }
+
+    private boolean named(CapabilityMetadata metadata, String name) {
+        return lower(metadata.app()).contains(name) || lower(metadata.packageName()).contains(name);
+    }
+
+    private List<String> alternatives(JSONArray names) {
+        List<String> result = new ArrayList<>();
+        if (names == null) { return result; }
+        for (int i = 0; i < names.length(); i++) {
+            Object name = names.opt(i);
+            if (!(name instanceof String text) || text.trim().isEmpty()) { throw new IllegalArgumentException("App name is blank or invalid"); }
+            result.add(lower((String) name).trim());
+        }
+        return result;
     }
 
     private boolean contract(CapabilityMetadata metadata) {
@@ -52,11 +77,16 @@ public final class CapabilityQuery {
     }
 
     public int score(CapabilityMetadata metadata) {
-        int score = metadata.launcher() ? 5 : 0;
-        if (app.equals(lower(metadata.app()))) { score += 100; }
-        if (app.equals(lower(metadata.packageName()))) { score += 100; }
+        int relevance = appScore(metadata, app);
+        for (String name : alternatives) { relevance = Math.max(relevance, appScore(metadata, name)); }
+        int score = relevance + (metadata.launcher() ? 5 : 0);
         if (query.equals(lower(metadata.app()))) { score += 50; }
         return score;
+    }
+
+    private int appScore(CapabilityMetadata metadata, String name) {
+        int score = name.equals(lower(metadata.app())) ? 100 : 0;
+        return score + (name.equals(lower(metadata.packageName())) ? 100 : 0);
     }
 
     private String value(String field) { return lower(arguments.optString(field)).trim(); }

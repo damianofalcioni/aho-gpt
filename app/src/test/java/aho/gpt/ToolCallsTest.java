@@ -15,6 +15,8 @@ public class ToolCallsTest {
     private static final String VALID = "{\"capability_id\":\"known\"}";
     private static final String STATUS = "status";
     private static final String REFUSED = "refused";
+    private static final String FIND = "find_intents";
+    private static final String NAME = "name";
     @Test public void replaysReceiptWithoutRepeatingMutation() throws Exception {
         RecordingTools tools = new RecordingTools();
         ToolCalls calls = new ToolCalls(tools, new RequestScope());
@@ -51,7 +53,7 @@ public class ToolCallsTest {
         RecordingTools tools = new RecordingTools();
         ToolCalls calls = new ToolCalls(tools, new RequestScope());
         calls.execute(call(CALL_ID, VALID));
-        JSONObject renamed = call(CALL_ID, VALID).put("name", "find_intents");
+        JSONObject renamed = call(CALL_ID, VALID).put(NAME, FIND);
         assertEquals("CALL_ID_REUSED", new JSONObject(calls.execute(renamed)).getString("code"));
         JSONObject moved = call(CALL_ID, VALID).put("namespace", "other");
         assertEquals("CALL_ID_REUSED", new JSONObject(calls.execute(moved)).getString("code"));
@@ -88,6 +90,30 @@ public class ToolCallsTest {
         assertEquals("accepted", new JSONObject(receipt).getString(STATUS));
         assertEquals("a\n\"b\\c\tè", tools.last.getJSONObject("string_extras").getString("text"));
     }
+    @Test public void alternativeSearchArraysReachTheToolWithEscapesPreserved() throws Exception {
+        RecordingTools tools = new RecordingTools();
+        ToolCalls calls = new ToolCalls(tools, new RequestScope());
+        String raw = "{\"apps\": [\" WhatsApp \", \"messenger\", \"a\\\"b\\u00e8\"], \"category\":\"send_message\"}";
+        String receipt = calls.execute(call(CALL_ID, raw).put(NAME, FIND));
+        assertEquals("accepted", new JSONObject(receipt).getString(STATUS));
+        assertEquals(1, tools.dispatches);
+        assertEquals(" WhatsApp ", tools.last.getJSONArray("apps").getString(0));
+        assertEquals("messenger", tools.last.getJSONArray("apps").getString(1));
+        assertEquals("a\"bè", tools.last.getJSONArray("apps").getString(2));
+    }
+    @Test public void malformedOrNestedSearchArraysAreRefusedBeforeDispatch() throws Exception {
+        RecordingTools tools = new RecordingTools();
+        ToolCalls calls = new ToolCalls(tools, new RequestScope());
+        String[] malformed = {"{\"apps\":[\"a\",]}", "{\"apps\":[,\"a\"]}", "{\"apps\":[\"a\" \"b\"]}",
+                "{\"apps\":[\"a\"]} trailing", "{\"apps\":[\"a\"]", "{\"apps\":[[\"a\"]]}",
+                "{\"apps\":[{}]}", "{\"apps\":[1]}", "{\"apps\":[null]}", "{\"apps\":[]}", "{\"apps\":[\"  \"]}",
+                "{\"apps\":[\"a\"],\"apps\":[\"b\"]}", "{\"apps\":[\"bad\\x\"]}"};
+        for (int i = 0; i < malformed.length; i++) {
+            String receipt = calls.execute(call("bad-array" + i, malformed[i]).put(NAME, FIND));
+            assertEquals(REFUSED, new JSONObject(receipt).getString(STATUS));
+        }
+        assertEquals(0, tools.dispatches);
+    }
     @Test public void requestCancellationBlocksValidCalls() throws Exception {
         RecordingTools tools = new RecordingTools();
         RequestScope cancelled = new RequestScope(); cancelled.cancel();
@@ -106,7 +132,7 @@ public class ToolCallsTest {
         assertEquals(97, tools.dispatches);
     }
     private static JSONObject call(String id, String raw) throws Exception {
-        return new JSONObject().put("call_id", id).put("name", "invoke_intent").put("arguments", raw);
+        return new JSONObject().put("call_id", id).put(NAME, "invoke_intent").put("arguments", raw);
     }
     private static final class RecordingTools implements AgentLoop.Tools {
         final List<String> receipts = new ArrayList<>();

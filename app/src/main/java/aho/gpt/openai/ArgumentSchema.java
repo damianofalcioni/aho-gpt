@@ -3,11 +3,11 @@ package aho.gpt.openai;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-/** Small validator for the object, string and integer schemas used by device tools. */
+/** Small validator for the object, array, string and integer schemas used by device tools. */
 final class ArgumentSchema {
     private ArgumentSchema() { }
     static void object(JSONObject value, JSONObject schema) throws Exception {
-        if (value.length() > schema.optInt("maxProperties", 16)) { invalid(); }
+        bounds(value.length(), 0, schema.optInt("maxProperties", 16));
         JSONArray required = schema.optJSONArray("required");
         if (required != null) { required(value, required); }
         JSONObject properties = schema.optJSONObject("properties");
@@ -31,6 +31,7 @@ final class ArgumentSchema {
         switch (schema.getString("type")) {
             case "string": string(value, schema); break;
             case "integer": integer(value); break;
+            case "array": array(value, schema); break;
             case "object":
                 if (!(value instanceof JSONObject)) { invalid(); }
                 object((JSONObject) value, schema); break;
@@ -40,9 +41,15 @@ final class ArgumentSchema {
     private static void string(Object value, JSONObject schema) throws Exception {
         if (!(value instanceof String)) { invalid(); }
         String text = (String) value;
-        if (text.length() > schema.optInt("maxLength", 512)) { invalid(); }
+        bounds(text.length(), schema.optInt("minLength", 0), schema.optInt("maxLength", 512));
         JSONArray choices = schema.optJSONArray("enum");
         if (choices != null && !contains(choices, text)) { invalid(); }
+    }
+    private static void array(Object value, JSONObject schema) throws Exception {
+        if (!(value instanceof JSONArray)) { invalid(); }
+        JSONArray items = (JSONArray) value;
+        bounds(items.length(), schema.optInt("minItems", 0), schema.optInt("maxItems", 16));
+        for (int i = 0; i < items.length(); i++) { check(items.get(i), schema.getJSONObject("items")); }
     }
     private static boolean contains(JSONArray choices, String value) throws Exception {
         for (int i = 0; i < choices.length(); i++) { if (value.equals(choices.getString(i))) { return true; } }
@@ -52,6 +59,9 @@ final class ArgumentSchema {
         if (!(value instanceof Integer || value instanceof Long)) { invalid(); }
         long number = ((Number) value).longValue();
         if (number < 0 || number > Integer.MAX_VALUE) { invalid(); }
+    }
+    private static void bounds(int size, int minimum, int maximum) {
+        if (size < minimum || size > maximum) { invalid(); }
     }
     private static void invalid() { throw new IllegalArgumentException("Invalid tool arguments"); }
 }

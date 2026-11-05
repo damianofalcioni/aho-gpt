@@ -24,8 +24,8 @@ final class CatalogDiscoveryTest {
         require(capabilities.length() <= 25, "Discovery pages must stay bounded");
         for (int i = 0; i < capabilities.length(); i++) {
             JSONObject entry = capabilities.getJSONObject(i);
-            require(entry.getBoolean("opens_app"), "Structured launcher search must exclude other actions");
-            require(entry.getBoolean("semantics_known"), "Launcher contract must be described");
+            require("open_app".equals(entry.getString("category")), "Structured launcher search must exclude other actions");
+            require(!entry.has("description"), "Search must not repeat category descriptions");
         }
         unknownMode(catalog);
     }

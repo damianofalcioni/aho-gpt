@@ -14,11 +14,12 @@ import static org.junit.Assert.*;
 public class CapabilityIndexTest {
     private static final String TOTAL = "total";
     private static final String APPS = "apps";
+    private static final String CHROME = "chrome";
     @Test public void disabledEntriesAreAbsentFromSearchPaginationAndOverviewCounts() throws Exception {
         Map<String, CapabilityMetadata> entries = new LinkedHashMap<>();
         entries.put("disabled", launcher("Hidden app", "hidden.package"));
         for (int i = 0; i < 26; i++) { entries.put("allowed" + i, launcher("Allowed app", "allowed.package")); }
-        CapabilityQuery query = new CapabilityQuery(new JSONObject());
+        CapabilityQuery query = new CapabilityQuery(new JSONObject().put(APPS, new JSONArray().put("hidden").put("allowed")));
         CapabilityIndex index = new CapabilityIndex(entries, id -> !id.equals("disabled"));
         CapabilityIndex.Page page = index.search(query, 0);
         assertEquals(26, page.total()); assertEquals(25, page.nextOffset());
@@ -38,7 +39,7 @@ public class CapabilityIndexTest {
                 "android.intent.action.VIEW", false, Collections.singletonList("https"), Collections.emptyList()));
         entries.put("stable", launcher("Chrome", "example.stable"));
         CapabilityIndex.Page page = new CapabilityIndex(entries).search(
-                new CapabilityQuery(new JSONObject().put("app", "chrome")), 0);
+                new CapabilityQuery(new JSONObject().put("app", CHROME)), 0);
         assertEquals("stable", page.ids().get(0));
         assertEquals("view", page.ids().get(1));
     }
@@ -54,6 +55,21 @@ public class CapabilityIndexTest {
         assertEquals(-1, index.search(query, 2450).nextOffset());
         assertTrue(index.search(query, Integer.MAX_VALUE).ids().isEmpty());
         assertEquals(first.ids(), index.search(query, -1).ids());
+    }
+
+    @Test public void alternativesShareRankingAndDoNotDuplicateMatchingEntries() throws Exception {
+        Map<String, CapabilityMetadata> entries = new LinkedHashMap<>();
+        entries.put("beta", launcher("Chrome Beta", "example.beta"));
+        entries.put("messenger", launcher("Messenger", "example.messenger"));
+        entries.put(CHROME, launcher("Chrome", "example.chrome"));
+        entries.put("other", launcher("Other", "example.other"));
+        CapabilityQuery query = new CapabilityQuery(new JSONObject().put(APPS,
+                new JSONArray().put(CHROME).put("messenger").put("example.chrome")));
+        CapabilityIndex index = new CapabilityIndex(entries);
+        CapabilityIndex.Page page = index.search(query, 0);
+        assertEquals(3, page.total());
+        assertEquals(java.util.List.of("messenger", CHROME, "beta"), page.ids());
+        assertEquals(3, index.overview(query).getInt(APPS));
     }
 
     @Test public void overviewGroupsDeclarationsAndCountsDistinctAppsWithoutIdentityLists() throws Exception {

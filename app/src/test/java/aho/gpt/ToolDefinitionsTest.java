@@ -26,6 +26,18 @@ public class ToolDefinitionsTest {
         assertTrue(properties.getJSONObject("mode").getJSONArray("enum").toString().contains("overview"));
         assertTrue(properties.getJSONObject("category").getJSONArray("enum").toString().contains("open_link"));
         assertTrue(properties.has("app")); assertTrue(properties.has("scheme")); assertTrue(properties.has("mime_type"));
+        assertEquals("array", properties.getJSONObject("apps").getString("type"));
         assertEquals(4, ToolDefinitions.create(true).getJSONObject(0).getJSONArray("tools").length());
+    }
+
+    @Test public void invocationExplainsLimitsWithoutRepeatingThemInEverySearchResult() throws Exception {
+        JSONObject invocation = ToolDefinitions.functions(false).getJSONObject(1);
+        String description = invocation.getString("description");
+        assertTrue(description.contains("Only string extras"));
+        assertTrue(description.contains("File/content/nested intent URIs"));
+        assertTrue(description.contains("URI grants"));
+        assertTrue(description.contains("image streams"));
+        assertTrue(description.contains("multiple-item lists"));
+        assertTrue(description.contains("returned camera/document data"));
     }
 }

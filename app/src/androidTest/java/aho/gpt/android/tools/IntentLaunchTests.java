@@ -20,6 +20,7 @@ import aho.gpt.android.net.LiveSupportTest;
 /** Dependency-free framework tests; run with connectedHandheldDebugAndroidTest. */
 public final class IntentLaunchTests extends Instrumentation {
     private static final ComponentName TARGET = new ComponentName("example.browser", "example.browser.Main");
+    private static final String CATEGORY = "category";
     private String targetPackage;
     private String shortcutLabel;
     private String screenMarker;
@@ -55,10 +56,10 @@ public final class IntentLaunchTests extends Instrumentation {
         if (!shortcutLabel.isEmpty()) { new HomeShortcutLaunchTest(this, shortcutLabel, screenMarker).run(); return; }
         Check[] checks = {() -> launcher(Intent.CATEGORY_LAUNCHER), () -> launcher(Intent.CATEGORY_LEANBACK_LAUNCHER),
                 this::nonLauncher, this::deepLink, this::invalidData, this::rejectedLaunch,
-                this::mimeMetadata, this::discovery, () -> new AssistantEntryTest(getTargetContext()).run(),
+                this::mimeMetadata, () -> new IntentMetadataTest().run(), this::discovery, () -> new AssistantEntryTest(getTargetContext()).run(),
                 () -> new VoiceOverlayTest(this).run()};
         String[] names = {"phoneLauncher", "tvLauncher", "nonLauncher", "deepLink", "invalidData", "rejectedLaunch",
-                "mimeMetadata", "discovery", "assistantEntry", "voiceOverlay"};
+                "mimeMetadata", "intentMetadata", "discovery", "assistantEntry", "voiceOverlay"};
         int failures = 0;
         for (int i = 0; i < checks.length; i++) {
             if (!check(i, names[i], checks[i], checks.length)) { failures++; }
@@ -135,7 +136,7 @@ public final class IntentLaunchTests extends Instrumentation {
         RecordingActivity activity = activity();
         new IntentExecutor(activity).execute(cap, new JSONObject());
         Intent launched = activity.launched;
-        require(cap.describe().getBoolean("opens_app"), "Launcher must be marked as opening the app");
+        require("open_app".equals(cap.describe().getString(CATEGORY)), "Launcher must be classified as opening the app");
         require(launched.hasCategory(category), "App launches must include their discovered launcher category");
         require(TARGET.equals(launched.getComponent()), "Must launch the exact discovered component");
         require(launched.getFlags() == (Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED),
@@ -147,7 +148,7 @@ public final class IntentLaunchTests extends Instrumentation {
         IntentCapability cap = capability(Intent.ACTION_MAIN, new IntentFilter(Intent.ACTION_MAIN));
         RecordingActivity activity = activity();
         new IntentExecutor(activity).execute(cap, new JSONObject());
-        require(!cap.describe().getBoolean("opens_app"), "MAIN alone is not an app launcher");
+        require("custom".equals(cap.describe().getString(CATEGORY)), "MAIN alone is not an app launcher");
         require(activity.launched.getCategories() == null, "Do not invent launcher categories");
         require(activity.launched.getFlags() == Intent.FLAG_ACTIVITY_NEW_TASK, "Keep ordinary activity flags");
     }
@@ -158,7 +159,7 @@ public final class IntentLaunchTests extends Instrumentation {
         IntentCapability cap = capability(Intent.ACTION_VIEW, filter);
         RecordingActivity activity = activity();
         new IntentExecutor(activity).execute(cap, new JSONObject().put("data_uri", "https://example.com"));
-        require(!cap.describe().getBoolean("opens_app"), "Deep links are not app launchers");
+        require("open_link".equals(cap.describe().getString(CATEGORY)), "Deep links are not app launchers");
         require(activity.launched.getCategories() == null, "Do not add launcher categories to deep links");
         require("https://example.com".equals(activity.launched.getDataString()), "Preserve requested URI");
     }
@@ -189,8 +190,8 @@ public final class IntentLaunchTests extends Instrumentation {
         filter.addDataType("image/*");
         JSONObject described = capability(Intent.ACTION_SEND, filter).describe();
         require("image/*".equals(described.getJSONArray("mime_types").getString(0)), "Normalize Android wildcard MIME storage");
-        require("share_content".equals(described.getString("category")), "Describe the declared share action");
-        require(described.getString("usage").contains("unsupported"), "Do not claim image URI streams can be sent");
+        require("share_content".equals(described.getString(CATEGORY)), "Describe the declared share action");
+        require(!described.has("usage"), "Shared limits must not be repeated per intent");
     }
 
     private void discovery() throws Exception {

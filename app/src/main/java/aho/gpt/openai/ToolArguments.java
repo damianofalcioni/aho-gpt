@@ -1,5 +1,6 @@
 package aho.gpt.openai;
 
+import aho.gpt.core.CapabilityQuery;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -19,6 +20,7 @@ public final class ToolArguments {
         throw new IllegalArgumentException("Unknown or unavailable tool");
     }
     private static void target(String name, JSONObject args) throws Exception {
+        if ("find_intents".equals(name)) { new CapabilityQuery(args); }
         if ("invoke_intent".equals(name)) { requireText(args, "capability_id"); }
         if ("ui_action".equals(name)) { uiTarget(args); }
     }

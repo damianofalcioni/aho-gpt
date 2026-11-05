@@ -37,7 +37,9 @@ public final class ToolDefinitions {
     }
 
     private static JSONObject invokeIntent() throws Exception {
-        return function("invoke_intent", "Invoke an exact discovered capability to carry out the user's request. Do not invent IDs or extras.",
+        return function("invoke_intent", "Invoke an exact discovered capability to carry out the user's request. Do not invent IDs or extras. "
+                + "Match data_uri and mime_type to the declared filters. Only string extras are supported. "
+                + "File/content/nested intent URIs, URI grants, image streams, multiple-item lists and returned camera/document data are unsupported.",
                 """
                 {"capability_id":{"type":"string"},"data_uri":{"type":"string","maxLength":4096},
                  "mime_type":{"type":"string"},
@@ -64,6 +66,9 @@ public final class ToolDefinitions {
                 {"mode":{"type":"string","enum":["overview","search"],"description":"Default search; overview returns available categories and counts without app identities."},
                  "query":{"type":"string","description":"Optional keywords, matched across metadata and standard descriptions. Prefer structured filters to whole sentences."},
                  "app":{"type":"string","description":"App name or package substring."},
+                 "apps":{"type":"array","minItems":1,"maxItems":16,
+                    "items":{"type":"string","minLength":1,"maxLength":512},
+                    "description":"Alternative nonblank app names or package substrings (OR), case-insensitive. No regex or spelling correction."},
                  "package":{"type":"string","description":"Exact Android package name."},
                  "category":{"type":"string"},
                  "kind":{"type":"string","enum":["activity","service","broadcast"]},
@@ -75,9 +80,11 @@ public final class ToolDefinitions {
         JSONArray categories = new JSONArray().put("");
         for (CapabilityCategory category : CapabilityCategory.values()) { categories.put(category.id); }
         properties.getJSONObject("category").put("enum", categories);
-        return function("find_intents", "Discover installed app capabilities. Use mode overview for available task categories, "
-                + "then mode search with app/category/scheme/MIME filters for exact entries and usage limits. "
-                + "Filters combine with AND. Narrow searches before paginating with next_offset; pages contain at most 25 entries. "
+        return function("find_intents", "Discover installed app capabilities. Use mode overview for available task categories and usage limits, "
+                + "then mode search with app/category/scheme/MIME filters for exact entries. "
+                + "Names within apps combine with OR; all other filters combine with AND, including app if supplied. "
+                + "Results keep locally assigned category IDs and declared filters, omitting empty filter arrays. "
+                + "Narrow searches before paginating with next_offset; pages contain at most 25 entries. "
                 + "Home-screen website shortcuts are not catalog entries; use enabled screen tools to find and click them. "
                 + "Unknown custom actions do not have inferred semantics.", properties.toString());
     }

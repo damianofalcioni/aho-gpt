@@ -3,7 +3,6 @@ package aho.gpt.android.tools;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.IntentFilter;
-import aho.gpt.core.CapabilityCategory;
 import aho.gpt.core.CapabilityIdentity;
 import aho.gpt.core.CapabilityMetadata;
 import java.util.ArrayList;
@@ -27,20 +26,23 @@ public final class IntentCapability {
         id = kind + ":" + component.flattenToString() + ":" + action + ":" + filter.toString().hashCode();
         metadata = new CapabilityMetadata(label, component.getPackageName(), component.flattenToString(), kind, action,
                 !launcherCategory().isEmpty(), values(filter.schemesIterator()), mimeTypes());
-        try { preferenceKey = CapabilityIdentity.key(describe()); }
+        try { preferenceKey = CapabilityIdentity.key(declaration()); }
         catch (JSONException exception) { throw new IllegalArgumentException("Invalid intent declaration", exception); }
     }
 
     public JSONObject describe() throws JSONException {
-        CapabilityCategory category = metadata.category();
+        JSONObject result = declaration().put("category", metadata.category().id);
+        for (String field : new String[]{"schemes", "mime_types", "authorities", "paths", "categories"}) {
+            if (result.getJSONArray(field).length() == 0) { result.remove(field); }
+        }
+        return result;
+    }
+
+    private JSONObject declaration() throws JSONException {
         return new JSONObject().put("id", id).put("app", label).put("kind", kind)
-                .put("opens_app", !launcherCategory().isEmpty())
-                .put("category", category.id).put("description", category.description).put("usage", category.usage)
-                .put("semantics_known", category != CapabilityCategory.CUSTOM)
                 .put("component", component.flattenToString()).put("action", action)
                 .put("schemes", strings(filter.schemesIterator())).put("mime_types", new org.json.JSONArray(metadata.mimeTypes()))
-                .put("authorities", authorities()).put("paths", paths()).put("categories", strings(filter.categoriesIterator()))
-                .put("note", "Exported intent; standard usage is described where known. Do not invent other extra parameter semantics.");
+                .put("authorities", authorities()).put("paths", paths()).put("categories", strings(filter.categoriesIterator()));
     }
 
     public CapabilityMetadata metadata() { return metadata; }

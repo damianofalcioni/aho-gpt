@@ -9,7 +9,7 @@ A lightweight voice assistant for Android phones, tablets, TV and Wear OS. Conne
 ## Main features
 
 - **Voice conversations:** spoken answers and automatic follow-up listening, with temporary context and no saved chat history.
-- **App actions:** open apps and use their available actions. Optional accessibility access lets the assistant read screen text and operate visible controls.
+- **App actions:** find actions across installed apps, open apps and use their available actions. Optional accessibility access lets the assistant read screen text and operate visible controls.
 - **Your choice of tools:** enable or disable individual device functions and app actions. Android permissions and app restrictions still apply.
 - **AI providers:** choose ChatGPT or an OpenAI-compatible server, such as llama.cpp, and select a detected model.
 - **Display and speech settings:** light or dark theme, English or Italian app text, recognition language, voices and speech tests. Choose speech APIs, Realtime, or GPT-Live with a separate reasoning model.
