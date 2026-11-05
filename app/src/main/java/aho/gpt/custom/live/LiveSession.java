@@ -2,6 +2,7 @@ package aho.gpt.custom.live;
 
 import aho.gpt.custom.SpeechApiConfig;
 import aho.gpt.openai.ResponseText;
+import aho.gpt.openai.VoiceInstructions;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.IOException;
@@ -30,7 +31,9 @@ public final class LiveSession {
         JSONObject audio = new JSONObject().put("format", new JSONObject().put(TYPE, "audio/pcm").put("rate", 24_000))
                 .put("output", new JSONObject().put("voice", config.liveVoice()));
         JSONObject session = new JSONObject().put(MODEL, config.liveModel()).put("store", false).put("audio", audio)
-                .put("instructions", "Answer briefly in the language and style of the latest request. "
+                .put("instructions", VoiceInstructions.style()
+                        + "Use that same language for spoken acknowledgments and summaries of backend results. "
+                        + "Do not adopt the language of these instructions, previous assistant replies or backend text. "
                         + "For every user request, Generate <|SpawnThinking|>. Let the backend handle reasoning and all actions. "
                         + "Wait until the user finishes speaking. Never announce an action as successful without its backend result.")
                 .put("input", history(request.getJSONArray("input")))

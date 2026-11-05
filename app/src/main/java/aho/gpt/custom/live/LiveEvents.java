@@ -7,20 +7,23 @@ import org.json.JSONObject;
 
 /** Tracks bounded voice data, transport inactivity and terminal session events. */
 final class LiveEvents {
+    interface Clock { long now(); }
     private static final String TYPE = "type";
     private final RealtimeProtocol.Events events;
     final LiveAudio audio = new LiveAudio();
     private final StringBuilder transcript = new StringBuilder();
-    private long progressed = System.nanoTime();
+    private final Clock clock;
+    private long progressed;
     private boolean closing;
-    LiveEvents(RealtimeProtocol.Events events) { this.events = events; }
-    void progress() { progressed = System.nanoTime(); }
+    LiveEvents(RealtimeProtocol.Events events) { this(events, System::nanoTime); }
+    LiveEvents(RealtimeProtocol.Events events, Clock clock) { this.events = events; this.clock = clock; progress(); }
+    void progress() { progressed = clock.now(); }
     String transcript() { return transcript.toString(); }
     void send(JSONObject event, RequestScope scope) throws Exception { scope.check(); events.send(event, scope); }
     void send(String type, RequestScope scope) throws Exception { send(new JSONObject().put(TYPE, type), scope); }
     JSONObject receive(RequestScope scope) throws Exception {
         scope.check(); JSONObject event = events.receive(scope); scope.check();
-        if (System.nanoTime() - progressed > 60_000_000_000L) { throw new IOException("Live response stalled"); }
+        if (clock.now() - progressed > 60_000_000_000L) { throw new LiveInactivityException(); }
         String type = event.getString(TYPE); terminal(type, event); consume(type, event); return event;
     }
     private void terminal(String type, JSONObject event) throws IOException {
@@ -46,6 +49,10 @@ final class LiveEvents {
     }
     JSONObject await(String type, RequestScope scope) throws Exception {
         while (true) { JSONObject event = receive(scope); if (type.equals(event.getString(TYPE))) { return event; } }
+    }
+    String diagnostics() {
+        return "inputTranscript=" + (transcript.length() > 0) + " outputSpeech=" + audio.speechDetected()
+                + " outputSettled=" + audio.settled() + " progressIdleMs=" + Math.max(0, clock.now() - progressed) / 1_000_000;
     }
     void close(RequestScope scope) throws Exception {
         closing = true; progress(); send("session.close", scope);

@@ -7,7 +7,6 @@ import aho.gpt.custom.live.LiveProtocol;
 import aho.gpt.custom.live.LiveInputPump;
 import aho.gpt.custom.realtime.RealtimeAudio;
 import aho.gpt.custom.realtime.RealtimeSocket;
-import aho.gpt.android.logging.AppLogger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -24,28 +23,36 @@ public final class CustomLiveClient {
     private boolean started;
     public void open(String base, String token, String selected, SpeechApiConfig config, RequestScope scope) throws Exception {
         RealtimeSocket socket = new RealtimeSocket(); activate(socket, scope);
-        model = selected.isEmpty() ? ServerModels.first(models.json(base + "/models", token, null, scope)) : selected;
-        this.config = config; started = false;
-        socket.connectLive(base, token, scope); socket.readTimeout(15_000);
-        events = new CustomLiveEvents(socket); protocol = new LiveProtocol(events);
+        events = new CustomLiveEvents(socket); protocol = new LiveProtocol(events); events.attach(protocol);
+        try {
+            model = selected.isEmpty() ? ServerModels.first(models.json(base + "/models", token, null, scope)) : selected;
+            this.config = config; started = false;
+            socket.connectLive(base, token, scope); socket.readTimeout(15_000);
+        } catch (Exception failure) { events.failed(failure, scope); throw failure; }
     }
     public void check(RequestScope scope) throws Exception {
         JSONObject request = new JSONObject().put("instructions", "Check session configuration.")
                 .put("input", new JSONArray()).put("tools", new JSONArray());
-        protocol.initialize(model, config, request, scope); protocol.close(scope);
+        try {
+            protocol.initialize(model, config, request, scope); events.checkpoint(); protocol.close(scope); events.completed();
+        } catch (Exception failure) { events.failed(failure, scope); throw failure; }
     }
     public JSONObject respond(JSONObject request, byte[] wav, RequestScope scope) throws Exception {
-        if (!started) {
-            protocol.initialize(model, config, request, scope);
-            active.readTimeout(60_000);
-            RealtimeSocket socket = active;
-            pump.start(events, RealtimeAudio.pcm(wav), scope, socket::close); started = true;
-        }
-        return protocol.respond(request, scope);
+        try {
+            if (!started) {
+                protocol.initialize(model, config, request, scope); events.checkpoint();
+                active.readTimeout(60_000);
+                RealtimeSocket socket = active; byte[] pcm = RealtimeAudio.pcm(wav); events.capture(pcm);
+                pump.start(events, pcm, scope, socket::close); started = true;
+            }
+            JSONObject result = protocol.respond(request, scope); events.checkpoint(); return result;
+        } catch (Exception failure) { events.failed(failure, scope); throw failure; }
     }
     public byte[] finish(boolean playback, RequestScope scope) throws Exception {
-        AppLogger.i("Live", "stage=ANSWER_READY");
-        byte[] pcm = protocol.finish(playback, scope); pump.close(); active.readTimeout(15_000); protocol.close(scope); return pcm;
+        try {
+            byte[] pcm = protocol.finish(playback, scope); events.checkpoint();
+            pump.close(); active.readTimeout(15_000); protocol.close(scope); events.completed(); return pcm;
+        } catch (Exception failure) { events.failed(failure, scope); throw failure; }
     }
     public String transcript() { return protocol.transcript(); }
     private synchronized void activate(RealtimeSocket socket, RequestScope scope) throws InterruptedException {
@@ -53,6 +60,9 @@ public final class CustomLiveClient {
     }
     public synchronized void cancel(RequestScope scope) {
         models.cancel(scope);
-        if (owner == scope && active != null) { pump.close(); active.close(); active = null; owner = null; }
+        if (owner == scope && active != null) {
+            if (events != null) { events.cancelled(); }
+            pump.close(); active.close(); active = null; owner = null;
+        }
     }
 }

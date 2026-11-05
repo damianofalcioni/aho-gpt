@@ -223,7 +223,8 @@
     <string name="custom_live_unavailable">GPT-Live unavailable. Check the server and models. Switch kept off.</string>
     <string name="custom_live_setup_rejected">GPT-Live rejected this setup. Choose a reasoning model in Model and check the voice settings.</string>
     <string name="custom_live_help">Use a voice model with the main model for reasoning and tools. Choose the voice model and voice with the gear. Needs GPT-Live support. Android speech switches and language do not apply. Voice sessions and reasoning may both cost money. Replies are buffered; live interruption is unavailable.</string>
-    <string name="custom_live_failed">GPT-Live request failed. Check the server and models.</string>
+    <string name="custom_live_failed">GPT-Live request failed.</string>
+    <string name="custom_live_timeout">GPT-Live response timed out.</string>
     <string name="server_live_settings">GPT-Live settings</string>
     <string name="server_live_model">Voice model</string>
     <string name="server_live_voice">Voice</string>

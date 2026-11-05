@@ -20,6 +20,7 @@ final class LiveDirectAnswer {
         spoken.append(text);
     }
     boolean ready(LiveAudio audio) { return !delegated && spoken.length() > 0 && audio.settled(); }
+    String diagnostics() { return "delegated=" + delegated + " voiceText=" + (spoken.length() > 0); }
     JSONObject response() throws Exception {
         JSONObject part = new JSONObject().put("type", "output_text").put("text", spoken.toString().trim());
         JSONObject message = new JSONObject().put("type", "message").put("role", "assistant").put("content", new JSONArray().put(part));

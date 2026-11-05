@@ -223,7 +223,8 @@
     <string name="custom_live_unavailable">GPT-Live non disponibile. Controlla server e modelli. Interruttore disattivato.</string>
     <string name="custom_live_setup_rejected">Configurazione GPT-Live rifiutata. Scegli un modello di ragionamento in Modello e controlla le impostazioni vocali.</string>
     <string name="custom_live_help">Usa un modello vocale con il modello principale per ragionamento e strumenti. Scegli modello vocale e voce dall’ingranaggio. Richiede GPT-Live. Gli interruttori e la lingua vocali Android non si applicano. Voce e ragionamento possono avere costi separati. Le risposte sono riprodotte dopo la ricezione; non puoi interromperle parlando.</string>
-    <string name="custom_live_failed">Richiesta GPT-Live non riuscita. Controlla server e modelli.</string>
+    <string name="custom_live_failed">Richiesta GPT-Live non riuscita.</string>
+    <string name="custom_live_timeout">Tempo di attesa della risposta GPT-Live scaduto.</string>
     <string name="server_live_settings">Impostazioni GPT-Live</string>
     <string name="server_live_model">Modello vocale</string>
     <string name="server_live_voice">Voce</string>

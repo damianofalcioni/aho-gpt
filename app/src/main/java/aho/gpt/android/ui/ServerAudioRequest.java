@@ -15,6 +15,7 @@ import aho.gpt.core.Conversation;
 import aho.gpt.core.RequestScope;
 import aho.gpt.custom.realtime.RealtimeAudio;
 import aho.gpt.openai.AgentLoop;
+import java.net.SocketTimeoutException;
 import java.util.concurrent.Future;
 
 /** Uses the shared agent safety loop for complete Realtime or Live responses. */
@@ -55,10 +56,15 @@ final class ServerAudioRequest {
             conversation.transcribeLatest(client.transcript());
             post(scope, () -> deliver(scope, () -> answer.accept(text, pcm)));
         } catch (Exception exception) {
+            if (scope.isCancelled()) { AppLogger.d("Audio", "Request cancelled"); return; }
             AppLogger.w("Audio", "Request failed", exception);
-            int message = settings.customLive() ? R.string.custom_live_failed : R.string.custom_realtime_failed;
+            int message = failureMessage(exception);
             post(scope, () -> deliver(scope, () -> failure.accept(activity.getString(message))));
         } finally { client.cancel(scope); }
+    }
+    private int failureMessage(Exception failure) {
+        if (!settings.customLive()) { return R.string.custom_realtime_failed; }
+        return failure instanceof SocketTimeoutException ? R.string.custom_live_timeout : R.string.custom_live_failed;
     }
     private void check(RequestScope scope, String revision) throws InterruptedException {
         scope.check();

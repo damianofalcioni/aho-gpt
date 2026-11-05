@@ -6,7 +6,8 @@ import org.json.JSONObject;
 
 /** Fixed diagnostic vocabulary; no provider-controlled data is returned. */
 public enum LiveStage {
-    STARTED, INPUT_TRANSCRIBED, VOICE_AUDIO, VOICE_TRANSCRIPT, DELEGATED, BACKEND_STARTED, BACKEND_COMPLETED, FAILED, CLOSED, OTHER;
+    STARTED, INPUT_TRANSCRIBED, VOICE_AUDIO, VOICE_TRANSCRIPT, DELEGATED, BACKEND_STARTED, BACKEND_COMPLETED,
+    BACKEND_ITEM_ADDED, BACKEND_ITEM_DONE, BACKEND_ARGUMENTS, BACKEND_TEXT, FAILED, CLOSED, OTHER;
     private static final Map<String, LiveStage> EVENTS = events();
     private static final Map<String, LiveStage> BACKEND = backendEvents();
     private static Map<String, LiveStage> events() {
@@ -30,6 +31,8 @@ public enum LiveStage {
         events.put("response.created", BACKEND_STARTED); events.put("response.completed", BACKEND_COMPLETED);
         events.put("response.failed", FAILED); events.put("response.incomplete", FAILED);
         events.put("response.cancelled", FAILED); events.put("error", FAILED);
+        events.put("response.output_item.added", BACKEND_ITEM_ADDED); events.put("response.output_item.done", BACKEND_ITEM_DONE);
+        events.put("response.function_call_arguments.delta", BACKEND_ARGUMENTS); events.put("response.output_text.delta", BACKEND_TEXT);
         return events;
     }
     private static LiveStage lookup(Map<String, LiveStage> events, String type) {

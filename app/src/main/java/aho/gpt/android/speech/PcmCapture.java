@@ -9,6 +9,7 @@ import android.media.MediaRecorder;
 import aho.gpt.core.RequestScope;
 import aho.gpt.custom.SpeechAudio;
 import aho.gpt.custom.SpeechSilence;
+import aho.gpt.android.logging.AppLogger;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
@@ -19,6 +20,7 @@ final class PcmCapture {
     PcmCapture(Context context) { this.context = context; }
     byte[] record(RequestScope scope, Runnable began) throws Exception {
         AudioRecord recorder = create(scope);
+        AppLogger.i("AudioCapture", "Capture started sampleRate=16000");
         try { return read(recorder, scope, began); }
         finally {
             synchronized (this) { active = null; recorder.release(); }
@@ -55,6 +57,7 @@ final class PcmCapture {
             for (int index = 0; index < count; index++) { audio.write(buffer[index] & 255); audio.write((buffer[index] >> 8) & 255); }
         }
         scope.check();
+        AppLogger.i("AudioCapture", "Capture ended durationMs=" + audio.size() / 32 + " speechStarted=" + silence.began());
         return silence.began() ? SpeechAudio.wav(audio.toByteArray(), 16_000) : new byte[0];
     }
     synchronized void cancel() {

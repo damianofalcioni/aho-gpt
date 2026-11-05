@@ -31,6 +31,7 @@ public final class LiveAudio {
     public void backendFinished() { quiet = 0; }
     public boolean settled() { return speech && quiet >= 48_000; }
     public boolean speaking() { return speech && quiet < 2400; }
+    public boolean speechDetected() { return speech; }
     public byte[] bytes() { return output.toByteArray(); }
     public void clear() { output.reset(); speech = false; quiet = 0; }
 }
