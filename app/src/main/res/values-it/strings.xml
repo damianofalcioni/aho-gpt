@@ -143,7 +143,7 @@
     <string name="tts_language_unavailable">Impossibile riprodurre %1$s. Scegli un’altra lingua TTS.</string>
     <string name="tts_playback_failed">Impossibile riprodurre %1$s. Controlla le impostazioni vocali Android.</string>
     <string name="app_version">Versione %1$s</string>
-    <string name="about_description">Un assistente vocale per Android, TV e Wear OS. Fai una richiesta e ascolta la risposta.</string>
+    <string name="about_description">Un assistente IA per Android, TV e Wear OS che può controllare il tuo dispositivo solo con la voce</string>
     <string name="speak">Parla</string>
     <string name="close">Chiudi</string>
     <string name="voice_finished">Terminato</string>

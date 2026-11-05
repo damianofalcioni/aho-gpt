@@ -13,3 +13,4 @@ Read `SPECIFICATION.md` before changing product behavior. Use focused Java compo
 - Fix PMD findings by simplifying code; do not weaken limits. Use narrowly scoped deprecation suppressions only for required compatibility callbacks or pre-minimum API alternatives.
 - After changes run relevant unit tests, `complexityCheck`, both variant lints, and both builds. Test release shrinking when manifest entry points or reflection contracts change.
 - Keep README and SPECIFICATION aligned with actual behavior and limitations. Do not call a build device-tested or OAuth-tested without that evidence.
+- Fill the website changelog and Fastlane release notes only when preparing a release. Do not add development or unreleased entries.

@@ -1,1 +1,0 @@
-Initial development release with voice requests, temporary follow-ups, app actions, optional screen tools, speech settings and local logs.

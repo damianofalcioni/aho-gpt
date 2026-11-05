@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="artwork/Aho-GPT.png" alt="Aho! GPT logo" width="160" height="160">
+  <img src="fastlane/metadata/android/en-US/images/logo-readme.png" alt="Aho! GPT logo" width="160" height="160">
 </p>
 
 # Aho! GPT

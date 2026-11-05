@@ -2,7 +2,9 @@
 
 metadata/android/ is the shared Fastlane Supply listing for Google Play and F-Droid. It contains English and Italian descriptions and English release notes. No Ruby or Fastlane executable is needed.
 
-Before publishing, export artwork/Aho-GPT.png as a 512×512 en-US/images/icon.png (at most 1 MiB), then add real phone screenshots (2–8) under en-US/images/phoneScreenshots/ and an opaque 1024×500 featureGraphic.jpg or featureGraphic.png under en-US/images/. Do not copy Vibro artwork. The local verifier and F-Droid readiness job refuse incomplete listings.
+Images are in metadata/android/en-US/images/: logo.png holds the original artwork, icon.png is the 512×512 store icon, and phoneScreenshots/ is ready for real phone screenshots (2–8). Before publishing, add those screenshots and an opaque 1024×500 featureGraphic.jpg or featureGraphic.png. Do not copy Vibro artwork. The local verifier and F-Droid readiness job refuse incomplete listings.
+
+logo-readme.png is the 160×160 rounded README variant, with transparent corners for light and dark backgrounds.
 
 Run ./gradlew :app:preparePlayListing to validate and generate GPP resources. The Google Play Listing workflow does the same and saves a review artifact. Its publish option uploads both Play package listings and permits Google review submission.
 

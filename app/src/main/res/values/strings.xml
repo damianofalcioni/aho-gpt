@@ -143,7 +143,7 @@
     <string name="tts_language_unavailable">Cannot speak %1$s. Choose another TTS language.</string>
     <string name="tts_playback_failed">Could not play %1$s. Check Android speech settings.</string>
     <string name="app_version">Version %1$s</string>
-    <string name="about_description">A voice assistant for Android, TV and Wear OS. Speak a request and hear an answer.</string>
+    <string name="about_description">An AI assistant for Android, TV, and Wear OS that can operate your device only with voice</string>
     <string name="speak">Speak</string>
     <string name="close">Close</string>
     <string name="voice_finished">Finished</string>
