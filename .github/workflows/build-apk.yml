@@ -164,7 +164,7 @@ jobs:
           if-no-files-found: error
           path: ${{ runner.temp }}/play-release/
 
-      - name: Attach signed FOSS APK to release
+      - name: Attach signed F-Droid APKs to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v3
         with:

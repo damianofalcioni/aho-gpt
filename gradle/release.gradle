@@ -67,7 +67,7 @@ abstract class PrepareReleaseTask extends DefaultTask {
 }
 
 def releaseAppBuildFile = layout.projectDirectory.file("app/build.gradle").asFile
-def releaseFdroidMetadataFiles = ["aho.gpt.foss", "aho.gpt.foss.wear"].collect { layout.projectDirectory.file("fdroid/${it}.yml").asFile }
+def releaseFdroidMetadataFiles = ["aho.gpt", "aho.gpt.wear"].collect { layout.projectDirectory.file("fdroid/${it}.yml").asFile }
 def releaseChangelogFile = layout.projectDirectory.file("docs/CHANGELOG/index.html").asFile
 def releaseFastlaneChangelogDir = layout.projectDirectory.dir("fastlane/metadata/android/en-US/changelogs").asFile
 def releaseRepoDir = layout.projectDirectory.asFile

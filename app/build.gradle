@@ -22,7 +22,7 @@ android {
     bundle { language { enableSplit = false } }
     productFlavors {
         gplay { dimension = "distribution" }
-        fdroid { dimension = "distribution"; applicationIdSuffix = ".foss" }
+        fdroid { dimension = "distribution" }
         handheld { dimension = "device" }
         wear { dimension = "device"; applicationIdSuffix = ".wear"; minSdk = 26 }
     }

@@ -16,7 +16,7 @@ on:
       fdroiddata_branch:
         description: "Branch name in your GitLab fdroiddata fork"
         required: true
-        default: "aho.gpt.foss"
+        default: "aho.gpt"
   workflow_call:
     inputs:
       device:
@@ -32,7 +32,7 @@ on:
         description: "Branch name in your GitLab fdroiddata fork"
         required: false
         type: string
-        default: "aho.gpt.foss"
+        default: "aho.gpt"
       release_artifact:
         description: "Signed APK artifact from the calling release build"
         required: false
@@ -75,7 +75,7 @@ jobs:
 
     env:
       DEVICE: ${{ inputs.device }}
-      APP_ID: ${{ inputs.device == 'wear' && 'aho.gpt.foss.wear' || 'aho.gpt.foss' }}
+      APP_ID: ${{ inputs.device == 'wear' && 'aho.gpt.wear' || 'aho.gpt' }}
       TARGET_PROJECT: fdroid/fdroiddata
       TARGET_BRANCH: master
 
@@ -232,7 +232,7 @@ jobs:
         env:
           GITLAB_NAMESPACE: ${{ secrets.GITLAB_NAMESPACE }}
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
-          FDROIDDATA_BRANCH: ${{ inputs.fdroiddata_branch }}
+          FDROIDDATA_BRANCH: ${{ format('{0}-{1}', inputs.fdroiddata_branch, inputs.device) }}
           RELEASE_REF: ${{ inputs.release_ref }}
           VERSION_NAME: ${{ steps.render.outputs.version_name }}
           VERSION_CODE: ${{ steps.render.outputs.version_code }}
@@ -326,7 +326,7 @@ jobs:
           metadata_file = urllib.parse.quote(f"metadata/{app_id}.yml", safe="")
           target_metadata = api("GET", f"/projects/{target_project_info['id']}/repository/files/{metadata_file}?ref={urllib.parse.quote(target_branch, safe='')}", allowed_statuses=(404,))
           new_app = target_metadata is None
-          app_name = "Aho! GPT Wear FOSS" if os.environ["DEVICE"] == "wear" else "Aho! GPT FOSS"
+          app_name = "Aho! GPT Wear" if os.environ["DEVICE"] == "wear" else "Aho! GPT"
           title = f"New app: {app_name}" if new_app else f"{app_name}: update to {version_name} ({version_code})"
           template = "fdroid/APP_INCLUSION.md" if new_app else "fdroid/APP_UPDATE.md"
           description = Path(template).read_text(encoding="utf-8")
